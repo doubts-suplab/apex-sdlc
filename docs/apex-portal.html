@@ -176,15 +176,15 @@
 
   <div class="sidebar-section">
     <div class="sidebar-label">Main</div>
-    <div class="nav-item active">
+    <div class="nav-item active" onclick="scrollToSection('top')">
       <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
       Dashboard
     </div>
-    <div class="nav-item">
+    <div class="nav-item" onclick="scrollToSection('sdlc-section')">
       <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 8v4l3 3"/></svg>
       SDLC Timeline
     </div>
-    <div class="nav-item">
+    <div class="nav-item" onclick="scrollToSection('persona-section')">
       <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
       Personas
     </div>
@@ -192,20 +192,20 @@
 
   <div class="sidebar-section">
     <div class="sidebar-label">Build &amp; Integrate</div>
-    <div class="nav-item">
+    <div class="nav-item" onclick="window.location.href='adoption-guide.html#claude-md'">
       <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>
       CLAUDE.md Builder
     </div>
-    <div class="nav-item">
+    <div class="nav-item" onclick="window.location.href='adoption-guide.html#prompt-section'">
       <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg>
       Prompt Library
       <span class="nav-badge">47</span>
     </div>
-    <div class="nav-item">
+    <div class="nav-item" onclick="scrollToSection('tools-section')">
       <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
       Automation Pipelines
     </div>
-    <div class="nav-item">
+    <div class="nav-item" onclick="scrollToSection('tools-section')">
       <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M4.93 4.93a10 10 0 0 0 0 14.14"/></svg>
       Integrations
     </div>
@@ -213,18 +213,26 @@
 
   <div class="sidebar-section">
     <div class="sidebar-label">Governance</div>
-    <div class="nav-item">
+    <div class="nav-item" onclick="window.location.href='apex-governance.html'">
       <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
       Policy Engine
     </div>
-    <div class="nav-item">
+    <div class="nav-item" onclick="window.location.href='apex-governance.html'">
       <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
       Audit Log
     </div>
-    <div class="nav-item">
+    <div class="nav-item" onclick="window.location.href='apex-governance.html'">
       <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
       Metrics
     </div>
+  </div>
+
+  <div class="sidebar-section">
+    <div class="sidebar-label">Navigate</div>
+    <div class="nav-item" onclick="window.location.href='index.html'">🏠 Home</div>
+    <div class="nav-item" onclick="window.location.href='adoption-guide.html'">🚀 Adoption Guide</div>
+    <div class="nav-item" onclick="window.location.href='apex-governance.html'">🛡️ Governance</div>
+    <div class="nav-item" onclick="window.location.href='apex-framework.html'">📐 Framework Doc</div>
   </div>
 
   <div class="sidebar-footer">
@@ -246,8 +254,8 @@
       <div class="phase-dot"></div>
       Phase 1 — Developer Pilot Active
     </div>
-    <button class="btn btn-outline">View Roadmap</button>
-    <button class="btn btn-primary">+ New Automation</button>
+    <button class="btn btn-outline" onclick="scrollToSection('sdlc-section')">View Roadmap</button>
+    <button class="btn btn-primary" onclick="scrollToSection('tools-section')">+ New Automation</button>
   </div>
 
   <div class="content">
@@ -283,7 +291,7 @@
     </div>
 
     <!-- SDLC Timeline -->
-    <div class="section-title">SDLC Phase Coverage</div>
+    <div class="section-title" id="sdlc-section">SDLC Phase Coverage</div>
     <div class="phase-timeline">
       <div class="phase-step">
         <div class="phase-inner done">
@@ -339,22 +347,22 @@
     <!-- Quick Actions -->
     <div class="section-title">Quick Actions</div>
     <div class="quick-actions">
-      <div class="qa-card">
+      <div class="qa-card" onclick="window.location.href='adoption-guide.html#claude-md'">
         <div class="qa-icon">📝</div>
         <div class="qa-label">Generate CLAUDE.md</div>
         <div class="qa-sub">For a new repo</div>
       </div>
-      <div class="qa-card">
+      <div class="qa-card" onclick="window.location.href='adoption-guide.html#prompt-section'">
         <div class="qa-icon">🔍</div>
         <div class="qa-label">Browse Prompts</div>
         <div class="qa-sub">47 prompts available</div>
       </div>
-      <div class="qa-card">
+      <div class="qa-card" onclick="scrollToSection('tools-section')">
         <div class="qa-icon">⚙️</div>
-        <div class="qa-label">New Pipeline</div>
-        <div class="qa-sub">Jira → Claude trigger</div>
+        <div class="qa-label">Tool Status</div>
+        <div class="qa-sub">Jira bridge · CI/CD gates</div>
       </div>
-      <div class="qa-card">
+      <div class="qa-card" onclick="window.location.href='apex-governance.html'">
         <div class="qa-icon">📊</div>
         <div class="qa-label">Governance Report</div>
         <div class="qa-sub">June 2026 summary</div>
@@ -362,7 +370,7 @@
     </div>
 
     <!-- Persona adoption + activity feed -->
-    <div class="two-col">
+    <div class="two-col" id="persona-section">
       <div>
         <div class="section-title">Persona Adoption</div>
         <div class="persona-grid" style="grid-template-columns:1fr 1fr;">
@@ -471,11 +479,11 @@
     </div>
 
     <!-- Tool Status + Upcoming -->
-    <div class="two-col" style="margin-top:20px">
+    <div class="two-col" style="margin-top:20px" id="tools-section">
       <div class="card">
         <div class="card-header">
           <div class="card-title">Tool Integration Status</div>
-          <div class="card-link">Manage →</div>
+          <div class="card-link" onclick="window.location.href='apex-governance.html'" style="cursor:pointer">Manage →</div>
         </div>
         <div class="tool-row">
           <div class="tool-status-dot green"></div>
@@ -587,6 +595,46 @@
 
   </div>
 </main>
+
+<script>
+function scrollToSection(id) {
+  const el = document.getElementById(id);
+  if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+// Phase step click — highlight selected phase
+document.querySelectorAll('.phase-inner').forEach(el => {
+  el.addEventListener('click', () => {
+    document.querySelectorAll('.phase-inner').forEach(p => p.style.outline = '');
+    el.style.outline = '2px solid var(--primary)';
+  });
+});
+
+// Persona card click → adoption guide
+document.querySelectorAll('.persona-card').forEach(card => {
+  card.addEventListener('click', () => {
+    window.location.href = 'adoption-guide.html';
+  });
+});
+
+// "Full roadmap →" link
+document.querySelectorAll('.card-link').forEach(link => {
+  if (link.textContent.trim() === 'Full roadmap →') {
+    link.style.cursor = 'pointer';
+    link.addEventListener('click', () => scrollToSection('sdlc-section'));
+  }
+  if (link.textContent.trim() === 'View all →') {
+    link.style.cursor = 'pointer';
+    link.addEventListener('click', () => window.location.href = 'apex-governance.html');
+  }
+});
+
+// Alert "View report →"
+document.querySelector('.alert a')?.addEventListener('click', e => {
+  e.preventDefault();
+  scrollToSection('sdlc-section');
+});
+</script>
 
 </body>
 </html>

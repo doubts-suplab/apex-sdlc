@@ -141,29 +141,37 @@
   </div>
   <div class="sidebar-section">
     <div class="sidebar-label">Main</div>
-    <div class="nav-item">
+    <div class="nav-item" onclick="window.location.href='apex-portal.html'">
       <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
       Dashboard
     </div>
-    <div class="nav-item">
+    <div class="nav-item" onclick="window.location.href='apex-portal.html#sdlc-section'">
       <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 8v4l3 3"/></svg>
       SDLC Timeline
     </div>
   </div>
   <div class="sidebar-section">
     <div class="sidebar-label">Governance</div>
-    <div class="nav-item active">
+    <div class="nav-item active" onclick="scrollTo(0,0)">
       <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
       Policy Engine
     </div>
-    <div class="nav-item">
+    <div class="nav-item" onclick="document.getElementById('audit-section').scrollIntoView({behavior:'smooth'})">
       <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
       Audit Log
     </div>
-    <div class="nav-item">
+    <div class="nav-item" onclick="document.getElementById('risk-section').scrollIntoView({behavior:'smooth'})">
       <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
-      Metrics
+      Risk Register
     </div>
+  </div>
+
+  <div class="sidebar-section">
+    <div class="sidebar-label">Navigate</div>
+    <div class="nav-item" onclick="window.location.href='index.html'">🏠 Home</div>
+    <div class="nav-item" onclick="window.location.href='adoption-guide.html'">🚀 Adoption Guide</div>
+    <div class="nav-item" onclick="window.location.href='apex-portal.html'">📊 Dashboard</div>
+    <div class="nav-item" onclick="window.location.href='apex-framework.html'">📐 Framework Doc</div>
   </div>
   <div class="sidebar-footer">
     <div class="user-pill">
@@ -179,7 +187,7 @@
     <span class="status-chip chip-green">● Policy Compliant</span>
     <span class="status-chip chip-orange">⚠ 2 Open Violations</span>
     <span style="font-size:12px;color:var(--text-muted)">June 2026 · AI Review Board: Jun 20</span>
-    <button class="btn btn-primary">Export Report</button>
+    <button class="btn btn-primary" onclick="window.print()">Export Report</button>
   </div>
 
   <div class="content">
@@ -340,12 +348,12 @@
     </div>
 
     <!-- Audit Log -->
-    <div class="card" style="margin-bottom:20px">
+    <div class="card" style="margin-bottom:20px" id="audit-section">
       <div class="card-header">
         <div class="card-title">Audit Log — Recent AI Calls</div>
         <div style="display:flex;gap:10px;align-items:center">
           <span style="font-size:12px;color:var(--text-muted)">Last 24 hours · 1,247 entries</span>
-          <button class="btn btn-primary" style="font-size:12px;padding:5px 12px">Full Log →</button>
+          <button class="btn btn-primary" style="font-size:12px;padding:5px 12px" onclick="toggleFullLog(this)">Full Log →</button>
         </div>
       </div>
       <div class="audit-row header">
@@ -407,7 +415,7 @@
     </div>
 
     <!-- Risk + Review Board -->
-    <div class="two-col">
+    <div class="two-col" id="risk-section">
       <div class="card">
         <div class="card-header">
           <div class="card-title">Risk Register</div>
@@ -487,5 +495,45 @@
 
   </div>
 </main>
+
+<script>
+// Extra audit rows (shown on Full Log click)
+const extraRows = [
+  { time:'06/06 10:55:01', user:'d.joshi', prompt:'Generate Angular standalone component for transaction filter UI', model:'Sonnet', status:'Accepted', statusCls:'badge-green' },
+  { time:'06/06 10:33:18', user:'automation', prompt:'Sprint 24 kickoff digest — Squad Beta Jira stories summarised', model:'Haiku', status:'Published', statusCls:'badge-green' },
+  { time:'06/06 09:18:45', user:'r.kumar', prompt:'Explain PYRL003.cbl batch job — what does it output?', model:'Sonnet', status:'Accepted', statusCls:'badge-green' },
+  { time:'06/06 08:45:30', user:'m.verma', prompt:'OWASP check on PR diff #501 — auth middleware changes', model:'Haiku', status:'Flagged', statusCls:'badge-orange' },
+];
+
+let logExpanded = false;
+function toggleFullLog(btn) {
+  const logContainer = document.getElementById('audit-section').querySelector('.audit-row.header').parentNode;
+  if (!logExpanded) {
+    extraRows.forEach(r => {
+      const div = document.createElement('div');
+      div.className = 'audit-row extra-row';
+      div.innerHTML = `
+        <div style="font-size:11px;color:var(--text-muted)">${r.time}</div>
+        <div style="font-size:12px;font-weight:600">${r.user}</div>
+        <div class="log-code">${r.prompt}</div>
+        <div><span class="badge badge-purple">${r.model}</span></div>
+        <div><span class="badge ${r.statusCls}">${r.status}</span></div>`;
+      logContainer.appendChild(div);
+    });
+    btn.textContent = 'Collapse ↑';
+    logExpanded = true;
+  } else {
+    document.querySelectorAll('.extra-row').forEach(el => el.remove());
+    btn.textContent = 'Full Log →';
+    logExpanded = false;
+  }
+}
+
+// ARB "Next meeting" link
+document.querySelector('[style*="cursor:pointer"]')?.addEventListener('click', () => {
+  alert('ARB Meeting: June 20, 2026\nAgenda:\n• Review POL-005 PII violation\n• Approve Mainframe pipeline policy\n• Token budget review\n• Q3 roadmap sign-off\n\nCalendar invite sent to all members.');
+});
+</script>
+
 </body>
 </html>

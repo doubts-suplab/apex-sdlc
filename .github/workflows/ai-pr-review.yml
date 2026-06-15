@@ -1,0 +1,196 @@
+name: APEX AI PR Review
+
+on:
+  pull_request:
+    types: [opened, synchronize, ready_for_review]
+    branches: [main, develop, 'release/**']
+
+permissions:
+  contents: read
+  pull-requests: write
+  issues: write
+
+jobs:
+  # ─── Job 1: Auto-generate PR description if empty ───────────────────────────
+  ai-describe:
+    name: Generate PR Description
+    runs-on: ubuntu-latest
+    if: github.event.pull_request.draft == false
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Get diff
+        id: diff
+        run: |
+          git diff origin/${{ github.base_ref }}...HEAD --stat > diff_stat.txt
+          git diff origin/${{ github.base_ref }}...HEAD -- '*.java' '*.ts' '*.cbl' '*.py' '*.yaml' '*.yml' \
+            | head -500 > diff_content.txt
+          echo "stat<<EOF" >> $GITHUB_OUTPUT
+          cat diff_stat.txt >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+
+      - name: Generate description via Claude API
+        if: github.event.pull_request.body == ''
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+        run: |
+          DIFF=$(cat diff_content.txt | head -200)
+          STAT=$(cat diff_stat.txt)
+          PROMPT="You are a senior engineer reviewing a pull request. Write a concise PR description in Markdown covering: ## Summary (2 sentences), ## Changes (bullet list from the diff stat), ## Test Plan (what was tested). Be specific. Do NOT pad. Diff stat:\n${STAT}\n\nDiff sample:\n${DIFF}"
+
+          curl -s https://api.anthropic.com/v1/messages \
+            -H "x-api-key: $ANTHROPIC_API_KEY" \
+            -H "anthropic-version: 2023-06-01" \
+            -H "content-type: application/json" \
+            -d "{
+              \"model\": \"claude-haiku-4-5-20251001\",
+              \"max_tokens\": 600,
+              \"messages\": [{\"role\": \"user\", \"content\": $(echo "$PROMPT" | jq -Rs .)}]
+            }" | jq -r '.content[0].text' > pr_description.txt
+
+          echo "Generated PR description:"
+          cat pr_description.txt
+
+      - name: Update PR description
+        if: github.event.pull_request.body == ''
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          BODY=$(cat pr_description.txt)
+          gh pr edit ${{ github.event.pull_request.number }} --body "$BODY"
+
+  # ─── Job 2: Security scan ────────────────────────────────────────────────────
+  ai-security:
+    name: AI Security Review
+    runs-on: ubuntu-latest
+    if: github.event.pull_request.draft == false
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Extract changed files
+        id: files
+        run: |
+          git diff origin/${{ github.base_ref }}...HEAD --name-only \
+            | grep -E '\.(java|ts|py|yaml|yml|json|properties|env)$' \
+            | head -20 > changed_files.txt
+          echo "Changed files:"
+          cat changed_files.txt
+
+      - name: Get diff for security review
+        run: |
+          git diff origin/${{ github.base_ref }}...HEAD -- \
+            $(cat changed_files.txt | tr '\n' ' ') \
+            | head -400 > security_diff.txt
+
+      - name: Claude OWASP security scan
+        id: security
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+        run: |
+          DIFF=$(cat security_diff.txt)
+          PROMPT="You are a security engineer. Review this code diff for OWASP Top 10 vulnerabilities. Focus on: SQL injection, hardcoded secrets/credentials, insecure deserialization, broken auth, exposed PII, XXE, SSRF, and insecure direct object references. Format: ## Security Findings\n\nFor each issue: **Severity** [CRITICAL/HIGH/MEDIUM/LOW] | **File:Line** | **Issue** | **Recommendation**\n\nIf no issues found, say '✅ No security issues detected in this diff.'\n\nDiff:\n${DIFF}"
+
+          curl -s https://api.anthropic.com/v1/messages \
+            -H "x-api-key: $ANTHROPIC_API_KEY" \
+            -H "anthropic-version: 2023-06-01" \
+            -H "content-type: application/json" \
+            -d "{
+              \"model\": \"claude-haiku-4-5-20251001\",
+              \"max_tokens\": 800,
+              \"messages\": [{\"role\": \"user\", \"content\": $(echo "$PROMPT" | jq -Rs .)}]
+            }" | jq -r '.content[0].text' > security_report.txt
+
+          echo "report<<EOF" >> $GITHUB_OUTPUT
+          cat security_report.txt >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+
+          # Flag if CRITICAL or HIGH found
+          if grep -qiE "CRITICAL|HIGH" security_report.txt; then
+            echo "has_findings=true" >> $GITHUB_OUTPUT
+          else
+            echo "has_findings=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Post security review comment
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          REPORT=$(cat security_report.txt)
+          BODY="## 🛡️ APEX Security Review (AI Advisory — Non-Blocking)
+
+          ${REPORT}
+
+          ---
+          *Generated by APEX AI PR Review · Model: claude-haiku-4-5-20251001 · [Policy](../governance/policies/ai-usage-policy.md)*"
+
+          gh pr comment ${{ github.event.pull_request.number }} --body "$BODY"
+
+      - name: Label high-risk PRs
+        if: steps.security.outputs.has_findings == 'true'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh pr edit ${{ github.event.pull_request.number }} --add-label "security-review-needed" 2>/dev/null || true
+
+  # ─── Job 3: Code quality check ───────────────────────────────────────────────
+  ai-quality:
+    name: AI Code Quality
+    runs-on: ubuntu-latest
+    if: github.event.pull_request.draft == false
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Get Java/TypeScript diff
+        run: |
+          git diff origin/${{ github.base_ref }}...HEAD -- '*.java' '*.ts' \
+            | head -300 > quality_diff.txt
+
+      - name: Claude quality review
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+        run: |
+          DIFF=$(cat quality_diff.txt)
+          if [ -z "$DIFF" ]; then
+            echo "No Java/TypeScript changes to review." > quality_report.txt
+            exit 0
+          fi
+
+          PROMPT="Review this Java/TypeScript diff for code quality. Check: constructor injection (no @Autowired on fields), SLF4J usage (no System.out.println), no SELECT *, parameterised queries, SOLID principles, no partial implementations, jakarta.* not javax.* in Spring Boot 3.x. List violations only. Format each as: ⚠️ [Rule] in [File] — [specific issue]. If all clean: '✅ Code quality checks passed.'\n\nDiff:\n${DIFF}"
+
+          curl -s https://api.anthropic.com/v1/messages \
+            -H "x-api-key: $ANTHROPIC_API_KEY" \
+            -H "anthropic-version: 2023-06-01" \
+            -H "content-type: application/json" \
+            -d "{
+              \"model\": \"claude-haiku-4-5-20251001\",
+              \"max_tokens\": 500,
+              \"messages\": [{\"role\": \"user\", \"content\": $(echo "$PROMPT" | jq -Rs .)}]
+            }" | jq -r '.content[0].text' > quality_report.txt
+
+      - name: Post quality comment
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          REPORT=$(cat quality_report.txt)
+          gh pr comment ${{ github.event.pull_request.number }} \
+            --body "## 📋 APEX Code Quality Check (Advisory)
+
+          ${REPORT}
+
+          ---
+          *APEX Golden Rules enforced · [Standards](../claude-templates/)*"
+
+      - name: Add ai-assisted label
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh pr edit ${{ github.event.pull_request.number }} --add-label "ai-assisted" 2>/dev/null || true

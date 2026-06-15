@@ -1,0 +1,1020 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>APEX — Framework Document</title>
+<style>
+:root {
+  --primary: #6B4FBB; --primary-dark: #4A3280; --primary-deep: #2D1B69;
+  --primary-light: #EDE9F7; --primary-mid: #C4B5FD;
+  --green: #2D7D46; --green-light: #E8F5E9;
+  --orange: #C05621; --orange-light: #FFF3E0;
+  --blue: #1565C0; --blue-light: #E3F2FD;
+  --red: #B91C1C; --red-light: #FEF2F2;
+  --bg: #F8F7FC; --surface: #FFFFFF;
+  --border: #E5E0F5; --text: #1A1033; --text-muted: #6B7280;
+  --nav-h: 60px; --toc-w: 260px;
+}
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: var(--bg); color: var(--text); font-size: 14px; line-height: 1.7; }
+
+/* ── NAV ── */
+nav {
+  position: sticky; top: 0; z-index: 200;
+  height: var(--nav-h); background: rgba(255,255,255,.92);
+  backdrop-filter: blur(16px); border-bottom: 1px solid var(--border);
+  display: flex; align-items: center; padding: 0 40px; gap: 0;
+}
+.nav-brand { display: flex; align-items: center; gap: 10px; text-decoration: none; margin-right: 40px; flex-shrink: 0; }
+.nav-logo { width: 34px; height: 34px; background: var(--primary); border-radius: 9px; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 900; color: #fff; }
+.nav-name { font-size: 16px; font-weight: 800; color: var(--primary); }
+.nav-links { display: flex; gap: 2px; flex: 1; }
+.nav-links a { color: var(--text-muted); text-decoration: none; font-size: 13px; font-weight: 500; padding: 6px 14px; border-radius: 7px; transition: all .15s; white-space: nowrap; }
+.nav-links a:hover { color: var(--primary); background: var(--primary-light); }
+.nav-links a.active { color: var(--primary); background: var(--primary-light); font-weight: 700; }
+.nav-end { display: flex; gap: 10px; margin-left: auto; }
+.nav-badge { font-size: 10px; font-weight: 700; letter-spacing: .6px; text-transform: uppercase; background: var(--primary-light); color: var(--primary); padding: 3px 10px; border-radius: 20px; border: 1px solid var(--border); }
+.btn { padding: 7px 18px; border-radius: 8px; font-size: 13px; font-weight: 600; cursor: pointer; border: none; text-decoration: none; display: inline-flex; align-items: center; gap: 6px; transition: all .15s; }
+.btn-primary { background: var(--primary); color: #fff; }
+.btn-primary:hover { background: var(--primary-dark); }
+.btn-outline { background: transparent; border: 1.5px solid var(--primary); color: var(--primary); }
+.btn-outline:hover { background: var(--primary-light); }
+
+/* ── HERO ── */
+.hero {
+  background: linear-gradient(145deg, var(--primary-deep) 0%, var(--primary-dark) 50%, var(--primary) 100%);
+  padding: 60px 60px 56px; position: relative; overflow: hidden;
+}
+.hero::before {
+  content: ''; position: absolute; inset: 0;
+  background: radial-gradient(ellipse 70% 60% at 80% 20%, rgba(196,181,253,.18) 0%, transparent 70%);
+}
+.hero-inner { max-width: 900px; margin: 0 auto; position: relative; }
+.hero-eyebrow { display: inline-flex; align-items: center; gap: 7px; background: rgba(255,255,255,.12); border: 1px solid rgba(255,255,255,.2); color: rgba(255,255,255,.9); font-size: 11px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; padding: 5px 14px; border-radius: 20px; margin-bottom: 18px; }
+.hero-dot { width: 6px; height: 6px; background: #A78BFA; border-radius: 50%; animation: blink 2s infinite; }
+@keyframes blink { 0%,100%{opacity:1} 50%{opacity:.3} }
+.hero h1 { font-size: clamp(26px, 3.5vw, 40px); font-weight: 900; letter-spacing: -1px; color: #fff; margin-bottom: 12px; }
+.hero h1 span { color: #C4B5FD; }
+.hero-sub { font-size: 15px; color: rgba(255,255,255,.72); max-width: 620px; line-height: 1.6; margin-bottom: 24px; }
+.hero-meta { display: flex; gap: 24px; flex-wrap: wrap; }
+.hero-meta-item { display: flex; align-items: center; gap: 6px; font-size: 12px; color: rgba(255,255,255,.65); }
+.hero-meta-item strong { color: rgba(255,255,255,.9); }
+
+/* ── LAYOUT ── */
+.layout { display: flex; min-height: calc(100vh - var(--nav-h)); }
+
+/* ── TOC SIDEBAR ── */
+.toc-sidebar {
+  width: var(--toc-w); flex-shrink: 0;
+  position: sticky; top: var(--nav-h); height: calc(100vh - var(--nav-h));
+  overflow-y: auto; padding: 28px 0;
+  background: var(--surface); border-right: 1px solid var(--border);
+}
+.toc-sidebar::-webkit-scrollbar { width: 4px; }
+.toc-sidebar::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+.toc-label { font-size: 10px; font-weight: 800; text-transform: uppercase; letter-spacing: 1px; color: var(--text-muted); padding: 0 20px 10px; }
+.toc-link {
+  display: flex; align-items: flex-start; gap: 8px;
+  padding: 7px 20px; font-size: 12.5px; color: var(--text-muted);
+  text-decoration: none; border-left: 3px solid transparent;
+  transition: all .15s; line-height: 1.4;
+}
+.toc-link:hover { color: var(--primary); background: var(--primary-light); border-left-color: var(--primary-mid); }
+.toc-link.active { color: var(--primary); background: var(--primary-light); border-left-color: var(--primary); font-weight: 600; }
+.toc-num { font-size: 10px; font-weight: 700; color: var(--primary-mid); min-width: 16px; margin-top: 1px; }
+.toc-divider { height: 1px; background: var(--border); margin: 10px 20px; }
+
+/* ── MAIN CONTENT ── */
+.main-content { flex: 1; min-width: 0; padding: 48px 56px 80px; max-width: 900px; }
+
+/* ── SECTION HEADERS ── */
+.section-anchor { padding-top: 20px; margin-bottom: 6px; }
+.section-num { display: inline-block; font-size: 10px; font-weight: 800; text-transform: uppercase; letter-spacing: 1px; color: var(--primary); background: var(--primary-light); padding: 3px 10px; border-radius: 20px; margin-bottom: 10px; }
+.section-anchor h2 { font-size: 26px; font-weight: 800; color: var(--text); letter-spacing: -0.5px; border-bottom: 2px solid var(--primary-light); padding-bottom: 12px; margin-bottom: 20px; }
+.section-anchor h3 { font-size: 17px; font-weight: 700; color: var(--primary-dark); margin: 28px 0 12px; }
+.section-anchor h4 { font-size: 14px; font-weight: 700; color: var(--text); margin: 20px 0 8px; }
+
+/* ── PROSE ── */
+p { margin-bottom: 14px; font-size: 14px; line-height: 1.75; }
+strong { font-weight: 700; color: var(--text); }
+ul, ol { padding-left: 20px; margin-bottom: 14px; }
+li { margin-bottom: 5px; font-size: 14px; line-height: 1.6; }
+
+/* ── INTRO CARD ── */
+.intro-card {
+  background: linear-gradient(135deg, var(--primary-light) 0%, #f3f0ff 100%);
+  border: 1px solid var(--border); border-left: 4px solid var(--primary);
+  border-radius: 10px; padding: 22px 24px; margin-bottom: 28px;
+}
+.intro-card p { margin: 0; font-size: 15px; line-height: 1.7; color: var(--text); }
+
+/* ── PRINCIPLE GRID ── */
+.principle-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin: 20px 0 28px; }
+.principle-card {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: 10px; padding: 16px 18px;
+  display: flex; align-items: flex-start; gap: 12px;
+}
+.principle-icon { font-size: 18px; flex-shrink: 0; margin-top: 1px; }
+.principle-card p { margin: 0; font-size: 13px; color: var(--text-muted); line-height: 1.5; }
+.principle-card strong { display: block; font-size: 13px; color: var(--text); margin-bottom: 3px; }
+
+/* ── OUTCOME CHIPS ── */
+.outcome-list { display: flex; flex-direction: column; gap: 8px; margin: 16px 0 24px; }
+.outcome-item {
+  display: flex; align-items: center; gap: 12px;
+  background: var(--green-light); border: 1px solid #C8E6C9;
+  border-radius: 8px; padding: 10px 16px; font-size: 13px;
+}
+.outcome-item .badge { font-size: 12px; font-weight: 700; color: var(--green); min-width: 70px; }
+
+/* ── TABLES ── */
+.table-wrap { overflow-x: auto; margin: 16px 0 24px; border-radius: 10px; border: 1px solid var(--border); }
+table { width: 100%; border-collapse: collapse; font-size: 13px; }
+thead th {
+  background: var(--primary-deep); color: #fff; font-weight: 700;
+  padding: 11px 16px; text-align: left; font-size: 12px;
+  letter-spacing: .3px; white-space: nowrap;
+}
+tbody tr { border-bottom: 1px solid var(--border); }
+tbody tr:last-child { border-bottom: none; }
+tbody tr:nth-child(even) { background: var(--bg); }
+tbody tr:hover { background: var(--primary-light); }
+tbody td { padding: 10px 16px; vertical-align: top; line-height: 1.5; }
+.check-yes { color: var(--green); font-weight: 700; }
+.check-no  { color: #9CA3AF; }
+
+/* ── CODE BLOCKS ── */
+.code-block {
+  background: #1E1433; color: #C4B5FD;
+  border-radius: 10px; padding: 20px 22px;
+  font-family: 'JetBrains Mono', 'Fira Code', Consolas, monospace;
+  font-size: 12.5px; line-height: 1.7; overflow-x: auto;
+  margin: 14px 0 24px; position: relative;
+  border: 1px solid #3D2E6B;
+}
+.code-block pre { margin: 0; white-space: pre; }
+.code-lang {
+  position: absolute; top: 10px; right: 14px;
+  font-size: 10px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase;
+  color: #6B4FBB; background: rgba(107,79,187,.15); padding: 2px 8px; border-radius: 4px;
+}
+.code-kw { color: #E879F9; }
+.code-str { color: #86EFAC; }
+.code-comment { color: #6B7280; font-style: italic; }
+.code-key { color: #7DD3FC; }
+
+/* ── PHASE CARDS ── */
+.phase-grid { display: flex; flex-direction: column; gap: 20px; margin: 16px 0 28px; }
+.phase-card {
+  background: var(--surface); border: 1px solid var(--border); border-radius: 12px; overflow: hidden;
+}
+.phase-header {
+  display: flex; align-items: center; gap: 14px; padding: 14px 20px;
+  border-bottom: 1px solid var(--border);
+}
+.phase-badge {
+  width: 36px; height: 36px; border-radius: 9px; display: flex; align-items: center;
+  justify-content: center; font-size: 14px; font-weight: 900; color: #fff; flex-shrink: 0;
+}
+.phase-badge.p0 { background: var(--primary-deep); }
+.phase-badge.p1 { background: var(--primary-dark); }
+.phase-badge.p2 { background: var(--primary); }
+.phase-badge.p3 { background: #7C3AED; }
+.phase-badge.p4 { background: #6D28D9; }
+.phase-header-text h4 { font-size: 15px; font-weight: 800; margin: 0 0 2px; }
+.phase-header-text span { font-size: 11px; color: var(--text-muted); font-weight: 500; }
+.phase-goal { font-size: 12px; font-style: italic; color: var(--primary); font-weight: 600; background: var(--primary-light); padding: 3px 10px; border-radius: 20px; margin-left: auto; white-space: nowrap; }
+.phase-checklist { padding: 16px 20px; display: flex; flex-direction: column; gap: 7px; }
+.phase-check-item { display: flex; align-items: flex-start; gap: 9px; font-size: 13px; line-height: 1.4; }
+.check-box { width: 16px; height: 16px; border: 2px solid var(--border); border-radius: 4px; flex-shrink: 0; margin-top: 1px; cursor: pointer; transition: all .15s; }
+.check-box:hover { border-color: var(--primary); background: var(--primary-light); }
+.check-box.checked { background: var(--primary); border-color: var(--primary); display: flex; align-items: center; justify-content: center; }
+.check-box.checked::after { content: '✓'; font-size: 10px; color: #fff; font-weight: 800; }
+
+/* ── RINGS DIAGRAM ── */
+.rings-diagram {
+  background: var(--surface); border: 1px solid var(--border); border-radius: 12px;
+  padding: 24px; margin: 16px 0 24px; text-align: center;
+}
+.ring-row { display: flex; align-items: center; gap: 12px; margin-bottom: 10px; }
+.ring-num { width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 800; color: #fff; flex-shrink: 0; }
+.ring-bar { flex: 1; height: 36px; border-radius: 6px; display: flex; align-items: center; padding: 0 14px; font-size: 12px; font-weight: 600; color: #fff; position: relative; }
+.ring-bar .ring-weeks { margin-left: auto; font-size: 11px; opacity: .8; }
+
+/* ── FEAR TABLE — specialised ── */
+.fear-table tbody td:first-child { font-weight: 600; color: var(--red); }
+.fear-table tbody td:last-child { color: var(--green); }
+
+/* ── ROLE CARDS ── */
+.role-grid { display: flex; flex-direction: column; gap: 14px; margin: 16px 0 24px; }
+.role-card { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 18px 20px; }
+.role-header { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; }
+.role-icon { width: 38px; height: 38px; border-radius: 9px; background: var(--primary-light); display: flex; align-items: center; justify-content: center; font-size: 17px; flex-shrink: 0; }
+.role-title { font-size: 15px; font-weight: 800; }
+.role-fte { font-size: 11px; color: var(--text-muted); font-weight: 500; }
+.role-row { display: grid; grid-template-columns: 80px 1fr; gap: 6px 10px; font-size: 12.5px; margin-top: 8px; }
+.role-row dt { color: var(--primary); font-weight: 700; padding-top: 1px; }
+.role-row dd { color: var(--text-muted); line-height: 1.5; }
+
+/* ── GOV LAYER CARDS ── */
+.gov-grid { display: flex; flex-direction: column; gap: 10px; margin: 16px 0 24px; }
+.gov-card { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; overflow: hidden; }
+.gov-card-header {
+  background: var(--primary-deep); color: #fff;
+  padding: 10px 18px; font-size: 13px; font-weight: 700;
+  display: flex; align-items: center; gap: 8px;
+}
+.gov-card-body { padding: 14px 18px; font-size: 13px; color: var(--text-muted); }
+.gov-card-body ul { padding-left: 16px; }
+.gov-card-body li { margin-bottom: 4px; }
+
+/* ── PROMPT TABLE ── */
+.prompt-table .prompt-text { font-family: 'Fira Code', Consolas, monospace; font-size: 11.5px; background: #f3f0ff; padding: 4px 8px; border-radius: 4px; }
+
+/* ── METRIC BADGE ── */
+.metric-positive { color: var(--green); font-weight: 700; }
+.metric-track { color: var(--orange); font-weight: 700; }
+
+/* ── APPENDIX BOXES ── */
+.append-box { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 20px; margin: 14px 0 24px; }
+.append-box h4 { font-size: 13px; font-weight: 800; text-transform: uppercase; letter-spacing: .5px; color: var(--primary); margin-bottom: 14px; }
+
+/* ── RULE CALLOUT ── */
+.rule-callout { background: var(--primary-light); border: 1px solid var(--border); border-left: 4px solid var(--primary); border-radius: 8px; padding: 12px 16px; font-size: 13px; color: var(--primary-dark); margin: 12px 0 20px; font-weight: 600; }
+
+/* ── FOOTER ── */
+footer { text-align: center; padding: 28px; font-size: 12px; color: var(--text-muted); border-top: 1px solid var(--border); background: var(--surface); margin-top: 40px; }
+footer a { color: var(--primary); text-decoration: none; }
+
+/* ── BACK TO TOP ── */
+.back-top {
+  position: fixed; bottom: 28px; right: 28px;
+  width: 40px; height: 40px; background: var(--primary); color: #fff;
+  border-radius: 50%; display: flex; align-items: center; justify-content: center;
+  font-size: 16px; cursor: pointer; border: none; box-shadow: 0 4px 14px rgba(107,79,187,.4);
+  opacity: 0; transition: all .2s; z-index: 50;
+}
+.back-top.visible { opacity: 1; }
+.back-top:hover { background: var(--primary-dark); transform: translateY(-2px); }
+</style>
+</head>
+<body>
+
+<!-- ── NAV ── -->
+<nav>
+  <a class="nav-brand" href="index.html">
+    <div class="nav-logo">AX</div>
+    <span class="nav-name">APEX</span>
+  </a>
+  <div class="nav-links">
+    <a href="index.html">Home</a>
+    <a href="apex-portal.html">Dashboard</a>
+    <a href="adoption-guide.html">Adoption Guide</a>
+    <a href="apex-framework.html" class="active">Framework</a>
+    <a href="apex-governance.html">Governance</a>
+    <a href="../portal/src/index.html">Portal</a>
+  </div>
+  <div class="nav-end">
+    <span class="nav-badge">v1.0</span>
+    <a href="adoption-guide.html" class="btn btn-primary" style="font-size:12px;padding:6px 14px;">Get Started →</a>
+  </div>
+</nav>
+
+<!-- ── HERO ── -->
+<div class="hero">
+  <div class="hero-inner">
+    <div class="hero-eyebrow"><span class="hero-dot"></span> Framework Document</div>
+    <h1>APEX <span>Framework</span></h1>
+    <p class="hero-sub">AI-Powered Engineering eXperience — Enterprise SDLC Augmentation Plan for Angular · Java · Spring Boot · Mainframe</p>
+    <div class="hero-meta">
+      <div class="hero-meta-item">🤖 <strong>Tools:</strong> Claude Code · GitHub Copilot</div>
+      <div class="hero-meta-item">📋 <strong>Version:</strong> 1.0</div>
+      <div class="hero-meta-item">📅 <strong>Timeline:</strong> 20 Weeks</div>
+      <div class="hero-meta-item">👥 <strong>Team size:</strong> 4–5 FTE</div>
+    </div>
+  </div>
+</div>
+
+<!-- ── BODY ── -->
+<div class="layout">
+
+  <!-- TOC SIDEBAR -->
+  <aside class="toc-sidebar">
+    <div class="toc-label">Table of Contents</div>
+    <a href="#section-1" class="toc-link active"><span class="toc-num">1</span>Executive Summary</a>
+    <a href="#section-2" class="toc-link"><span class="toc-num">2</span>Framework Architecture</a>
+    <a href="#section-3" class="toc-link"><span class="toc-num">3</span>Build vs Integrate</a>
+    <a href="#section-4" class="toc-link"><span class="toc-num">4</span>Implementation Plan</a>
+    <a href="#section-5" class="toc-link"><span class="toc-num">5</span>Rollout Strategy</a>
+    <a href="#section-6" class="toc-link"><span class="toc-num">6</span>Team Structure</a>
+    <a href="#section-7" class="toc-link"><span class="toc-num">7</span>Governance</a>
+    <a href="#section-8" class="toc-link"><span class="toc-num">8</span>Adoption Guide</a>
+    <a href="#section-9" class="toc-link"><span class="toc-num">9</span>Success Metrics</a>
+    <a href="#section-10" class="toc-link"><span class="toc-num">A</span>Appendix</a>
+    <div class="toc-divider"></div>
+    <div class="toc-label">Navigate</div>
+    <a href="index.html" class="toc-link">🏠 Home</a>
+    <a href="adoption-guide.html" class="toc-link">📖 Adoption Guide</a>
+    <a href="apex-governance.html" class="toc-link">🛡 Governance</a>
+    <a href="apex-portal.html" class="toc-link">📊 Dashboard</a>
+  </aside>
+
+  <!-- MAIN -->
+  <main class="main-content">
+
+    <!-- § 1 EXECUTIVE SUMMARY -->
+    <div id="section-1" class="section-anchor">
+      <div class="section-num">Section 1</div>
+      <h2>Executive Summary</h2>
+    </div>
+
+    <div class="intro-card">
+      <p>APEX is a non-intrusive AI augmentation layer that sits alongside your existing SDLC without replacing any tooling or ceremony. It routes the right AI capability to the right persona at the right stage of delivery — developers get Claude Code and Copilot in their IDEs, BAs and PMs get prompt-powered Confluence and Jira automation, testers get AI-generated test suites, and leadership gets AI-synthesized status reports.</p>
+    </div>
+
+    <h3>Core Principles</h3>
+    <div class="principle-grid">
+      <div class="principle-card">
+        <div class="principle-icon">🔌</div>
+        <div>
+          <strong>Zero new tools for non-engineering personas</strong>
+          <p>Every persona uses tools they already know. AI is embedded into existing workflows.</p>
+        </div>
+      </div>
+      <div class="principle-card">
+        <div class="principle-icon">👤</div>
+        <div>
+          <strong>AI generates drafts; humans approve</strong>
+          <p>All AI output is reviewed and committed by humans. Never automatic, always advisory.</p>
+        </div>
+      </div>
+      <div class="principle-card">
+        <div class="principle-icon">🛡</div>
+        <div>
+          <strong>Every AI action is logged and governed</strong>
+          <p>Full audit trail in your own infrastructure. PII guard active on every prompt.</p>
+        </div>
+      </div>
+      <div class="principle-card">
+        <div class="principle-icon">🔄</div>
+        <div>
+          <strong>Adopt incrementally</strong>
+          <p>One team, one sprint, one phase at a time. Graceful degradation built in.</p>
+        </div>
+      </div>
+    </div>
+
+    <h3>Expected Outcomes at 6 Months</h3>
+    <div class="outcome-list">
+      <div class="outcome-item"><span class="badge">30–40%</span> Reduction in PR cycle time</div>
+      <div class="outcome-item"><span class="badge">50%+</span> Reduction in boilerplate code authoring time</div>
+      <div class="outcome-item"><span class="badge">60%</span> Reduction in manual test case writing effort</div>
+      <div class="outcome-item"><span class="badge">~Zero</span> Undocumented COBOL programs (legacy modernisation)</div>
+      <div class="outcome-item"><span class="badge">Consistent</span> Story quality scores across all squads</div>
+    </div>
+
+    <!-- § 2 ARCHITECTURE -->
+    <div id="section-2" class="section-anchor">
+      <div class="section-num">Section 2</div>
+      <h2>Framework Architecture</h2>
+    </div>
+
+    <div class="code-block">
+      <span class="code-lang">Architecture</span>
+      <pre>┌─────────────────────────────────────────────────────────────────────┐
+│                        APEX FRAMEWORK LAYERS                        │
+├─────────────────────────────────────────────────────────────────────┤
+│  PERSONA LAYER                                                      │
+│  Dev (IDE)  │  BA/PM (Claude.ai)  │  Tester (CLI)  │  Stakeholder  │
+├─────────────────────────────────────────────────────────────────────┤
+│  AI ORCHESTRATION LAYER                                             │
+│  Claude Code CLI  │  Copilot API  │  Claude API (Haiku/Sonnet)     │
+├─────────────────────────────────────────────────────────────────────┤
+│  INTEGRATION LAYER                                                  │
+│  Jira  │  Confluence  │  GitHub  │  SonarQube  │  Slack/Teams      │
+├─────────────────────────────────────────────────────────────────────┤
+│  GOVERNANCE LAYER                                                   │
+│  Audit Log  │  Policy Engine  │  PII Guard  │  Approval Gates      │
+├─────────────────────────────────────────────────────────────────────┤
+│  DATA LAYER                                                         │
+│  CLAUDE.md files  │  Prompt Library  │  Metrics Store              │
+└─────────────────────────────────────────────────────────────────────┘</pre>
+    </div>
+
+    <h3>2.1 Key Design Decision: Claude Code vs GitHub Copilot</h3>
+    <p>These tools are <strong>complementary, not competing</strong>. Each has a distinct role in the workflow.</p>
+
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr><th>Capability</th><th>Claude Code</th><th>GitHub Copilot</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>Multi-file agentic edits</td><td class="check-yes">✅ Primary</td><td class="check-no">❌</td></tr>
+          <tr><td>Inline IDE autocomplete</td><td class="check-no">Limited</td><td class="check-yes">✅ Primary</td></tr>
+          <tr><td>Terminal / CLI workflow</td><td class="check-yes">✅ Native</td><td class="check-no">❌</td></tr>
+          <tr><td>PR description generation</td><td class="check-yes">✅</td><td class="check-yes">✅</td></tr>
+          <tr><td>COBOL / legacy analysis</td><td class="check-yes">✅ Superior</td><td class="check-no">Limited</td></tr>
+          <tr><td>M365 integration</td><td class="check-no">❌</td><td class="check-yes">✅ (Copilot M365)</td></tr>
+          <tr><td>Cost model</td><td>Usage-based API</td><td>Per-seat licence</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="rule-callout">💡 Rule of thumb: Copilot for <em>keystrokes saved per minute</em>; Claude Code for <em>decisions made per hour</em>.</div>
+
+    <!-- § 3 BUILD VS INTEGRATE -->
+    <div id="section-3" class="section-anchor">
+      <div class="section-num">Section 3</div>
+      <h2>What to Build vs What to Integrate</h2>
+    </div>
+
+    <h3>3.1 Integrate — Off-the-shelf</h3>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Tool</th><th>Purpose</th><th>Persona</th></tr></thead>
+        <tbody>
+          <tr><td><strong>Claude Code CLI</strong></td><td>Agentic coding, refactoring, test gen</td><td>Developers, Testers</td></tr>
+          <tr><td><strong>GitHub Copilot</strong></td><td>IDE inline completion</td><td>Developers, Testers</td></tr>
+          <tr><td><strong>Claude.ai Desktop / Web</strong></td><td>Chat interface for non-devs</td><td>BA, PM, Coach, Stakeholder</td></tr>
+          <tr><td><strong>GitHub Copilot M365</strong></td><td>Word, Excel, Outlook AI</td><td>PM, Stakeholder</td></tr>
+          <tr><td><strong>GitHub Copilot for PR</strong></td><td>PR description, review suggestions</td><td>Developers</td></tr>
+          <tr><td><strong>Anthropic Claude API</strong></td><td>Backend automation pipelines</td><td>Platform team</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>3.2 Build — Custom Differentiators</h3>
+
+    <h4>A. CLAUDE.md Templates <span style="font-size:11px;color:var(--green);background:var(--green-light);padding:2px 8px;border-radius:10px;font-weight:700;margin-left:6px;">Low effort · High ROI</span></h4>
+    <p>Per-repo context files that tell Claude Code your architecture, conventions, and constraints. One per repo type: Spring Boot, Angular, Mainframe COBOL, Shared Libraries.</p>
+    <div class="code-block">
+      <span class="code-lang">CLAUDE.md</span>
+      <pre><span class="code-comment"># Project Context</span>
+<span class="code-key">- Stack:</span> <span class="code-str">Spring Boot 3.x, Java 21, PostgreSQL, Kafka</span>
+<span class="code-key">- Architecture:</span> <span class="code-str">Hexagonal / Clean Architecture</span>
+<span class="code-key">- Naming:</span> <span class="code-str">camelCase services, PascalCase DTOs</span>
+<span class="code-key">- Test framework:</span> <span class="code-str">JUnit 5 + Mockito + Testcontainers</span>
+<span class="code-key">- Forbidden:</span> <span class="code-str">no @Autowired on fields, no lombok @Data on entities</span>
+<span class="code-key">- API style:</span> <span class="code-str">REST, OpenAPI 3.0, versioned under /api/v{n}/</span>
+<span class="code-key">- Package structure:</span> <span class="code-str">.domain / .application / .infrastructure / .web</span></pre>
+    </div>
+
+    <h4>B. Prompt Library Portal <span style="font-size:11px;color:var(--orange);background:var(--orange-light);padding:2px 8px;border-radius:10px;font-weight:700;margin-left:6px;">Medium effort</span></h4>
+    <p>A shared internal web page / Confluence space with curated prompts per persona and ceremony. Categories: Sprint Planning · Development · Testing · Review · Reporting · COBOL.</p>
+
+    <h4>C. Jira → Claude Automation Bridge <span style="font-size:11px;color:var(--orange);background:var(--orange-light);padding:2px 8px;border-radius:10px;font-weight:700;margin-left:6px;">Medium effort</span></h4>
+    <p>A Python Lambda that triggers on Jira webhooks, calls Claude API, and writes output back to Confluence. Priority automations:</p>
+    <ol style="margin:10px 0 14px;padding-left:22px;">
+      <li>Sprint End → Draft retrospective notes in Confluence</li>
+      <li>New Epic → Draft BRD template pre-populated with description</li>
+      <li>Bug closed → Auto-generate regression test stub in repo</li>
+      <li>Story "In Review" → Summarise PR diff in plain English for BA</li>
+    </ol>
+
+    <h4>D. CI/CD AI Gates <span style="font-size:11px;color:var(--red);background:var(--red-light);padding:2px 8px;border-radius:10px;font-weight:700;margin-left:6px;">Medium-High effort</span></h4>
+    <div class="code-block">
+      <span class="code-lang">YAML</span>
+      <pre><span class="code-comment"># .github/workflows/ai-review.yml</span>
+<span class="code-key">on:</span> [pull_request]
+<span class="code-key">jobs:</span>
+  <span class="code-key">ai-review:</span>
+    <span class="code-key">steps:</span>
+      - <span class="code-key">name:</span> <span class="code-str">Claude Security Review</span>
+        <span class="code-key">run:</span> <span class="code-str">claude --print "Review this diff for OWASP Top 10 issues" --diff</span>
+      - <span class="code-key">name:</span> <span class="code-str">Generate PR Summary</span>
+        <span class="code-key">run:</span> <span class="code-str">claude --print "Write a plain-English PR description"</span>
+      - <span class="code-key">name:</span> <span class="code-str">Check test coverage delta</span>
+        <span class="code-key">run:</span> <span class="code-str">claude --print "Identify untested methods in the diff"</span></pre>
+    </div>
+
+    <h4>E. Governance Dashboard &amp; F. APEX Developer Portal</h4>
+    <p>The <strong>Governance Dashboard</strong> shows AI usage by team, policy violations, PII alerts, and code acceptance rates. The <strong>Developer Portal</strong> (this site) serves as the APEX home base with per-persona getting started guides, CLAUDE.md builder, prompt library, and metrics.</p>
+
+    <!-- § 4 IMPLEMENTATION -->
+    <div id="section-4" class="section-anchor">
+      <div class="section-num">Section 4</div>
+      <h2>Step-by-Step Implementation Plan</h2>
+    </div>
+
+    <div class="phase-grid">
+      <!-- Phase 0 -->
+      <div class="phase-card">
+        <div class="phase-header">
+          <div class="phase-badge p0">0</div>
+          <div class="phase-header-text">
+            <h4>Phase 0 — Foundation</h4>
+            <span>Weeks 1–2</span>
+          </div>
+          <span class="phase-goal">Install tools, establish baseline</span>
+        </div>
+        <div class="phase-checklist">
+          <div class="phase-check-item"><div class="check-box"></div>Procure Claude Code licences (team plan) and GitHub Copilot Business seats</div>
+          <div class="phase-check-item"><div class="check-box"></div>Install Claude Code CLI on dev machines; verify <code style="font-size:12px;background:#f3f0ff;padding:1px 5px;border-radius:3px;">claude --version</code> in all IDEs</div>
+          <div class="phase-check-item"><div class="check-box"></div>Enable GitHub Copilot in IntelliJ IDEA and VS Code</div>
+          <div class="phase-check-item"><div class="check-box"></div>Draft AI Usage Policy v1 (see Section 7)</div>
+          <div class="phase-check-item"><div class="check-box"></div>Create <code style="font-size:12px;background:#f3f0ff;padding:1px 5px;border-radius:3px;">#ai-sdlc</code> Slack/Teams channel for sharing tips and issues</div>
+          <div class="phase-check-item"><div class="check-box"></div>Identify pilot squad (1 squad, cross-functional)</div>
+          <div class="phase-check-item"><div class="check-box"></div>Baseline metrics: PR cycle time, bug escape rate, story points velocity</div>
+        </div>
+      </div>
+      <!-- Phase 1 -->
+      <div class="phase-card">
+        <div class="phase-header">
+          <div class="phase-badge p1">1</div>
+          <div class="phase-header-text">
+            <h4>Phase 1 — Developer Pilot</h4>
+            <span>Weeks 3–6</span>
+          </div>
+          <span class="phase-goal">Prove value with developers first</span>
+        </div>
+        <div class="phase-checklist">
+          <div class="phase-check-item"><div class="check-box"></div>Write CLAUDE.md for the pilot squad's primary repo (Spring Boot or Angular)</div>
+          <div class="phase-check-item"><div class="check-box"></div>Run a 2-hour Claude Code workshop: refactoring, test gen, PR review</div>
+          <div class="phase-check-item"><div class="check-box"></div>Run a 1-hour Copilot workshop: Angular component gen, Spring boilerplate</div>
+          <div class="phase-check-item"><div class="check-box"></div>Daily check-in: "What did AI help you with today? What didn't work?"</div>
+          <div class="phase-check-item"><div class="check-box"></div>Collect Week 2 metrics vs baseline</div>
+          <div class="phase-check-item"><div class="check-box"></div>Publish CLAUDE.md templates to inner-source repo for other squads</div>
+        </div>
+      </div>
+      <!-- Phase 2 -->
+      <div class="phase-card">
+        <div class="phase-header">
+          <div class="phase-badge p2">2</div>
+          <div class="phase-header-text">
+            <h4>Phase 2 — BA, PM &amp; QA Onboarding</h4>
+            <span>Weeks 7–10</span>
+          </div>
+          <span class="phase-goal">Extend AI to non-dev personas</span>
+        </div>
+        <div class="phase-checklist">
+          <div class="phase-check-item"><div class="check-box"></div>Set up Claude.ai Desktop for BAs and PMs (Team plan)</div>
+          <div class="phase-check-item"><div class="check-box"></div>Build Prompt Library v1 in Confluence (10–15 prompts per persona)</div>
+          <div class="phase-check-item"><div class="check-box"></div>Run per-persona 90-min workshops: BA · PM · QA · Agile Coach</div>
+          <div class="phase-check-item"><div class="check-box"></div>Deploy Jira → Claude automation #1 (sprint end → Confluence retro draft)</div>
+          <div class="phase-check-item"><div class="check-box"></div>Collect feedback, iterate prompt library</div>
+        </div>
+      </div>
+      <!-- Phase 3 -->
+      <div class="phase-card">
+        <div class="phase-header">
+          <div class="phase-badge p3">3</div>
+          <div class="phase-header-text">
+            <h4>Phase 3 — CI/CD &amp; Automation</h4>
+            <span>Weeks 11–14</span>
+          </div>
+          <span class="phase-goal">Bake AI into the pipeline</span>
+        </div>
+        <div class="phase-checklist">
+          <div class="phase-check-item"><div class="check-box"></div>Deploy AI PR review GitHub Action (security scan + description)</div>
+          <div class="phase-check-item"><div class="check-box"></div>Deploy release notes automation (tag → Claude → GitHub Release)</div>
+          <div class="phase-check-item"><div class="check-box"></div>Deploy OpenAPI spec auto-update on merge</div>
+          <div class="phase-check-item"><div class="check-box"></div>Enable Copilot for PR in GitHub settings</div>
+          <div class="phase-check-item"><div class="check-box"></div>Connect Jira automation bridge for 3 key triggers</div>
+          <div class="phase-check-item"><div class="check-box"></div>Set up APEX Governance Dashboard (basic: log viewer + metrics)</div>
+        </div>
+      </div>
+      <!-- Phase 4 -->
+      <div class="phase-card">
+        <div class="phase-header">
+          <div class="phase-badge p4">4</div>
+          <div class="phase-header-text">
+            <h4>Phase 4 — Scale &amp; Govern</h4>
+            <span>Weeks 15–20</span>
+          </div>
+          <span class="phase-goal">All squads live; governance active</span>
+        </div>
+        <div class="phase-checklist">
+          <div class="phase-check-item"><div class="check-box"></div>Roll out to remaining squads with adapted CLAUDE.md per repo</div>
+          <div class="phase-check-item"><div class="check-box"></div>Launch APEX Developer Portal internally</div>
+          <div class="phase-check-item"><div class="check-box"></div>Activate PII Guard in governance layer</div>
+          <div class="phase-check-item"><div class="check-box"></div>Establish AI Review Board cadence (monthly)</div>
+          <div class="phase-check-item"><div class="check-box"></div>Publish APEX metrics to leadership dashboard</div>
+          <div class="phase-check-item"><div class="check-box"></div>Begin Mainframe modernisation track: COBOL analysis pipeline</div>
+          <div class="phase-check-item"><div class="check-box"></div>Retrospective: tune adoption, retire what isn't working</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- § 5 ROLLOUT -->
+    <div id="section-5" class="section-anchor">
+      <div class="section-num">Section 5</div>
+      <h2>Rollout Strategy</h2>
+    </div>
+
+    <h3>5.1 Concentric Rings Model</h3>
+    <div class="rings-diagram">
+      <div class="ring-row">
+        <div class="ring-num" style="background:var(--primary-deep);">1</div>
+        <div class="ring-bar" style="background:var(--primary-deep);">Pilot Squad — Devs only <span class="ring-weeks">Wk 1–6</span></div>
+      </div>
+      <div class="ring-row">
+        <div class="ring-num" style="background:var(--primary-dark);">2</div>
+        <div class="ring-bar" style="background:var(--primary-dark);">Pilot Squad — Full cross-functional (BA, QA, PM) <span class="ring-weeks">Wk 7–10</span></div>
+      </div>
+      <div class="ring-row">
+        <div class="ring-num" style="background:var(--primary);">3</div>
+        <div class="ring-bar" style="background:var(--primary);">2–3 additional squads — Devs + CI/CD automation <span class="ring-weeks">Wk 11–14</span></div>
+      </div>
+      <div class="ring-row">
+        <div class="ring-num" style="background:#7C3AED;">4</div>
+        <div class="ring-bar" style="background:#7C3AED;">All squads — Full APEX live <span class="ring-weeks">Wk 15–20</span></div>
+      </div>
+    </div>
+
+    <h3>5.2 Change Management: Addressing Fears</h3>
+    <div class="table-wrap">
+      <table class="fear-table">
+        <thead><tr><th>Fear</th><th>Response</th></tr></thead>
+        <tbody>
+          <tr><td>"AI will replace me"</td><td>Frame as: AI removes drudge work; you focus on higher-order thinking</td></tr>
+          <tr><td>"IP / code leaking to Anthropic"</td><td>Claude Code (API mode) does not train on your data; show the data policy</td></tr>
+          <tr><td>"AI generates wrong code"</td><td>Human reviews all AI output before commit; AI is a junior pair programmer</td></tr>
+          <tr><td>"Too much to learn"</td><td>Each persona gets exactly 3 prompts to start with. That's it.</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>5.3 Non-Intrusive Design Rules</h3>
+    <ol style="margin:10px 0 24px;padding-left:22px;display:flex;flex-direction:column;gap:8px;">
+      <li><strong>AI never commits code</strong> — it only suggests. Humans always have final control.</li>
+      <li><strong>AI never sends to Jira/Confluence automatically</strong> — automations write drafts, humans publish.</li>
+      <li><strong>Opt-in initially</strong> — no forced adoption in Phase 1 or 2. Mandate only in Phase 4 for CI/CD gates.</li>
+      <li><strong>Graceful degradation</strong> — if Claude API is down, the pipeline continues; AI step skips with a warning.</li>
+      <li><strong>No prompt logging to external systems</strong> — all audit logs stay in your infrastructure.</li>
+    </ol>
+
+    <!-- § 6 TEAM STRUCTURE -->
+    <div id="section-6" class="section-anchor">
+      <div class="section-num">Section 6</div>
+      <h2>Team Structure &amp; Skills Required</h2>
+    </div>
+
+    <h3>6.1 Core APEX Team (4–5 people, 6-month build)</h3>
+    <div class="role-grid">
+      <div class="role-card">
+        <div class="role-header">
+          <div class="role-icon">🤖</div>
+          <div>
+            <div class="role-title">AI Platform Engineer</div>
+            <div class="role-fte">1.0 FTE</div>
+          </div>
+        </div>
+        <dl class="role-row">
+          <dt>Skills</dt><dd>Python, REST APIs, Anthropic Claude API, GitHub Actions, Webhooks</dd>
+          <dt>Builds</dt><dd>Jira automation bridge, CI/CD AI gates, Claude API integrations</dd>
+          <dt>Owns</dt><dd>Governance log pipeline, PII guard implementation</dd>
+        </dl>
+      </div>
+      <div class="role-card">
+        <div class="role-header">
+          <div class="role-icon">⚙️</div>
+          <div>
+            <div class="role-title">DevOps / Platform SRE</div>
+            <div class="role-fte">0.5–1.0 FTE</div>
+          </div>
+        </div>
+        <dl class="role-row">
+          <dt>Skills</dt><dd>GitHub Actions, Docker, AWS (Lambda, SQS), CDK or Terraform</dd>
+          <dt>Builds</dt><dd>CI/CD workflows, APEX infrastructure, secrets management</dd>
+          <dt>Owns</dt><dd>Reliability of all automation pipelines</dd>
+        </dl>
+      </div>
+      <div class="role-card">
+        <div class="role-header">
+          <div class="role-icon">💻</div>
+          <div>
+            <div class="role-title">Full-Stack Developer</div>
+            <div class="role-fte">1.0 FTE</div>
+          </div>
+        </div>
+        <dl class="role-row">
+          <dt>Skills</dt><dd>React or Vue, Node/Python, REST, basic data visualisation</dd>
+          <dt>Builds</dt><dd>APEX Developer Portal, Governance Dashboard</dd>
+          <dt>Owns</dt><dd>Internal tooling front-end</dd>
+        </dl>
+      </div>
+      <div class="role-card">
+        <div class="role-header">
+          <div class="role-icon">🎯</div>
+          <div>
+            <div class="role-title">AI/Prompt Engineer + Change Lead</div>
+            <div class="role-fte">1.0 FTE</div>
+          </div>
+        </div>
+        <dl class="role-row">
+          <dt>Skills</dt><dd>Prompt engineering, technical writing, workshop facilitation, LLM evaluation</dd>
+          <dt>Builds</dt><dd>Prompt library, CLAUDE.md templates, persona workshops</dd>
+          <dt>Owns</dt><dd>Adoption metrics, feedback loop, prompt tuning</dd>
+        </dl>
+      </div>
+      <div class="role-card">
+        <div class="role-header">
+          <div class="role-icon">🛡</div>
+          <div>
+            <div class="role-title">Security / Compliance Engineer</div>
+            <div class="role-fte">0.5 FTE</div>
+          </div>
+        </div>
+        <dl class="role-row">
+          <dt>Skills</dt><dd>AppSec, data governance, audit logging, GDPR/SOC2 awareness</dd>
+          <dt>Reviews</dt><dd>AI Usage Policy, PII guard rules, audit log design</dd>
+          <dt>Owns</dt><dd>Governance policy, AI Review Board secretariat</dd>
+        </dl>
+      </div>
+    </div>
+
+    <h3>6.2 Engagement Model</h3>
+    <div class="code-block">
+      <span class="code-lang">Org</span>
+      <pre>APEX Core Team (full-time)
+    └── Squad AI Champions (one per squad, ~10% time)
+            └── Persona leads (BA lead, QA lead, etc. — use the tools, share tips)</pre>
+    </div>
+
+    <!-- § 7 GOVERNANCE -->
+    <div id="section-7" class="section-anchor">
+      <div class="section-num">Section 7</div>
+      <h2>Governance Integration</h2>
+    </div>
+
+    <h3>7.1 AI Usage Policy (v1 Outline)</h3>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin:14px 0 24px;">
+      <div style="background:var(--green-light);border:1px solid #C8E6C9;border-radius:10px;padding:16px;">
+        <div style="font-size:12px;font-weight:800;color:var(--green);text-transform:uppercase;letter-spacing:.5px;margin-bottom:10px;">✅ Permitted Uses</div>
+        <ul style="padding-left:16px;font-size:13px;display:flex;flex-direction:column;gap:5px;">
+          <li>Code generation and refactoring with human review</li>
+          <li>Test case generation with human validation</li>
+          <li>Documentation drafting with human approval</li>
+          <li>Requirements and report drafting (non-binding)</li>
+          <li>Summarisation of internal project data</li>
+        </ul>
+      </div>
+      <div style="background:var(--red-light);border:1px solid #FECACA;border-radius:10px;padding:16px;">
+        <div style="font-size:12px;font-weight:800;color:var(--red);text-transform:uppercase;letter-spacing:.5px;margin-bottom:10px;">🚫 Prohibited Uses</div>
+        <ul style="padding-left:16px;font-size:13px;display:flex;flex-direction:column;gap:5px;">
+          <li>Committing AI-generated code without human review</li>
+          <li>Sending customer PII or production data to AI APIs</li>
+          <li>Using AI output as sole basis for architecture decisions</li>
+          <li>Generating content that misrepresents AI as human-authored</li>
+        </ul>
+      </div>
+    </div>
+
+    <h3>7.2 Governance Architecture</h3>
+    <div class="gov-grid">
+      <div class="gov-card">
+        <div class="gov-card-header">🔒 Policy Engine</div>
+        <div class="gov-card-body">
+          <ul>
+            <li>Allowlist of approved Claude models</li>
+            <li>Blocklist of prompt patterns (e.g. "ignore rules")</li>
+            <li>Mandatory human-in-loop gate for production code</li>
+          </ul>
+        </div>
+      </div>
+      <div class="gov-card">
+        <div class="gov-card-header">📋 Audit Logger</div>
+        <div class="gov-card-body">
+          <ul>
+            <li>Every API call: timestamp, user, prompt hash, model, token count, output accepted/rejected</li>
+            <li>Stored in: your AWS S3 / internal SIEM</li>
+            <li>Retention: 90 days minimum</li>
+          </ul>
+        </div>
+      </div>
+      <div class="gov-card">
+        <div class="gov-card-header">🛡 PII Guard</div>
+        <div class="gov-card-body">
+          <ul>
+            <li>Pre-prompt scanner: blocks SSN, PAN, account numbers</li>
+            <li>Uses AWS Comprehend or regex + ML classifier</li>
+            <li>Alert on violation; block request if critical PII detected</li>
+          </ul>
+        </div>
+      </div>
+      <div class="gov-card">
+        <div class="gov-card-header">🚦 Approval Gates</div>
+        <div class="gov-card-body">
+          <ul>
+            <li>AI-generated PRs flagged with label "ai-assisted"</li>
+            <li>Mandatory 2-reviewer rule for AI-assisted PRs</li>
+            <li>Architecture changes require EA sign-off</li>
+          </ul>
+        </div>
+      </div>
+      <div class="gov-card">
+        <div class="gov-card-header">👥 AI Review Board</div>
+        <div class="gov-card-body">
+          <ul>
+            <li>Monthly cadence · Members: EA, CISO, Dev Lead, BA Lead, PM</li>
+            <li>Reviews: usage metrics, policy violations, model updates, new use-case requests</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <h3>7.3 Governance Metrics</h3>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Metric</th><th>Target</th><th>Measured by</th></tr></thead>
+        <tbody>
+          <tr><td>AI-assisted PR acceptance rate</td><td class="metric-positive">&gt; 70%</td><td>GitHub labels + merge data</td></tr>
+          <tr><td>Policy violations per month</td><td class="metric-positive">&lt; 5</td><td>Audit log</td></tr>
+          <tr><td>PII detection blocks</td><td class="metric-positive">0 undetected leaks</td><td>PII guard alert log</td></tr>
+          <tr><td>AI usage coverage</td><td class="metric-positive">&gt; 80% of devs weekly</td><td>Claude Code telemetry</td></tr>
+          <tr><td>Human override rate</td><td class="metric-track">Tracked (no target)</td><td>PR review data</td></tr>
+          <tr><td>Model version currency</td><td class="metric-positive">Within 1 major version</td><td>APEX config registry</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- § 8 ADOPTION GUIDE -->
+    <div id="section-8" class="section-anchor">
+      <div class="section-num">Section 8</div>
+      <h2>Adoption Guide</h2>
+    </div>
+
+    <p>Full interactive guide available at <a href="adoption-guide.html" style="color:var(--primary);font-weight:600;">adoption-guide.html →</a></p>
+
+    <h3>8.1 Day 1 Quick-Starts by Persona</h3>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Persona</th><th>Time</th><th>First action</th></tr></thead>
+        <tbody>
+          <tr><td>🧑‍💻 Developer</td><td>20 min</td><td><code style="font-size:12px;background:#f3f0ff;padding:2px 6px;border-radius:3px;">npm install -g @anthropic-ai/claude-code</code> → open repo → first prompt</td></tr>
+          <tr><td>📊 Business Analyst</td><td>10 min</td><td>Open Claude.ai Desktop → paste meeting notes → get user stories</td></tr>
+          <tr><td>🧪 Tester / QA</td><td>20 min</td><td>Install Claude Code CLI → generate Postman collection from OpenAPI spec</td></tr>
+          <tr><td>🔄 Agile Coach</td><td>10 min</td><td>Open Claude.ai → paste Jira sprint data → get retro synthesis</td></tr>
+          <tr><td>📋 Program Manager</td><td>10 min</td><td>Open Claude.ai or Copilot in Word → paste sprint export → exec summary</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>8.2 Top 10 Starter Prompts</h3>
+    <div class="table-wrap">
+      <table class="prompt-table">
+        <thead><tr><th>#</th><th>Persona</th><th>Prompt</th></tr></thead>
+        <tbody>
+          <tr><td>1</td><td>Dev</td><td><span class="prompt-text">"Generate JUnit 5 + Mockito tests for all public methods in [ClassName]. Use Testcontainers for DB calls."</span></td></tr>
+          <tr><td>2</td><td>Dev</td><td><span class="prompt-text">"Refactor this class to follow Hexagonal Architecture. Show before/after."</span></td></tr>
+          <tr><td>3</td><td>Dev</td><td><span class="prompt-text">"Explain what this COBOL program does in plain English, then list its external dependencies."</span></td></tr>
+          <tr><td>4</td><td>BA</td><td><span class="prompt-text">"Convert these meeting notes into 5 user stories with Gherkin acceptance criteria: [paste notes]"</span></td></tr>
+          <tr><td>5</td><td>BA</td><td><span class="prompt-text">"Identify gaps between this BRD and these Jira stories: [paste both]"</span></td></tr>
+          <tr><td>6</td><td>QA</td><td><span class="prompt-text">"Given this OpenAPI spec, generate a Postman collection with happy path and error cases."</span></td></tr>
+          <tr><td>7</td><td>QA</td><td><span class="prompt-text">"Write Cypress tests for these acceptance criteria: [paste AC]. Use Page Object Model."</span></td></tr>
+          <tr><td>8</td><td>PM</td><td><span class="prompt-text">"Summarise this sprint for an executive audience in 3 paragraphs. Data: [paste Jira export]"</span></td></tr>
+          <tr><td>9</td><td>Coach</td><td><span class="prompt-text">"Synthesise these retro sticky notes into themes, insights and action items: [paste notes]"</span></td></tr>
+          <tr><td>10</td><td>All</td><td><span class="prompt-text">"Review this output for accuracy and flag anything you're uncertain about."</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- § 9 SUCCESS METRICS -->
+    <div id="section-9" class="section-anchor">
+      <div class="section-num">Section 9</div>
+      <h2>Success Metrics</h2>
+    </div>
+
+    <h3>9.1 Developer Productivity</h3>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Metric</th><th>Baseline</th><th>3-month target</th><th>6-month target</th></tr></thead>
+        <tbody>
+          <tr><td>PR cycle time (open → merge)</td><td>Measure now</td><td class="metric-positive">−20%</td><td class="metric-positive">−35%</td></tr>
+          <tr><td>Boilerplate lines per sprint</td><td>Measure now</td><td class="metric-positive">−40%</td><td class="metric-positive">−60%</td></tr>
+          <tr><td>Unit test coverage delta</td><td>Measure now</td><td class="metric-positive">+10%</td><td class="metric-positive">+20%</td></tr>
+          <tr><td>Time to first commit on new feature</td><td>Measure now</td><td class="metric-positive">−30%</td><td class="metric-positive">−50%</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>9.2 Quality</h3>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Metric</th><th>Baseline</th><th>Target</th></tr></thead>
+        <tbody>
+          <tr><td>Bug escape rate to UAT</td><td>Measure now</td><td class="metric-positive">−25% at 6 months</td></tr>
+          <tr><td>OWASP-flagged PRs</td><td>Measure now</td><td class="metric-positive">−40% at 6 months</td></tr>
+          <tr><td>Story rejection rate (BA → Dev)</td><td>Measure now</td><td class="metric-positive">−30% at 3 months</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>9.3 Adoption</h3>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Metric</th><th>Target</th></tr></thead>
+        <tbody>
+          <tr><td>% devs using Claude Code weekly</td><td class="metric-positive">80% by week 10</td></tr>
+          <tr><td>% BAs using prompt library</td><td class="metric-positive">70% by week 12</td></tr>
+          <tr><td>Prompt library uses</td><td class="metric-positive">&gt; 100/week by week 16</td></tr>
+          <tr><td>Governance policy violations</td><td class="metric-positive">&lt; 5/month</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- § 10 APPENDIX -->
+    <div id="section-10" class="section-anchor">
+      <div class="section-num">Appendix</div>
+      <h2>Appendix: Infrastructure, Effort &amp; Risk</h2>
+    </div>
+
+    <h3>A. Technology Stack for APEX Platform</h3>
+    <div class="code-block">
+      <span class="code-lang">AWS</span>
+      <pre>APEX Core Infrastructure (AWS-native):
+
+<span class="code-key">API Gateway → Lambda → Claude API</span>          <span class="code-comment">(automation bridge)</span>
+<span class="code-key">Lambda → Jira REST API</span>                     <span class="code-comment">(Jira integration)</span>
+<span class="code-key">Lambda → Confluence REST API</span>               <span class="code-comment">(doc automation)</span>
+<span class="code-key">S3 + CloudWatch</span>                            <span class="code-comment">(audit log storage)</span>
+<span class="code-key">AWS Comprehend</span>                             <span class="code-comment">(PII guard)</span>
+<span class="code-key">DynamoDB</span>                                   <span class="code-comment">(prompt library, config store)</span>
+<span class="code-key">CloudFront + S3</span>                            <span class="code-comment">(APEX Portal static hosting)</span>
+<span class="code-key">Secrets Manager</span>                            <span class="code-comment">(API keys)</span>
+<span class="code-key">GitHub Actions</span>                             <span class="code-comment">(CI/CD AI gates)</span></pre>
+    </div>
+
+    <h3>B. Estimated Build Effort</h3>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Component</th><th>Effort</th><th>Priority</th></tr></thead>
+        <tbody>
+          <tr><td>CLAUDE.md templates</td><td>2 days</td><td><span style="color:var(--red);font-weight:700;">P0</span></td></tr>
+          <tr><td>Dev onboarding workshop</td><td>3 days</td><td><span style="color:var(--red);font-weight:700;">P0</span></td></tr>
+          <tr><td>Prompt Library v1 (Confluence)</td><td>3 days</td><td><span style="color:var(--red);font-weight:700;">P0</span></td></tr>
+          <tr><td>BA/PM/QA workshops</td><td>3 days</td><td><span style="color:var(--orange);font-weight:700;">P1</span></td></tr>
+          <tr><td>Jira → Claude automation (1 trigger)</td><td>3 days</td><td><span style="color:var(--orange);font-weight:700;">P1</span></td></tr>
+          <tr><td>AI CI/CD gates (PR review)</td><td>4 days</td><td><span style="color:var(--orange);font-weight:700;">P1</span></td></tr>
+          <tr><td>APEX Portal v1</td><td>5 days</td><td><span style="color:var(--blue);font-weight:700;">P2</span></td></tr>
+          <tr><td>Governance Dashboard v1</td><td>5 days</td><td><span style="color:var(--blue);font-weight:700;">P2</span></td></tr>
+          <tr><td>PII Guard</td><td>4 days</td><td><span style="color:var(--blue);font-weight:700;">P2</span></td></tr>
+          <tr><td>Full audit log pipeline</td><td>5 days</td><td><span style="color:var(--blue);font-weight:700;">P2</span></td></tr>
+          <tr><td>Mainframe analysis pipeline</td><td>8 days</td><td><span style="color:var(--text-muted);font-weight:700;">P3</span></td></tr>
+          <tr style="background:var(--primary-light);"><td><strong>Total</strong></td><td><strong>~45 dev-days</strong></td><td></td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>C. Risk Register</h3>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Risk</th><th>Likelihood</th><th>Impact</th><th>Mitigation</th></tr></thead>
+        <tbody>
+          <tr><td>Developer resistance</td><td>Medium</td><td style="color:var(--red);font-weight:600;">High</td><td>Champion-led rollout; address IP fears early</td></tr>
+          <tr><td>AI hallucinations in production</td><td>Low</td><td style="color:var(--red);font-weight:600;">High</td><td>All AI output reviewed before commit</td></tr>
+          <tr><td>PII leak via prompt</td><td>Low</td><td style="color:var(--red);font-weight:600;">Critical</td><td>PII Guard pre-prompt scanning</td></tr>
+          <tr><td>API rate limits</td><td>Medium</td><td>Medium</td><td>Retry logic + fallback; cache common prompts</td></tr>
+          <tr><td>Licence cost overrun</td><td>Low</td><td>Medium</td><td>Monitor token usage; use Haiku for automation, Sonnet for complex tasks</td></tr>
+          <tr><td>Skill gap in AI Platform Engineer</td><td>Medium</td><td style="color:var(--red);font-weight:600;">High</td><td>Hire or train early; Claude Code is well-documented</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+  </main>
+</div>
+
+<!-- FOOTER -->
+<footer>
+  <p>APEX Framework v1.0 — Prepared for enterprise Angular · Java · Mainframe SDLC augmentation</p>
+  <p style="margin-top:6px;">Tools: <a href="https://claude.ai/code">Claude Code (Anthropic)</a> · <a href="https://github.com/features/copilot">GitHub Copilot (Microsoft)</a> · <a href="https://anthropic.com">Claude API</a></p>
+</footer>
+
+<!-- BACK TO TOP -->
+<button class="back-top" id="backTop" onclick="window.scrollTo({top:0,behavior:'smooth'})" title="Back to top">↑</button>
+
+<script>
+// ── TOC active link tracking ──
+const sections = document.querySelectorAll('.section-anchor');
+const tocLinks = document.querySelectorAll('.toc-link[href^="#"]');
+
+const observer = new IntersectionObserver((entries) => {
+  entries.forEach(e => {
+    if (e.isIntersecting) {
+      tocLinks.forEach(l => l.classList.remove('active'));
+      const id = '#' + e.target.id;
+      const active = document.querySelector('.toc-link[href="' + id + '"]');
+      if (active) active.classList.add('active');
+    }
+  });
+}, { rootMargin: '-60px 0px -60% 0px', threshold: 0 });
+
+sections.forEach(s => observer.observe(s));
+
+// ── Checkbox toggle ──
+document.querySelectorAll('.check-box').forEach(cb => {
+  cb.addEventListener('click', () => cb.classList.toggle('checked'));
+});
+
+// ── Back to top button ──
+const backTop = document.getElementById('backTop');
+window.addEventListener('scroll', () => {
+  backTop.classList.toggle('visible', window.scrollY > 400);
+});
+</script>
+</body>
+</html>

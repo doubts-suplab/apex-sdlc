@@ -1,0 +1,22 @@
+{
+  "name": "apex-portal",
+  "version": "1.0.0",
+  "description": "APEX AI-Powered Engineering eXperience — Portal",
+  "private": true,
+  "scripts": {
+    "dev": "npx serve src -p 3000 --cors",
+    "build": "echo 'Static site — no build step required. Copy portal/src/ to your hosting target.'",
+    "preview": "npx serve src -p 4000"
+  },
+  "devDependencies": {
+    "serve": "^14.2.0"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "homepage": "./",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/your-org/apex-sdlc"
+  }
+}

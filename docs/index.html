@@ -3,538 +3,801 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>APEX — Adoption Guide & Onboarding</title>
+<title>APEX — AI-Powered Engineering eXperience</title>
 <style>
-  :root {
-    --primary: #6B4FBB;
-    --primary-light: #EDE9F7;
-    --primary-dark: #4A3280;
-    --green: #2D7D46;
-    --green-light: #E8F5E9;
-    --orange: #C05621;
-    --orange-light: #FFF3E0;
-    --blue: #1565C0;
-    --blue-light: #E3F2FD;
-    --bg: #F8F9FA;
-    --surface: #FFFFFF;
-    --border: #E2E8F0;
-    --text: #1A202C;
-    --text-muted: #718096;
-    --sidebar-w: 240px;
-  }
-  * { box-sizing: border-box; margin: 0; padding: 0; }
-  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: var(--bg); color: var(--text); font-size: 14px; }
+:root {
+  --primary:       #6B4FBB;
+  --primary-dark:  #4A3280;
+  --primary-deep:  #2D1B69;
+  --primary-light: #EDE9F7;
+  --primary-mid:   #C4B5FD;
+  --green:         #2D7D46;
+  --green-light:   #E8F5E9;
+  --orange:        #C05621;
+  --orange-light:  #FFF3E0;
+  --blue:          #1565C0;
+  --blue-light:    #E3F2FD;
+  --red:           #B91C1C;
+  --red-light:     #FEF2F2;
+  --bg:            #F8F7FC;
+  --surface:       #FFFFFF;
+  --border:        #E5E0F5;
+  --border-soft:   #EDE9F7;
+  --text:          #1A1033;
+  --text-muted:    #6B7280;
+  --text-soft:     #9CA3AF;
+  --nav-h:         60px;
+}
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Inter', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  font-size: 15px;
+  line-height: 1.6;
+}
 
-  /* Hero */
-  .hero { background: linear-gradient(135deg, #2D1B69 0%, #4A3280 50%, #6B4FBB 100%); color: #fff; padding: 48px 60px; }
-  .hero-tag { display: inline-flex; align-items: center; gap: 6px; background: rgba(255,255,255,0.15); font-size: 11px; font-weight: 700; padding: 4px 12px; border-radius: 20px; margin-bottom: 16px; letter-spacing: 0.5px; }
-  .hero h1 { font-size: 32px; font-weight: 800; margin-bottom: 10px; }
-  .hero p { font-size: 15px; color: rgba(255,255,255,0.75); max-width: 600px; line-height: 1.6; margin-bottom: 24px; }
-  .hero-btns { display: flex; gap: 12px; }
-  .btn { padding: 9px 20px; border-radius: 8px; font-size: 13px; font-weight: 600; cursor: pointer; border: none; transition: all 0.15s; }
-  .btn-white { background: #fff; color: var(--primary); }
-  .btn-ghost { background: rgba(255,255,255,0.15); color: #fff; border: 1.5px solid rgba(255,255,255,0.3); }
-  .btn-primary { background: var(--primary); color: #fff; }
-  .btn-primary:hover { background: var(--primary-dark); }
-  .btn-outline { background: transparent; border: 1.5px solid var(--primary); color: var(--primary); }
+/* ── NAV ── */
+nav {
+  position: sticky; top: 0; z-index: 100;
+  height: var(--nav-h);
+  background: rgba(255,255,255,0.92);
+  backdrop-filter: blur(16px);
+  border-bottom: 1px solid var(--border);
+  display: flex; align-items: center;
+  padding: 0 40px; gap: 0;
+}
+.nav-brand {
+  display: flex; align-items: center; gap: 10px;
+  text-decoration: none; margin-right: 40px; flex-shrink: 0;
+}
+.nav-logo {
+  width: 34px; height: 34px; background: var(--primary);
+  border-radius: 9px; display: flex; align-items: center;
+  justify-content: center; font-size: 13px; font-weight: 900;
+  color: #fff; letter-spacing: -0.5px;
+}
+.nav-name { font-size: 16px; font-weight: 800; color: var(--primary); letter-spacing: -0.3px; }
+.nav-links { display: flex; gap: 2px; flex: 1; }
+.nav-links a {
+  color: var(--text-muted); text-decoration: none; font-size: 13px;
+  font-weight: 500; padding: 6px 14px; border-radius: 7px;
+  transition: all .15s; white-space: nowrap;
+}
+.nav-links a:hover { color: var(--primary); background: var(--primary-light); }
+.nav-links a.active { color: var(--primary); background: var(--primary-light); font-weight: 700; }
+.nav-end { display: flex; gap: 10px; margin-left: auto; }
+.nav-badge {
+  font-size: 10px; font-weight: 700; letter-spacing: 0.6px;
+  text-transform: uppercase; background: var(--primary-light);
+  color: var(--primary); padding: 3px 10px; border-radius: 20px;
+  border: 1px solid var(--border);
+}
+.btn {
+  padding: 7px 18px; border-radius: 8px; font-size: 13px;
+  font-weight: 600; cursor: pointer; border: none;
+  text-decoration: none; display: inline-flex; align-items: center;
+  gap: 6px; transition: all .15s;
+}
+.btn-primary { background: var(--primary); color: #fff; }
+.btn-primary:hover { background: var(--primary-dark); }
+.btn-outline { background: transparent; border: 1.5px solid var(--primary); color: var(--primary); }
+.btn-outline:hover { background: var(--primary-light); }
+.btn-ghost { background: rgba(255,255,255,.15); color: #fff; border: 1.5px solid rgba(255,255,255,.3); }
+.btn-ghost:hover { background: rgba(255,255,255,.25); }
 
-  /* Persona picker */
-  .persona-section { padding: 40px 60px; background: var(--surface); border-bottom: 1px solid var(--border); }
-  .section-label { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.8px; color: var(--text-muted); margin-bottom: 12px; }
-  .section-title { font-size: 20px; font-weight: 800; margin-bottom: 6px; }
-  .section-sub { font-size: 13px; color: var(--text-muted); margin-bottom: 24px; }
-  .persona-tabs { display: flex; gap: 10px; flex-wrap: wrap; }
-  .persona-tab { display: flex; align-items: center; gap: 8px; padding: 10px 18px; border-radius: 30px; cursor: pointer; border: 2px solid var(--border); font-size: 13px; font-weight: 600; background: var(--bg); transition: all 0.15s; }
-  .persona-tab:hover { border-color: var(--primary); }
-  .persona-tab.active { border-color: var(--primary); background: var(--primary-light); color: var(--primary); }
-  .persona-emoji { font-size: 18px; }
+/* ── HERO ── */
+.hero {
+  background: linear-gradient(145deg, var(--primary-deep) 0%, var(--primary-dark) 45%, var(--primary) 100%);
+  padding: 80px 40px 72px;
+  position: relative; overflow: hidden;
+}
+.hero::before {
+  content: '';
+  position: absolute; inset: 0;
+  background: radial-gradient(ellipse 70% 60% at 80% 20%, rgba(196,181,253,.18) 0%, transparent 70%),
+              radial-gradient(ellipse 50% 50% at 10% 80%, rgba(107,79,187,.25) 0%, transparent 60%);
+}
+.hero-inner { max-width: 1100px; margin: 0 auto; position: relative; }
+.hero-eyebrow {
+  display: inline-flex; align-items: center; gap: 7px;
+  background: rgba(255,255,255,.12); border: 1px solid rgba(255,255,255,.2);
+  color: rgba(255,255,255,.9); font-size: 11px; font-weight: 700;
+  letter-spacing: 1px; text-transform: uppercase;
+  padding: 5px 14px; border-radius: 20px; margin-bottom: 22px;
+}
+.hero-dot { width: 6px; height: 6px; background: #A78BFA; border-radius: 50%; animation: blink 2s infinite; }
+@keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.3} }
+.hero h1 {
+  font-size: clamp(32px, 5vw, 54px); font-weight: 900;
+  letter-spacing: -1.5px; line-height: 1.08; color: #fff;
+  margin-bottom: 18px; max-width: 700px;
+}
+.hero h1 span { color: #C4B5FD; }
+.hero-sub {
+  font-size: 17px; color: rgba(255,255,255,.72);
+  max-width: 580px; line-height: 1.65; margin-bottom: 32px;
+}
+.hero-actions { display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 52px; }
+.hero-stats {
+  display: flex; gap: 0; flex-wrap: wrap;
+  border-top: 1px solid rgba(255,255,255,.15); padding-top: 32px;
+}
+.hero-stat {
+  flex: 1; min-width: 140px; padding: 0 32px 0 0;
+  border-right: 1px solid rgba(255,255,255,.12);
+  margin-right: 32px;
+}
+.hero-stat:last-child { border-right: none; margin-right: 0; }
+.hero-stat-val { font-size: 30px; font-weight: 900; color: #fff; letter-spacing: -1px; }
+.hero-stat-label { font-size: 12px; color: rgba(255,255,255,.6); margin-top: 2px; }
 
-  /* Steps section */
-  .steps-section { padding: 40px 60px; }
-  .steps-header { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 32px; }
-  .persona-context { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 16px 20px; max-width: 340px; }
-  .context-label { font-size: 11px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 6px; }
-  .context-tools { display: flex; gap: 6px; flex-wrap: wrap; }
-  .context-tool { font-size: 11px; font-weight: 600; padding: 3px 10px; border-radius: 10px; }
+/* ── SECTION LAYOUT ── */
+.section { padding: 64px 40px; max-width: 1100px; margin: 0 auto; }
+.section-eyebrow {
+  font-size: 11px; font-weight: 700; letter-spacing: 1px;
+  text-transform: uppercase; color: var(--primary); margin-bottom: 8px;
+}
+.section-title { font-size: 28px; font-weight: 800; letter-spacing: -0.5px; margin-bottom: 8px; }
+.section-sub { font-size: 15px; color: var(--text-muted); max-width: 520px; }
+.section-header { margin-bottom: 36px; }
+.divider { border: none; border-top: 1px solid var(--border); margin: 0; }
 
-  .steps-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; margin-bottom: 40px; }
-  .step-card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 20px; position: relative; }
-  .step-card.highlight { border-color: var(--primary); box-shadow: 0 4px 16px rgba(107,79,187,0.12); }
-  .step-num { width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 800; color: #fff; margin-bottom: 12px; }
-  .step-title { font-size: 14px; font-weight: 700; margin-bottom: 6px; }
-  .step-desc { font-size: 12px; color: var(--text-muted); line-height: 1.6; margin-bottom: 12px; }
-  .step-action { font-size: 12px; font-weight: 600; color: var(--primary); cursor: pointer; }
-  .step-time { position: absolute; top: 16px; right: 16px; font-size: 10px; font-weight: 700; color: var(--text-muted); background: var(--bg); padding: 2px 8px; border-radius: 8px; }
-  .code-block { background: #1A202C; color: #E2E8F0; font-family: 'Courier New', monospace; font-size: 12px; padding: 12px 14px; border-radius: 8px; margin-top: 10px; line-height: 1.7; }
-  .code-block .cmd { color: #68D391; }
-  .code-block .comment { color: #718096; }
-  .code-block .string { color: #F6AD55; }
+/* ── QUICK NAV CARDS ── */
+.quicknav-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; }
+.qn-card {
+  background: var(--surface); border: 1.5px solid var(--border);
+  border-radius: 14px; padding: 22px; cursor: pointer;
+  transition: all .18s; text-decoration: none; display: block;
+  position: relative; overflow: hidden;
+}
+.qn-card::before {
+  content: ''; position: absolute; inset: 0;
+  background: linear-gradient(135deg, var(--primary-light) 0%, transparent 60%);
+  opacity: 0; transition: opacity .18s;
+}
+.qn-card:hover { border-color: var(--primary); transform: translateY(-2px); box-shadow: 0 8px 24px rgba(107,79,187,.12); }
+.qn-card:hover::before { opacity: 1; }
+.qn-icon {
+  width: 44px; height: 44px; border-radius: 11px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 22px; margin-bottom: 14px; position: relative;
+}
+.qn-title { font-size: 14px; font-weight: 700; color: var(--text); margin-bottom: 5px; position: relative; }
+.qn-desc { font-size: 12px; color: var(--text-muted); line-height: 1.5; position: relative; }
+.qn-arrow { position: absolute; top: 20px; right: 20px; color: var(--text-soft); font-size: 16px; transition: all .15s; }
+.qn-card:hover .qn-arrow { color: var(--primary); transform: translate(2px,-2px); }
 
-  /* Prompt library */
-  .prompt-section { padding: 40px 60px; background: var(--surface); border-top: 1px solid var(--border); }
-  .prompt-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; margin-top: 20px; }
-  .prompt-card { background: var(--bg); border: 1px solid var(--border); border-radius: 10px; padding: 16px; cursor: pointer; transition: all 0.15s; }
-  .prompt-card:hover { border-color: var(--primary); background: var(--primary-light); }
-  .prompt-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; }
-  .prompt-persona { font-size: 10px; font-weight: 700; padding: 2px 8px; border-radius: 8px; }
-  .prompt-copy { font-size: 11px; color: var(--primary); font-weight: 600; }
-  .prompt-title { font-size: 13px; font-weight: 700; margin-bottom: 6px; }
-  .prompt-preview { font-size: 11px; color: var(--text-muted); font-style: italic; line-height: 1.5; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
+/* ── FRAMEWORK DIAGRAM ── */
+.diagram-section { background: var(--surface); border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); }
+.diagram-inner { max-width: 1100px; margin: 0 auto; padding: 64px 40px; }
+.diagram-grid { display: grid; grid-template-columns: 1fr 420px; gap: 48px; align-items: start; }
+.diagram-img {
+  width: 100%; border-radius: 14px;
+  border: 1px solid var(--border); background: #fff;
+  box-shadow: 0 4px 20px rgba(107,79,187,.08);
+}
+.layer-stack { display: flex; flex-direction: column; gap: 8px; }
+.layer {
+  border-radius: 10px; padding: 14px 18px;
+  border: 1.5px solid var(--border);
+  background: var(--surface);
+  transition: border-color .15s;
+}
+.layer:hover { border-color: var(--primary); }
+.layer-label { font-size: 10px; font-weight: 700; letter-spacing: 0.8px; text-transform: uppercase; margin-bottom: 4px; }
+.layer-name { font-size: 13px; font-weight: 700; margin-bottom: 3px; }
+.layer-tools { font-size: 11px; color: var(--text-muted); }
+.layer-dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; margin-right: 6px; }
 
-  /* CLAUDE.md builder */
-  .builder-section { padding: 40px 60px; }
-  .builder-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
-  .form-group { margin-bottom: 14px; }
-  .form-label { font-size: 12px; font-weight: 700; margin-bottom: 5px; display: block; }
-  .form-input { width: 100%; padding: 9px 12px; border: 1.5px solid var(--border); border-radius: 8px; font-size: 13px; outline: none; transition: border 0.15s; font-family: inherit; }
-  .form-input:focus { border-color: var(--primary); }
-  select.form-input { background: var(--surface); }
-  .form-input[readonly] { background: var(--bg); color: var(--text-muted); cursor: default; }
-  .output-pane { background: #1A202C; color: #E2E8F0; font-family: 'Courier New', monospace; font-size: 12px; padding: 20px; border-radius: 10px; line-height: 1.8; height: 100%; min-height: 440px; overflow-y: auto; }
-  .out-comment { color: #718096; }
-  .out-key { color: #63B3ED; }
-  .out-val { color: #F6AD55; }
-  .out-list { color: #68D391; }
+/* ── EEIK BOOTSTRAP SECTION ── */
+.eeik-section { background: linear-gradient(135deg, var(--primary-deep) 0%, #1e1145 100%); color: #fff; }
+.eeik-inner { max-width: 1100px; margin: 0 auto; padding: 64px 40px; }
+.eeik-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 48px; align-items: center; }
+.eeik-badge {
+  display: inline-flex; align-items: center; gap: 7px;
+  background: rgba(167,139,250,.2); border: 1px solid rgba(167,139,250,.35);
+  color: #C4B5FD; font-size: 11px; font-weight: 700;
+  letter-spacing: 0.8px; text-transform: uppercase;
+  padding: 4px 12px; border-radius: 20px; margin-bottom: 18px;
+}
+.eeik-title { font-size: 26px; font-weight: 800; letter-spacing: -0.5px; margin-bottom: 12px; }
+.eeik-sub { font-size: 14px; color: rgba(255,255,255,.65); line-height: 1.7; margin-bottom: 24px; }
+.eeik-agents { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.agent-chip {
+  display: flex; align-items: center; gap: 8px;
+  background: rgba(255,255,255,.07); border: 1px solid rgba(255,255,255,.1);
+  border-radius: 8px; padding: 8px 12px; font-size: 12px; font-weight: 500;
+  color: rgba(255,255,255,.8);
+}
+.agent-dot { width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; }
+.agent-count {
+  margin-left: auto; font-size: 10px; font-weight: 700;
+  color: #A78BFA; background: rgba(167,139,250,.15);
+  padding: 1px 7px; border-radius: 8px;
+}
+.eeik-commands { display: flex; flex-direction: column; gap: 6px; }
+.cmd-row {
+  display: flex; align-items: baseline; gap: 10px;
+  padding: 10px 14px; background: rgba(255,255,255,.05);
+  border-radius: 8px; border: 1px solid rgba(255,255,255,.08);
+}
+.cmd-name { font-family: 'Courier New', monospace; font-size: 12px; color: #A78BFA; font-weight: 700; min-width: 180px; }
+.cmd-desc { font-size: 12px; color: rgba(255,255,255,.55); }
 
-  /* Rollout timeline */
-  .timeline-section { padding: 40px 60px; background: var(--surface); border-top: 1px solid var(--border); }
-  .timeline { display: flex; gap: 0; position: relative; }
-  .timeline::before { content: ''; position: absolute; top: 24px; left: 0; right: 0; height: 2px; background: var(--border); }
-  .tl-item { flex: 1; position: relative; text-align: center; }
-  .tl-dot { width: 48px; height: 48px; border-radius: 50%; margin: 0 auto 12px; display: flex; align-items: center; justify-content: center; font-size: 18px; position: relative; z-index: 1; border: 3px solid var(--surface); }
-  .tl-done { background: var(--green); }
-  .tl-active { background: var(--primary); animation: pulse 2s infinite; }
-  .tl-pending { background: var(--border); }
-  .tl-week { font-size: 11px; font-weight: 700; color: var(--text-muted); }
-  .tl-title { font-size: 13px; font-weight: 700; margin: 4px 0 2px; }
-  .tl-desc { font-size: 11px; color: var(--text-muted); }
-  @keyframes pulse { 0%,100%{box-shadow:0 0 0 0 rgba(107,79,187,0.3)} 50%{box-shadow:0 0 0 8px rgba(107,79,187,0)} }
+/* ── PERSONA GRID ── */
+.persona-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+.p-card {
+  background: var(--surface); border: 1.5px solid var(--border);
+  border-radius: 14px; padding: 22px; transition: all .18s;
+}
+.p-card:hover { border-color: var(--primary); box-shadow: 0 6px 20px rgba(107,79,187,.1); }
+.p-header { display: flex; align-items: center; gap: 12px; margin-bottom: 14px; }
+.p-icon {
+  width: 42px; height: 42px; border-radius: 10px;
+  display: flex; align-items: center; justify-content: center; font-size: 20px; flex-shrink: 0;
+}
+.p-name { font-size: 14px; font-weight: 700; }
+.p-tool { font-size: 11px; color: var(--text-muted); margin-top: 1px; }
+.p-bar-wrap { height: 4px; background: var(--border); border-radius: 2px; margin-bottom: 6px; overflow: hidden; }
+.p-bar { height: 100%; border-radius: 2px; }
+.p-meta { font-size: 11px; color: var(--text-muted); }
+.p-tags { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 12px; }
+.p-tag {
+  font-size: 10px; font-weight: 600; padding: 2px 9px;
+  border-radius: 10px; background: var(--primary-light); color: var(--primary);
+}
 
-  /* Footer nav */
-  .footer-nav { background: var(--text); color: #fff; padding: 24px 60px; display: flex; align-items: center; justify-content: space-between; }
-  .footer-brand { font-size: 16px; font-weight: 800; }
-  .footer-links { display: flex; gap: 24px; }
-  .footer-link { font-size: 12px; color: #A0AEC0; cursor: pointer; }
-  .footer-link:hover { color: #fff; }
+/* ── SDLC PHASE TIMELINE ── */
+.timeline-wrap { overflow-x: auto; padding-bottom: 4px; }
+.timeline { display: flex; gap: 0; position: relative; min-width: 700px; }
+.timeline::before {
+  content: ''; position: absolute; top: 23px; left: 24px; right: 24px;
+  height: 2px; background: var(--border);
+}
+.tl-item { flex: 1; text-align: center; position: relative; cursor: pointer; }
+.tl-dot {
+  width: 48px; height: 48px; border-radius: 50%;
+  margin: 0 auto 12px; display: flex; align-items: center;
+  justify-content: center; font-size: 15px; position: relative; z-index: 1;
+  border: 3px solid var(--surface); transition: all .2s;
+}
+.tl-item:hover .tl-dot { transform: scale(1.1); }
+.tl-done { background: var(--green); }
+.tl-active { background: var(--primary); box-shadow: 0 0 0 6px rgba(107,79,187,.18); animation: glow 2s infinite; }
+@keyframes glow { 0%,100%{box-shadow:0 0 0 6px rgba(107,79,187,.18)} 50%{box-shadow:0 0 0 10px rgba(107,79,187,.08)} }
+.tl-pending { background: var(--border); }
+.tl-week { font-size: 10px; font-weight: 700; color: var(--text-soft); letter-spacing: 0.3px; }
+.tl-phase { font-size: 13px; font-weight: 700; margin: 4px 0 2px; }
+.tl-desc { font-size: 11px; color: var(--text-muted); line-height: 1.45; }
+
+/* ── GOVERNANCE STRIP ── */
+.gov-strip { background: var(--surface); border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); }
+.gov-inner { max-width: 1100px; margin: 0 auto; padding: 48px 40px; }
+.gov-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; }
+.gov-card {
+  border: 1.5px solid var(--border); border-radius: 12px; padding: 18px 20px;
+  background: var(--bg); transition: all .15s;
+}
+.gov-card:hover { border-color: var(--primary); background: var(--surface); }
+.gov-icon { font-size: 24px; margin-bottom: 10px; }
+.gov-title { font-size: 13px; font-weight: 700; margin-bottom: 5px; }
+.gov-desc { font-size: 12px; color: var(--text-muted); line-height: 1.5; }
+.gov-status { display: flex; align-items: center; gap: 5px; margin-top: 10px; font-size: 11px; font-weight: 700; }
+.status-dot { width: 7px; height: 7px; border-radius: 50%; }
+
+/* ── BUILD PLAN ── */
+.plan-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+.plan-item {
+  display: flex; gap: 14px; align-items: flex-start;
+  background: var(--surface); border: 1.5px solid var(--border);
+  border-radius: 12px; padding: 16px 18px;
+}
+.plan-num {
+  width: 28px; height: 28px; border-radius: 50%; flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 12px; font-weight: 800; color: #fff;
+}
+.plan-title { font-size: 13px; font-weight: 700; margin-bottom: 3px; }
+.plan-desc { font-size: 12px; color: var(--text-muted); line-height: 1.5; }
+.plan-tag {
+  display: inline-block; font-size: 10px; font-weight: 700;
+  padding: 1px 8px; border-radius: 8px; margin-top: 6px;
+}
+
+/* ── CTA ── */
+.cta-section {
+  background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+  padding: 64px 40px; text-align: center;
+}
+.cta-inner { max-width: 600px; margin: 0 auto; }
+.cta-title { font-size: 28px; font-weight: 800; color: #fff; letter-spacing: -0.5px; margin-bottom: 12px; }
+.cta-sub { font-size: 15px; color: rgba(255,255,255,.72); margin-bottom: 28px; }
+.cta-btns { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
+
+/* ── FOOTER ── */
+footer {
+  background: var(--text); color: rgba(255,255,255,.7);
+  padding: 32px 40px; display: flex;
+  align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 16px;
+}
+.footer-brand { font-size: 15px; font-weight: 800; color: #fff; }
+.footer-links { display: flex; gap: 24px; flex-wrap: wrap; }
+.footer-links a { color: rgba(255,255,255,.5); text-decoration: none; font-size: 13px; transition: color .15s; }
+.footer-links a:hover { color: #fff; }
+.footer-copy { font-size: 12px; color: rgba(255,255,255,.35); }
+
+/* ── UTILS ── */
+.tag {
+  display: inline-block; font-size: 11px; font-weight: 700;
+  padding: 2px 9px; border-radius: 10px;
+}
+.tag-purple { background: var(--primary-light); color: var(--primary); }
+.tag-green  { background: var(--green-light);   color: var(--green); }
+.tag-orange { background: var(--orange-light);  color: var(--orange); }
+.tag-blue   { background: var(--blue-light);    color: var(--blue); }
+.tag-grey   { background: #F3F4F6; color: #6B7280; }
 </style>
 </head>
 <body>
 
-<!-- Hero -->
-<div class="hero">
-  <div class="hero-tag">✦ APEX Adoption Guide</div>
-  <h1>Get Started with AI-Augmented SDLC</h1>
-  <p>APEX brings Claude Code and GitHub Copilot into your existing workflow — without changing how you work. Pick your role and follow the 20-minute quick-start.</p>
-  <div class="hero-btns">
-    <button class="btn btn-white">Pick My Role →</button>
-    <button class="btn btn-ghost">Browse Prompt Library</button>
+<!-- ═══ NAV ═══ -->
+<nav>
+  <a class="nav-brand" href="index.html">
+    <div class="nav-logo">AX</div>
+    <span class="nav-name">APEX</span>
+  </a>
+  <div class="nav-links">
+    <a href="index.html" class="active">Home</a>
+    <a href="apex-portal.html">Dashboard</a>
+    <a href="adoption-guide.html">Adoption Guide</a>
+    <a href="apex-governance.html">Governance</a>
+    <a href="apex-framework.html">Framework</a>
+    <a href="https://github.com/suplab/eeik-bootstrap" target="_blank">EEIK Bootstrap ↗</a>
+  </div>
+  <div class="nav-end">
+    <span class="nav-badge">v1.0 · Phase 1 Active</span>
+    <a href="../portal/src/index.html" class="btn btn-outline">🖥️ Launch Portal</a>
+    <a href="adoption-guide.html" class="btn btn-primary">Get Started →</a>
+  </div>
+</nav>
+
+<!-- ═══ HERO ═══ -->
+<section class="hero">
+  <div class="hero-inner">
+    <div class="hero-eyebrow">
+      <span class="hero-dot"></span>
+      Enterprise AI SDLC Framework
+    </div>
+    <h1>AI that fits your<br><span>existing workflow.</span></h1>
+    <p class="hero-sub">
+      APEX routes the right AI capability to the right persona at every stage of delivery —
+      without replacing a single tool, ceremony, or habit your team already has.
+    </p>
+    <div class="hero-actions">
+      <a href="adoption-guide.html" class="btn btn-primary">Start Onboarding</a>
+      <a href="apex-portal.html" class="btn btn-ghost">View Dashboard</a>
+      <a href="apex-governance.html" class="btn btn-ghost">Governance</a>
+    </div>
+    <div class="hero-stats">
+      <div class="hero-stat">
+        <div class="hero-stat-val">30–40%</div>
+        <div class="hero-stat-label">↓ PR cycle time</div>
+      </div>
+      <div class="hero-stat">
+        <div class="hero-stat-val">50%+</div>
+        <div class="hero-stat-label">↓ Boilerplate authoring</div>
+      </div>
+      <div class="hero-stat">
+        <div class="hero-stat-val">60%</div>
+        <div class="hero-stat-label">↓ Manual test writing</div>
+      </div>
+      <div class="hero-stat">
+        <div class="hero-stat-val">6</div>
+        <div class="hero-stat-label">Personas · Zero new tools</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══ QUICK NAV ═══ -->
+<div class="section">
+  <div class="section-header">
+    <div class="section-eyebrow">Navigate APEX</div>
+    <div class="section-title">Everything in one place</div>
+    <div class="section-sub">All framework assets — from dashboard to governance to persona guides.</div>
+  </div>
+  <div class="quicknav-grid">
+    <a href="apex-portal.html" class="qn-card">
+      <div class="qn-icon" style="background:var(--primary-light)">📊</div>
+      <div class="qn-title">APEX Dashboard</div>
+      <div class="qn-desc">Live adoption metrics, SDLC phase tracker, tool integration status, and activity feed.</div>
+      <span class="qn-arrow">↗</span>
+    </a>
+    <a href="adoption-guide.html" class="qn-card">
+      <div class="qn-icon" style="background:var(--green-light)">🚀</div>
+      <div class="qn-title">Adoption Guide</div>
+      <div class="qn-desc">Role-based quick-starts, prompt library, CLAUDE.md builder, and onboarding steps.</div>
+      <span class="qn-arrow">↗</span>
+    </a>
+    <a href="apex-governance.html" class="qn-card">
+      <div class="qn-icon" style="background:var(--orange-light)">🛡️</div>
+      <div class="qn-title">Governance</div>
+      <div class="qn-desc">Policy engine, audit log, PII guard, approval gates, and AI Review Board tracker.</div>
+      <span class="qn-arrow">↗</span>
+    </a>
+    <a href="apex-framework.html" class="qn-card">
+      <div class="qn-icon" style="background:var(--blue-light)">📄</div>
+      <div class="qn-title">Framework Doc</div>
+      <div class="qn-desc">Full master plan — architecture, build vs integrate, team structure, and 20-week roadmap.</div>
+      <span class="qn-arrow">↗</span>
+    </a>
   </div>
 </div>
 
-<!-- Persona picker -->
-<div class="persona-section">
-  <div class="section-label">Step 1 — Identify your role</div>
-  <div class="section-title">Who are you?</div>
-  <div class="section-sub">Select your persona to see the tailored quick-start guide, tools, and prompt library for your role.</div>
-  <div class="persona-tabs">
-    <div class="persona-tab active">
-      <span class="persona-emoji">👨‍💻</span> Developer
-    </div>
-    <div class="persona-tab">
-      <span class="persona-emoji">📋</span> Business Analyst
-    </div>
-    <div class="persona-tab">
-      <span class="persona-emoji">🧪</span> Tester / QA
-    </div>
-    <div class="persona-tab">
-      <span class="persona-emoji">🔄</span> Agile Coach
-    </div>
-    <div class="persona-tab">
-      <span class="persona-emoji">📈</span> Program Manager
-    </div>
-    <div class="persona-tab">
-      <span class="persona-emoji">👔</span> Stakeholder
-    </div>
-  </div>
-</div>
+<hr class="divider">
 
-<!-- Quick-start steps -->
-<div class="steps-section">
-  <div class="steps-header">
-    <div>
-      <div class="section-label">Step 2 — Quick start</div>
-      <div class="section-title">Developer Onboarding</div>
-      <div class="section-sub">Angular · Java · Spring Boot · Mainframe  ·  Estimated time: 20 minutes</div>
+<!-- ═══ FRAMEWORK ARCHITECTURE ═══ -->
+<section class="diagram-section">
+  <div class="diagram-inner">
+    <div class="section-header">
+      <div class="section-eyebrow">Architecture</div>
+      <div class="section-title">How APEX is layered</div>
+      <div class="section-sub">AI augmentation at every SDLC phase for Angular · Java · Spring Boot · Mainframe.</div>
     </div>
-    <div class="persona-context">
-      <div class="context-label">Your AI Tools</div>
-      <div class="context-tools">
-        <span class="context-tool" style="background:var(--primary-light);color:var(--primary)">Claude Code CLI</span>
-        <span class="context-tool" style="background:var(--green-light);color:var(--green)">GitHub Copilot</span>
-        <span class="context-tool" style="background:var(--blue-light);color:var(--blue)">IntelliJ / VS Code</span>
-      </div>
-      <div style="margin-top:10px;font-size:11px;color:var(--text-muted)">
-        ℹ️ You don't need to learn new tools. AI runs inside your existing IDE and terminal.
-      </div>
-    </div>
-  </div>
-
-  <div class="steps-grid">
-
-    <div class="step-card highlight">
-      <span class="step-time">5 min</span>
-      <div class="step-num" style="background:var(--primary)">1</div>
-      <div class="step-title">Install Claude Code CLI</div>
-      <div class="step-desc">One npm install. Works in any terminal — iTerm, VS Code integrated, IntelliJ terminal. Verify with claude --version.</div>
-      <div class="code-block">
-        <div><span class="cmd">$</span> npm install -g @anthropic-ai/claude-code</div>
-        <div><span class="cmd">$</span> claude --version</div>
-        <div><span class="comment"># Sign in with your Anthropic team account</span></div>
-        <div><span class="cmd">$</span> claude auth login</div>
-      </div>
-    </div>
-
-    <div class="step-card highlight">
-      <span class="step-time">5 min</span>
-      <div class="step-num" style="background:var(--primary)">2</div>
-      <div class="step-title">Open your repo &amp; explore</div>
-      <div class="step-desc">Navigate to your Spring Boot or Angular repo. Run claude to start. Your CLAUDE.md context file is already there — Claude knows your stack.</div>
-      <div class="code-block">
-        <div><span class="cmd">$</span> cd payments-service</div>
-        <div><span class="cmd">$</span> claude</div>
-        <div><span class="comment"># Try your first prompt:</span></div>
-        <div><span class="string">"Explain this codebase architecture"</span></div>
-      </div>
-    </div>
-
-    <div class="step-card highlight">
-      <span class="step-time">5 min</span>
-      <div class="step-num" style="background:var(--primary)">3</div>
-      <div class="step-title">Enable Copilot in IDE</div>
-      <div class="step-desc">Install the GitHub Copilot extension in IntelliJ IDEA or VS Code. Sign in with your GitHub account (your seat is pre-provisioned).</div>
-      <div class="code-block">
-        <div><span class="comment"># IntelliJ: Preferences → Plugins</span></div>
-        <div><span class="comment"># Search: "GitHub Copilot" → Install</span></div>
-        <div></div>
-        <div><span class="comment"># VS Code: Extensions (Ctrl+Shift+X)</span></div>
-        <div><span class="comment"># Search: "GitHub Copilot" → Install</span></div>
-      </div>
-    </div>
-
-    <div class="step-card">
-      <span class="step-time">3 min</span>
-      <div class="step-num" style="background:var(--green)">4</div>
-      <div class="step-title">Generate your first tests</div>
-      <div class="step-desc">Ask Claude Code to write JUnit 5 tests for any class. Review the output — accept, modify, or reject. Never commit without reading it.</div>
-      <div class="code-block">
-        <div><span class="string">"Generate JUnit 5 + Mockito tests for</span></div>
-        <div><span class="string"> all public methods in OrderService.</span></div>
-        <div><span class="string"> Use Testcontainers for DB calls."</span></div>
-      </div>
-    </div>
-
-    <div class="step-card">
-      <span class="step-time">2 min</span>
-      <div class="step-num" style="background:var(--green)">5</div>
-      <div class="step-title">Try Copilot inline</div>
-      <div class="step-desc">Open any Java or Angular file. Start typing a method. Copilot will suggest completions — press Tab to accept, Esc to dismiss. That's it.</div>
-      <div class="code-block">
-        <div><span class="comment">// Type this in your Java service:</span></div>
-        <div><span class="cmd">public</span> List&lt;Order&gt; getOrdersBy</div>
-        <div><span class="comment">// Copilot completes → Tab to accept</span></div>
-      </div>
-    </div>
-
-    <div class="step-card">
-      <span class="step-time">∞</span>
-      <div class="step-num" style="background:var(--orange)">6</div>
-      <div class="step-title">Share &amp; learn daily</div>
-      <div class="step-desc">Post what worked (and what didn't) in #ai-sdlc on Slack. Browse the Prompt Library for battle-tested prompts from your peers. Tune your CLAUDE.md as you learn.</div>
-      <div style="margin-top:10px;background:var(--orange-light);border-radius:6px;padding:10px;font-size:11px;color:var(--orange);">
-        <strong>Golden rule:</strong> AI is a junior pair programmer. You're the senior. Always review before you commit.
-      </div>
-    </div>
-
-  </div>
-
-  <!-- COBOL special section -->
-  <div style="background:var(--surface);border:2px solid var(--orange);border-radius:12px;padding:24px;margin-bottom:40px;">
-    <div style="display:flex;align-items:center;gap:12px;margin-bottom:14px;">
-      <span style="font-size:24px;">🖥️</span>
+    <div class="diagram-grid">
+      <img class="diagram-img" src="ai_sdlc_framework.svg" alt="APEX AI SDLC Framework diagram" />
       <div>
-        <div style="font-size:14px;font-weight:700;">Mainframe / COBOL Track</div>
-        <div style="font-size:12px;color:var(--text-muted);">Special guidance for the mainframe modernisation pipeline</div>
+        <div class="layer-stack">
+          <div class="layer">
+            <div class="layer-label" style="color:var(--primary)">Persona Layer</div>
+            <div class="layer-name">Who interacts</div>
+            <div class="layer-tools">Dev (IDE) · BA/PM (Claude.ai) · Tester (CLI) · Stakeholder (M365)</div>
+          </div>
+          <div class="layer">
+            <div class="layer-label" style="color:var(--green)">AI Orchestration Layer</div>
+            <div class="layer-name">What does the work</div>
+            <div class="layer-tools">Claude Code CLI · GitHub Copilot · Claude API (Haiku / Sonnet)</div>
+          </div>
+          <div class="layer">
+            <div class="layer-label" style="color:var(--blue)">Integration Layer</div>
+            <div class="layer-name">What it connects to</div>
+            <div class="layer-tools">Jira · Confluence · GitHub · SonarQube · Slack / Teams</div>
+          </div>
+          <div class="layer">
+            <div class="layer-label" style="color:var(--orange)">Governance Layer</div>
+            <div class="layer-name">What keeps it safe</div>
+            <div class="layer-tools">Audit Log · Policy Engine · PII Guard · Approval Gates</div>
+          </div>
+          <div class="layer">
+            <div class="layer-label" style="color:#374151">Data Layer</div>
+            <div class="layer-name">What persists context</div>
+            <div class="layer-tools">CLAUDE.md files · Prompt Library · Metrics Store · eeik_bootstrap agents</div>
+          </div>
+        </div>
+        <div style="margin-top:20px;padding:14px 16px;background:var(--primary-light);border-radius:10px;border:1px solid var(--border);">
+          <div style="font-size:12px;font-weight:700;color:var(--primary);margin-bottom:4px;">Rule of thumb</div>
+          <div style="font-size:12px;color:var(--text-muted);line-height:1.6;">
+            <strong>Copilot</strong> = keystrokes saved per minute (IDE inline).<br>
+            <strong>Claude Code + EEIK</strong> = decisions made per hour (agentic, multi-file).
+          </div>
+        </div>
       </div>
-      <span style="margin-left:auto;font-size:11px;font-weight:700;background:var(--orange-light);color:var(--orange);padding:4px 12px;border-radius:10px;">High ROI</span>
     </div>
-    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px;">
-      <div style="background:var(--bg);border-radius:8px;padding:14px;">
-        <div style="font-size:12px;font-weight:700;margin-bottom:6px;">📖 Understand</div>
-        <div style="font-size:11px;color:var(--text-muted);line-height:1.6;">"Explain what PYRL001.cbl does in plain English and list all external program calls."</div>
-      </div>
-      <div style="background:var(--bg);border-radius:8px;padding:14px;">
-        <div style="font-size:12px;font-weight:700;margin-bottom:6px;">📄 Document</div>
-        <div style="font-size:11px;color:var(--text-muted);line-height:1.6;">"Generate runbook documentation for this COBOL batch job including input/output files and error codes."</div>
-      </div>
-      <div style="background:var(--bg);border-radius:8px;padding:14px;">
-        <div style="font-size:12px;font-weight:700;margin-bottom:6px;">🔄 Modernise</div>
-        <div style="font-size:11px;color:var(--text-muted);line-height:1.6;">"Identify the business logic in this COBOL program that could migrate to a Spring Batch job. Show the equivalent Java structure."</div>
-      </div>
-    </div>
-    <div style="margin-top:12px;font-size:11px;color:var(--orange);font-weight:600;">⚠ Governance rule: COBOL analysis only in Phase 3. No auto-deploy until Mainframe gate is active (Week 17).</div>
   </div>
-</div>
+</section>
 
-<!-- Prompt library -->
-<div class="prompt-section">
-  <div class="section-label">Step 3 — Use proven prompts</div>
-  <div class="section-title">Prompt Library</div>
-  <div class="section-sub">Copy-paste prompts refined by your team. Filter by persona or ceremony.</div>
-
-  <div style="display:flex;gap:8px;margin-bottom:4px;flex-wrap:wrap;">
-    <button class="btn btn-primary" style="font-size:11px;padding:5px 12px;border-radius:20px;">All</button>
-    <button class="btn btn-outline" style="font-size:11px;padding:5px 12px;border-radius:20px;">Developer</button>
-    <button class="btn btn-outline" style="font-size:11px;padding:5px 12px;border-radius:20px;">BA</button>
-    <button class="btn btn-outline" style="font-size:11px;padding:5px 12px;border-radius:20px;">QA</button>
-    <button class="btn btn-outline" style="font-size:11px;padding:5px 12px;border-radius:20px;">PM</button>
-    <button class="btn btn-outline" style="font-size:11px;padding:5px 12px;border-radius:20px;">COBOL</button>
+<!-- ═══ EEIK BOOTSTRAP ═══ -->
+<section class="eeik-section">
+  <div class="eeik-inner">
+    <div class="eeik-grid">
+      <div>
+        <div class="eeik-badge">⚡ Developer Backbone</div>
+        <h2 class="eeik-title">Powered by eeik_bootstrap</h2>
+        <p class="eeik-sub">
+          APEX's developer layer runs on <code style="background:rgba(255,255,255,.12);padding:1px 6px;border-radius:4px;color:#C4B5FD">eeik_bootstrap</code> —
+          a Claude Code seed repository with 40+ specialist agents, slash commands, and coding standards
+          for your full stack. Drop it into any new project and get enterprise-grade AI configuration instantly.
+        </p>
+        <p class="eeik-sub">
+          When Claude Code opens a repo seeded with eeik_bootstrap, it knows your architecture,
+          your forbidden patterns, your test strategy, and which specialist agent to invoke for each task.
+          No prompting from scratch every session.
+        </p>
+        <div style="display:flex;gap:10px;margin-top:24px;">
+          <a href="https://github.com/suplab/eeik-bootstrap" target="_blank" class="btn btn-ghost" style="font-size:13px;">View eeik_bootstrap ↗</a>
+          <a href="adoption-guide.html#claude-md" class="btn" style="background:rgba(255,255,255,.15);color:#fff;border:1.5px solid rgba(255,255,255,.25);">CLAUDE.md Builder</a>
+        </div>
+      </div>
+      <div>
+        <div style="font-size:11px;font-weight:700;color:rgba(255,255,255,.45);text-transform:uppercase;letter-spacing:0.8px;margin-bottom:12px;">40+ Specialist Agents</div>
+        <div class="eeik-agents" style="margin-bottom:20px;">
+          <div class="agent-chip"><span class="agent-dot" style="background:#68D391"></span>java-developer<span class="agent-count">Java</span></div>
+          <div class="agent-chip"><span class="agent-dot" style="background:#63B3ED"></span>angular-developer<span class="agent-count">Angular</span></div>
+          <div class="agent-chip"><span class="agent-dot" style="background:#F6AD55"></span>ibmi-modernization-expert<span class="agent-count">MF</span></div>
+          <div class="agent-chip"><span class="agent-dot" style="background:#FC8181"></span>security-auditor<span class="agent-count">SecOps</span></div>
+          <div class="agent-chip"><span class="agent-dot" style="background:#B794F4"></span>enterprise-architect<span class="agent-count">EA</span></div>
+          <div class="agent-chip"><span class="agent-dot" style="background:#68D391"></span>java-tester<span class="agent-count">QA</span></div>
+          <div class="agent-chip"><span class="agent-dot" style="background:#63B3ED"></span>aws-architect<span class="agent-count">Cloud</span></div>
+          <div class="agent-chip"><span class="agent-dot" style="background:#F6AD55"></span>business-analyst<span class="agent-count">BA</span></div>
+          <div class="agent-chip"><span class="agent-dot" style="background:#B794F4"></span>ai-governance-officer<span class="agent-count">Gov</span></div>
+          <div class="agent-chip"><span class="agent-dot" style="background:#FC8181"></span>devsecops-engineer<span class="agent-count">CI/CD</span></div>
+        </div>
+        <div style="font-size:11px;font-weight:700;color:rgba(255,255,255,.45);text-transform:uppercase;letter-spacing:0.8px;margin-bottom:10px;">Key Slash Commands</div>
+        <div class="eeik-commands">
+          <div class="cmd-row"><span class="cmd-name">/bootstrap</span><span class="cmd-desc">Generate project scaffold from manifest</span></div>
+          <div class="cmd-row"><span class="cmd-name">/generate-repo</span><span class="cmd-desc">Full repo scaffold from validated manifest</span></div>
+          <div class="cmd-row"><span class="cmd-name">/estimate "feature"</span><span class="cmd-desc">P50 / P80 / P90 effort estimate</span></div>
+          <div class="cmd-row"><span class="cmd-name">/review</span><span class="cmd-desc">Full PR checklist: security, quality, perf</span></div>
+          <div class="cmd-row"><span class="cmd-name">/adr "decision"</span><span class="cmd-desc">Scaffold Architecture Decision Record</span></div>
+          <div class="cmd-row"><span class="cmd-name">/coverage-report</span><span class="cmd-desc">JaCoCo / Istanbul analysis + test stubs</span></div>
+        </div>
+      </div>
+    </div>
   </div>
+</section>
 
-  <div class="prompt-grid">
-
-    <div class="prompt-card">
-      <div class="prompt-header">
-        <span class="prompt-persona" style="background:var(--green-light);color:var(--green)">Developer</span>
-        <span class="prompt-copy">Copy ↗</span>
-      </div>
-      <div class="prompt-title">JUnit 5 Test Generator</div>
-      <div class="prompt-preview">"Generate JUnit 5 + Mockito tests for all public methods in [ClassName]. Use Testcontainers for DB interactions. Cover happy path and top 3 error cases."</div>
-    </div>
-
-    <div class="prompt-card">
-      <div class="prompt-header">
-        <span class="prompt-persona" style="background:var(--green-light);color:var(--green)">Developer</span>
-        <span class="prompt-copy">Copy ↗</span>
-      </div>
-      <div class="prompt-title">Hexagonal Refactor</div>
-      <div class="prompt-preview">"Refactor this class to follow Hexagonal Architecture. Move business logic to domain layer, infrastructure concerns to adapters. Show before/after."</div>
-    </div>
-
-    <div class="prompt-card">
-      <div class="prompt-header">
-        <span class="prompt-persona" style="background:var(--orange-light);color:var(--orange)">COBOL</span>
-        <span class="prompt-copy">Copy ↗</span>
-      </div>
-      <div class="prompt-title">COBOL Program Explainer</div>
-      <div class="prompt-preview">"Explain what this COBOL program does in plain English. List: purpose, inputs, outputs, external calls, error handling. Then describe the Java equivalent structure."</div>
-    </div>
-
-    <div class="prompt-card">
-      <div class="prompt-header">
-        <span class="prompt-persona" style="background:var(--primary-light);color:var(--primary)">BA</span>
-        <span class="prompt-copy">Copy ↗</span>
-      </div>
-      <div class="prompt-title">Meeting → User Stories</div>
-      <div class="prompt-preview">"Convert these meeting notes into Jira user stories with Gherkin acceptance criteria. Format: As a [role], I want [feature] so that [benefit]. Given/When/Then AC."</div>
-    </div>
-
-    <div class="prompt-card">
-      <div class="prompt-header">
-        <span class="prompt-persona" style="background:var(--primary-light);color:var(--primary)">BA</span>
-        <span class="prompt-copy">Copy ↗</span>
-      </div>
-      <div class="prompt-title">Requirements Gap Finder</div>
-      <div class="prompt-preview">"Compare this BRD with these Jira stories and identify: missing requirements, ambiguous acceptance criteria, conflicting constraints."</div>
-    </div>
-
-    <div class="prompt-card">
-      <div class="prompt-header">
-        <span class="prompt-persona" style="background:var(--blue-light);color:var(--blue)">QA</span>
-        <span class="prompt-copy">Copy ↗</span>
-      </div>
-      <div class="prompt-title">AC → Cypress Tests</div>
-      <div class="prompt-preview">"Write Cypress E2E tests for these acceptance criteria. Use Page Object Model pattern. Include: happy path, error states, and boundary conditions."</div>
-    </div>
-
-    <div class="prompt-card">
-      <div class="prompt-header">
-        <span class="prompt-persona" style="background:var(--blue-light);color:var(--blue)">QA</span>
-        <span class="prompt-copy">Copy ↗</span>
-      </div>
-      <div class="prompt-title">API Test Collection</div>
-      <div class="prompt-preview">"Given this OpenAPI 3.0 spec, generate a Postman collection with: environment variables, happy path requests, 4xx/5xx error cases, and auth token handling."</div>
-    </div>
-
-    <div class="prompt-card">
-      <div class="prompt-header">
-        <span class="prompt-persona" style="background:#EDF2F7;color:#4A5568">PM</span>
-        <span class="prompt-copy">Copy ↗</span>
-      </div>
-      <div class="prompt-title">Sprint Exec Summary</div>
-      <div class="prompt-preview">"Summarise this sprint for a non-technical executive. 3 paragraphs: what was delivered, risks/blockers encountered, and priorities for next sprint."</div>
-    </div>
-
-    <div class="prompt-card">
-      <div class="prompt-header">
-        <span class="prompt-persona" style="background:#EDF2F7;color:#4A5568">All</span>
-        <span class="prompt-copy">Copy ↗</span>
-      </div>
-      <div class="prompt-title">AI Output Verifier</div>
-      <div class="prompt-preview">"Review your previous output. Flag: anything you're not confident about, assumptions made, and what a human should double-check before using this."</div>
-    </div>
-
+<!-- ═══ PERSONA ROLLOUT ═══ -->
+<div class="section">
+  <div class="section-header">
+    <div class="section-eyebrow">Persona Rollout</div>
+    <div class="section-title">Drop-in AI for every role</div>
+    <div class="section-sub">Each persona gets AI through the tool they already use. No new tool to learn.</div>
   </div>
-</div>
-
-<!-- CLAUDE.md builder -->
-<div class="builder-section">
-  <div class="section-label">Step 4 — Configure for your repo</div>
-  <div class="section-title">CLAUDE.md Builder</div>
-  <div class="section-sub">Fill in your repo details. A CLAUDE.md context file is generated instantly — drop it in your repo root.</div>
-
-  <div class="builder-grid">
-    <div>
-      <div class="form-group">
-        <label class="form-label">Project Name</label>
-        <input class="form-input" type="text" value="payments-service" />
+  <div style="margin-bottom:32px;">
+    <img src="ai_sdlc_persona_rollout.svg" alt="APEX Persona Rollout" style="width:100%;border-radius:14px;border:1px solid var(--border);background:#fff;box-shadow:0 4px 20px rgba(107,79,187,.07);" />
+  </div>
+  <div class="persona-grid">
+    <div class="p-card">
+      <div class="p-header">
+        <div class="p-icon" style="background:var(--green-light)">👨‍💻</div>
+        <div><div class="p-name">Developer</div><div class="p-tool">Claude Code CLI + GitHub Copilot</div></div>
       </div>
-      <div class="form-group">
-        <label class="form-label">Stack Type</label>
-        <select class="form-input">
-          <option selected>Spring Boot (Java)</option>
-          <option>Angular SPA</option>
-          <option>COBOL Mainframe</option>
-          <option>Shared Library</option>
-        </select>
-      </div>
-      <div class="form-group">
-        <label class="form-label">Architecture Pattern</label>
-        <select class="form-input">
-          <option selected>Hexagonal / Clean Architecture</option>
-          <option>Layered (MVC)</option>
-          <option>Event-driven / CQRS</option>
-          <option>Microservice</option>
-        </select>
-      </div>
-      <div class="form-group">
-        <label class="form-label">Java Version</label>
-        <input class="form-input" type="text" value="21" />
-      </div>
-      <div class="form-group">
-        <label class="form-label">Test Framework</label>
-        <input class="form-input" type="text" value="JUnit 5, Mockito, Testcontainers" />
-      </div>
-      <div class="form-group">
-        <label class="form-label">Forbidden Patterns</label>
-        <input class="form-input" type="text" value="@Autowired on fields, raw SQL, @Data on entities" />
-      </div>
-      <div class="form-group">
-        <label class="form-label">Mainframe Integration?</label>
-        <select class="form-input">
-          <option>None</option>
-          <option selected>Yes — IBM MQ</option>
-          <option>Yes — REST Gateway</option>
-          <option>Yes — CICS</option>
-        </select>
-      </div>
-      <button class="btn btn-primary" style="width:100%;margin-top:6px;">Generate CLAUDE.md →</button>
+      <div class="p-bar-wrap"><div class="p-bar" style="width:82%;background:var(--green)"></div></div>
+      <div class="p-meta">82% adoption · 340 prompts/wk</div>
+      <div class="p-tags"><span class="p-tag">eeik_bootstrap</span><span class="p-tag">CLAUDE.md</span><span class="p-tag">IntelliJ</span></div>
     </div>
-
-    <div>
-      <div style="font-size:12px;font-weight:700;margin-bottom:8px;color:var(--text-muted);">GENERATED OUTPUT — DROP INTO REPO ROOT</div>
-      <div class="output-pane">
-        <div><span class="out-comment"># payments-service — Claude Code Context</span></div>
-        <div><span class="out-comment"># Auto-generated by APEX Builder · Jun 2026</span></div>
-        <div>&nbsp;</div>
-        <div><span class="out-key">## Architecture</span></div>
-        <div>- Pattern: <span class="out-val">Hexagonal / Clean Architecture</span></div>
-        <div>- Framework: <span class="out-val">Spring Boot 3.x, Java 21</span></div>
-        <div>- Build: <span class="out-val">Maven</span></div>
-        <div>- Package: <span class="out-val">.domain / .application / .infrastructure / .web</span></div>
-        <div>&nbsp;</div>
-        <div><span class="out-key">## Conventions</span></div>
-        <div>- Naming: <span class="out-val">camelCase services, PascalCase DTOs</span></div>
-        <div>- Test: <span class="out-val">JUnit 5, Mockito, Testcontainers</span></div>
-        <div>- API: <span class="out-val">REST, OpenAPI 3.0, versioned /api/v{n}/</span></div>
-        <div>&nbsp;</div>
-        <div><span class="out-key">## Constraints (Do NOT violate)</span></div>
-        <div><span class="out-list">- No @Autowired on fields</span></div>
-        <div><span class="out-list">- No raw SQL (use JPA / QueryDSL)</span></div>
-        <div><span class="out-list">- No @Data on JPA entities</span></div>
-        <div><span class="out-list">- No hardcoded credentials or IPs</span></div>
-        <div><span class="out-list">- All controllers must have @Operation</span></div>
-        <div>&nbsp;</div>
-        <div><span class="out-key">## Mainframe Integration</span></div>
-        <div>- Integration: <span class="out-val">IBM MQ</span></div>
-        <div>- COBOL programs: <span class="out-val">[list key programs]</span></div>
-        <div>- Note: <span class="out-val">Analysis only — no auto-deploy to MF</span></div>
-        <div>&nbsp;</div>
-        <div><span class="out-key">## PRs must include</span></div>
-        <div><span class="out-list">- Unit tests (min 80% line coverage delta)</span></div>
-        <div><span class="out-list">- Javadoc on public methods</span></div>
-        <div><span class="out-list">- DB migration script if schema changed</span></div>
-        <div><span class="out-list">- OpenAPI spec update if contract changed</span></div>
+    <div class="p-card">
+      <div class="p-header">
+        <div class="p-icon" style="background:var(--primary-light)">📋</div>
+        <div><div class="p-name">Business Analyst</div><div class="p-tool">Claude.ai Desktop</div></div>
       </div>
+      <div class="p-bar-wrap"><div class="p-bar" style="width:45%;background:var(--primary)"></div></div>
+      <div class="p-meta">45% adoption · Onboarding Week 7</div>
+      <div class="p-tags"><span class="p-tag">Story Gen</span><span class="p-tag">Gap Analysis</span><span class="p-tag">BRD Drafts</span></div>
+    </div>
+    <div class="p-card">
+      <div class="p-header">
+        <div class="p-icon" style="background:var(--blue-light)">🧪</div>
+        <div><div class="p-name">Tester / QA</div><div class="p-tool">Claude Code CLI + VS Code</div></div>
+      </div>
+      <div class="p-bar-wrap"><div class="p-bar" style="width:68%;background:var(--blue)"></div></div>
+      <div class="p-meta">68% adoption · 88 prompts/wk</div>
+      <div class="p-tags"><span class="p-tag">Cypress Tests</span><span class="p-tag">Postman Gen</span><span class="p-tag">JUnit 5</span></div>
+    </div>
+    <div class="p-card">
+      <div class="p-header">
+        <div class="p-icon" style="background:#F0FDF4)">🔄</div>
+        <div><div class="p-name">Agile Coach</div><div class="p-tool">Claude.ai Desktop</div></div>
+      </div>
+      <div class="p-bar-wrap"><div class="p-bar" style="width:35%;background:#16A34A"></div></div>
+      <div class="p-meta">35% adoption · Retro automation active</div>
+      <div class="p-tags"><span class="p-tag">Retro Synth</span><span class="p-tag">Velocity</span><span class="p-tag">Impediments</span></div>
+    </div>
+    <div class="p-card">
+      <div class="p-header">
+        <div class="p-icon" style="background:var(--orange-light)">📈</div>
+        <div><div class="p-name">Program Manager</div><div class="p-tool">Copilot M365 + Claude.ai</div></div>
+      </div>
+      <div class="p-bar-wrap"><div class="p-bar" style="width:30%;background:var(--orange)"></div></div>
+      <div class="p-meta">30% adoption · Scheduled Week 10</div>
+      <div class="p-tags"><span class="p-tag">Status Reports</span><span class="p-tag">Risk Analysis</span></div>
+    </div>
+    <div class="p-card">
+      <div class="p-header">
+        <div class="p-icon" style="background:#F8F7FC">👔</div>
+        <div><div class="p-name">Stakeholder</div><div class="p-tool">Claude.ai · Copilot M365</div></div>
+      </div>
+      <div class="p-bar-wrap"><div class="p-bar" style="width:20%;background:#6B7280"></div></div>
+      <div class="p-meta">Scheduled Week 12</div>
+      <div class="p-tags"><span class="p-tag">Exec Summaries</span><span class="p-tag">Release Notes</span></div>
     </div>
   </div>
 </div>
 
-<!-- Rollout timeline -->
-<div class="timeline-section">
-  <div class="section-label">Rollout Progress</div>
-  <div class="section-title" style="margin-bottom:32px;">Where are we?</div>
+<!-- ═══ SDLC TIMELINE ═══ -->
+<section class="gov-strip">
+  <div class="gov-inner">
+    <div class="section-header">
+      <div class="section-eyebrow">Rollout Progress</div>
+      <div class="section-title">Where are we?</div>
+    </div>
+    <div class="timeline-wrap">
+      <div class="timeline">
+        <div class="tl-item">
+          <div class="tl-dot tl-done">✓</div>
+          <div class="tl-week">Weeks 1–2</div>
+          <div class="tl-phase">Foundation</div>
+          <div class="tl-desc">Tools installed<br>Baseline measured</div>
+        </div>
+        <div class="tl-item">
+          <div class="tl-dot tl-done">✓</div>
+          <div class="tl-week">Weeks 3–6</div>
+          <div class="tl-phase">Dev Pilot</div>
+          <div class="tl-desc">Claude Code + Copilot<br>1 squad active</div>
+        </div>
+        <div class="tl-item">
+          <div class="tl-dot tl-active">●</div>
+          <div class="tl-week">Weeks 7–10</div>
+          <div class="tl-phase">All Personas</div>
+          <div class="tl-desc">BA · QA · PM<br>Prompt library live</div>
+        </div>
+        <div class="tl-item">
+          <div class="tl-dot tl-pending"></div>
+          <div class="tl-week">Weeks 11–14</div>
+          <div class="tl-phase">CI/CD Automation</div>
+          <div class="tl-desc">GitHub Actions<br>Jira bridge live</div>
+        </div>
+        <div class="tl-item">
+          <div class="tl-dot tl-pending"></div>
+          <div class="tl-week">Weeks 15–17</div>
+          <div class="tl-phase">Govern &amp; Scale</div>
+          <div class="tl-desc">All squads live<br>PII Guard active</div>
+        </div>
+        <div class="tl-item">
+          <div class="tl-dot tl-pending"></div>
+          <div class="tl-week">Weeks 17–20</div>
+          <div class="tl-phase">Mainframe Track</div>
+          <div class="tl-desc">COBOL pipeline<br>ibmi-modernization-expert</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
 
-  <div class="timeline">
-    <div class="tl-item">
-      <div class="tl-dot tl-done">✓</div>
-      <div class="tl-week">Weeks 1–2</div>
-      <div class="tl-title">Foundation</div>
-      <div class="tl-desc">Tools installed<br>Baseline measured</div>
+<!-- ═══ GOVERNANCE OVERVIEW ═══ -->
+<div class="section">
+  <div class="section-header">
+    <div class="section-eyebrow">Governance</div>
+    <div class="section-title">AI you can audit</div>
+    <div class="section-sub">Every AI call logged, every policy enforced, every gate visible. No shadow AI.</div>
+  </div>
+  <div class="gov-grid">
+    <div class="gov-card">
+      <div class="gov-icon">📋</div>
+      <div class="gov-title">Policy Engine</div>
+      <div class="gov-desc">8 active rules covering PII, model versions, human-in-loop gates, and mainframe freeze.</div>
+      <div class="gov-status"><span class="status-dot" style="background:var(--green)"></span><span style="color:var(--green)">12 rules active</span></div>
     </div>
-    <div class="tl-item">
-      <div class="tl-dot tl-done">✓</div>
-      <div class="tl-week">Weeks 3–6</div>
-      <div class="tl-title">Dev Pilot</div>
-      <div class="tl-desc">Claude Code + Copilot<br>1 squad active</div>
+    <div class="gov-card">
+      <div class="gov-icon">🔍</div>
+      <div class="gov-title">Audit Log</div>
+      <div class="gov-desc">Every prompt hashed and stored in S3 / SIEM. Retention 90 days min. Searchable by user, team, model.</div>
+      <div class="gov-status"><span class="status-dot" style="background:var(--green)"></span><span style="color:var(--green)">12,480 calls this month</span></div>
     </div>
-    <div class="tl-item">
-      <div class="tl-dot tl-active">●</div>
-      <div class="tl-week">Weeks 7–10</div>
-      <div class="tl-title">BA / QA / PM</div>
-      <div class="tl-desc">Prompt library live<br>All personas onboard</div>
+    <div class="gov-card">
+      <div class="gov-icon">🛡️</div>
+      <div class="gov-title">PII Guard</div>
+      <div class="gov-desc">Pre-prompt scanner blocks SSN, PAN, and account numbers before any API call is made.</div>
+      <div class="gov-status"><span class="status-dot" style="background:var(--orange)"></span><span style="color:var(--orange)">Partial — Week 15 full</span></div>
     </div>
-    <div class="tl-item">
-      <div class="tl-dot tl-pending"></div>
-      <div class="tl-week">Weeks 11–14</div>
-      <div class="tl-title">CI/CD Automation</div>
-      <div class="tl-desc">GitHub Actions<br>Jira bridge live</div>
+    <div class="gov-card">
+      <div class="gov-icon">👥</div>
+      <div class="gov-title">AI Review Board</div>
+      <div class="gov-desc">Monthly cadence. EA, CISO, Dev Lead, BA Lead, PM. Minutes auto-generated by Claude, published to Confluence.</div>
+      <div class="gov-status"><span class="status-dot" style="background:var(--blue)"></span><span style="color:var(--blue)">Next: Jun 20</span></div>
     </div>
-    <div class="tl-item">
-      <div class="tl-dot tl-pending"></div>
-      <div class="tl-week">Weeks 15–17</div>
-      <div class="tl-title">Govern &amp; Scale</div>
-      <div class="tl-desc">All squads live<br>Governance active</div>
-    </div>
-    <div class="tl-item">
-      <div class="tl-dot tl-pending"></div>
-      <div class="tl-week">Weeks 17–20</div>
-      <div class="tl-title">Mainframe Track</div>
-      <div class="tl-desc">COBOL pipeline<br>Modernisation starts</div>
-    </div>
+  </div>
+  <div style="margin-top:16px;text-align:center;">
+    <a href="apex-governance.html" class="btn btn-outline">Open Governance Dashboard →</a>
   </div>
 </div>
 
-<!-- Footer -->
-<div class="footer-nav">
-  <div class="footer-brand">APEX · AI-Powered Engineering eXperience</div>
+<!-- ═══ BUILD PLAN ═══ -->
+<section class="gov-strip">
+  <div class="gov-inner">
+    <div class="section-header">
+      <div class="section-eyebrow">What we're building</div>
+      <div class="section-title">APEX build plan — 80% docs, 20% code</div>
+      <div class="section-sub">Most of APEX is prompts, CLAUDE.md templates, and config. The small amount of code comes last.</div>
+    </div>
+    <div class="plan-grid">
+      <div class="plan-item">
+        <div class="plan-num" style="background:var(--primary)">1</div>
+        <div>
+          <div class="plan-title">Project Charter + Requirements</div>
+          <div class="plan-desc">Stakeholder mandate, business case, success metrics, high-level requirements. Docs only.</div>
+          <span class="plan-tag tag-purple">P0 · Week 1</span>
+        </div>
+      </div>
+      <div class="plan-item">
+        <div class="plan-num" style="background:var(--primary)">2</div>
+        <div>
+          <div class="plan-title">Epics, Features &amp; User Stories</div>
+          <div class="plan-desc">6 Epics in Jira, feature breakdown, Gherkin AC per story. Generated with BA prompt library.</div>
+          <span class="plan-tag tag-purple">P0 · Week 2</span>
+        </div>
+      </div>
+      <div class="plan-item">
+        <div class="plan-num" style="background:var(--green)">3</div>
+        <div>
+          <div class="plan-title">CLAUDE.md Templates</div>
+          <div class="plan-desc">One context file per repo type (Spring Boot, Angular, Mainframe, Shared Lib). Seeded from eeik_bootstrap.</div>
+          <span class="plan-tag tag-green">P0 · Week 3</span>
+        </div>
+      </div>
+      <div class="plan-item">
+        <div class="plan-num" style="background:var(--green)">4</div>
+        <div>
+          <div class="plan-title">Prompt Library (Markdown)</div>
+          <div class="plan-desc">47 curated prompts per persona and ceremony. Lives in <code>/prompts/</code> — no code needed.</div>
+          <span class="plan-tag tag-green">P1 · Week 7</span>
+        </div>
+      </div>
+      <div class="plan-item">
+        <div class="plan-num" style="background:var(--orange)">5</div>
+        <div>
+          <div class="plan-title">GitHub Actions AI Gates (YAML)</div>
+          <div class="plan-desc">PR security scan, auto-description, release notes. Pure YAML — no application code.</div>
+          <span class="plan-tag tag-orange">P1 · Week 11</span>
+        </div>
+      </div>
+      <div class="plan-item">
+        <div class="plan-num" style="background:var(--orange)">6</div>
+        <div>
+          <div class="plan-title">Jira Bridge (Python Lambda)</div>
+          <div class="plan-desc">Sprint end → Claude → Confluence retro. ~200 lines of Python. The only real code before Week 15.</div>
+          <span class="plan-tag tag-orange">P2 · Week 8</span>
+        </div>
+      </div>
+      <div class="plan-item">
+        <div class="plan-num" style="background:var(--blue)">7</div>
+        <div>
+          <div class="plan-title">Governance Dashboard (this portal)</div>
+          <div class="plan-desc">Static HTML site — the portal you're reading now. No backend. Hosted on GitHub Pages or S3.</div>
+          <span class="plan-tag tag-blue">P2 · Week 15</span>
+        </div>
+      </div>
+      <div class="plan-item">
+        <div class="plan-num" style="background:var(--blue)">8</div>
+        <div>
+          <div class="plan-title">Mainframe Pipeline (via eeik agent)</div>
+          <div class="plan-desc">ibmi-modernization-expert agent + COBOL analysis prompts. Analysis only until governance gate approved.</div>
+          <span class="plan-tag tag-blue">P3 · Week 17</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══ CTA ═══ -->
+<section class="cta-section">
+  <div class="cta-inner">
+    <div class="cta-title">Ready to start?</div>
+    <div class="cta-sub">Pick your role and follow the 20-minute quick-start. Your tools don't change — AI just makes them faster.</div>
+    <div class="cta-btns">
+      <a href="adoption-guide.html" class="btn btn-white">Onboarding Guide →</a>
+      <a href="apex-portal.html" class="btn btn-ghost">APEX Dashboard</a>
+      <a href="https://github.com/suplab/eeik-bootstrap" target="_blank" class="btn btn-ghost">eeik_bootstrap ↗</a>
+    </div>
+  </div>
+</section>
+
+<!-- ═══ FOOTER ═══ -->
+<footer>
+  <div>
+    <div class="footer-brand">APEX · AI-Powered Engineering eXperience</div>
+    <div class="footer-copy" style="margin-top:4px;">Built on Claude Code · GitHub Copilot · eeik_bootstrap · Angular · Java · Mainframe</div>
+  </div>
   <div class="footer-links">
-    <span class="footer-link">Governance Policy</span>
-    <span class="footer-link">Prompt Library</span>
-    <span class="footer-link">CLAUDE.md Builder</span>
-    <span class="footer-link">#ai-sdlc on Slack</span>
-    <span class="footer-link">AI Review Board</span>
+    <a href="apex-portal.html">Dashboard</a>
+    <a href="adoption-guide.html">Adoption Guide</a>
+    <a href="apex-governance.html">Governance</a>
+    <a href="apex-framework.html">Framework</a>
+    <a href="https://github.com/suplab/apex-sdlc" target="_blank">GitHub ↗</a>
   </div>
-</div>
+</footer>
 
 </body>
 </html>

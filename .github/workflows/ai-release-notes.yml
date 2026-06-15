@@ -1,0 +1,140 @@
+name: APEX AI Release Notes
+
+on:
+  push:
+    tags:
+      - 'v*.*.*'
+  workflow_dispatch:
+    inputs:
+      from_tag:
+        description: 'Previous tag (e.g. v1.2.0)'
+        required: true
+      to_tag:
+        description: 'New tag (e.g. v1.3.0)'
+        required: true
+
+permissions:
+  contents: write
+  pull-requests: read
+
+jobs:
+  generate-release-notes:
+    name: Generate AI Release Notes
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Determine tag range
+        id: tags
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            echo "from=${{ github.event.inputs.from_tag }}" >> $GITHUB_OUTPUT
+            echo "to=${{ github.event.inputs.to_tag }}"   >> $GITHUB_OUTPUT
+          else
+            CURRENT="${{ github.ref_name }}"
+            PREVIOUS=$(git tag --sort=-creatordate | grep -v "^${CURRENT}$" | head -1)
+            echo "from=${PREVIOUS}" >> $GITHUB_OUTPUT
+            echo "to=${CURRENT}"   >> $GITHUB_OUTPUT
+          fi
+
+      - name: Collect commits
+        id: commits
+        run: |
+          FROM="${{ steps.tags.outputs.from }}"
+          TO="${{ steps.tags.outputs.to }}"
+
+          if git rev-parse "$FROM" >/dev/null 2>&1; then
+            git log ${FROM}..${TO} --oneline --no-merges > commits.txt
+          else
+            git log ${TO} --oneline --no-merges -50 > commits.txt
+          fi
+
+          echo "Commits in range:"
+          cat commits.txt
+
+          # Also get files changed
+          if git rev-parse "$FROM" >/dev/null 2>&1; then
+            git diff --stat ${FROM}..${TO} > diff_stat.txt 2>/dev/null || echo "No stat available" > diff_stat.txt
+          else
+            echo "First release" > diff_stat.txt
+          fi
+
+      - name: Generate release notes via Claude
+        id: notes
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+        run: |
+          COMMITS=$(cat commits.txt)
+          STAT=$(cat diff_stat.txt)
+          FROM="${{ steps.tags.outputs.from }}"
+          TO="${{ steps.tags.outputs.to }}"
+
+          PROMPT="Generate professional release notes for version ${TO} (from ${FROM}). Use conventional commit format to categorise.\n\nFormat:\n## ${TO} — $(date +%Y-%m-%d)\n\n### ✨ Features\n- ...\n\n### 🐛 Bug Fixes\n- ...\n\n### 🔧 Improvements\n- ...\n\n### 🔒 Security\n- ...\n\n### 📦 Dependencies\n- ...\n\n### 🏗️ Infrastructure\n- ...\n\nOnly include sections with actual changes. Write in plain English suitable for a technical audience. Do not include empty sections.\n\nCommits:\n${COMMITS}\n\nDiff stat:\n${STAT}"
+
+          curl -s https://api.anthropic.com/v1/messages \
+            -H "x-api-key: $ANTHROPIC_API_KEY" \
+            -H "anthropic-version: 2023-06-01" \
+            -H "content-type: application/json" \
+            -d "{
+              \"model\": \"claude-haiku-4-5-20251001\",
+              \"max_tokens\": 1000,
+              \"messages\": [{\"role\": \"user\", \"content\": $(echo "$PROMPT" | jq -Rs .)}]
+            }" | jq -r '.content[0].text' > release_notes.txt
+
+          echo "Generated release notes:"
+          cat release_notes.txt
+
+          echo "notes<<EOF" >> $GITHUB_OUTPUT
+          cat release_notes.txt >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+
+      - name: Generate stakeholder summary (plain English)
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+        run: |
+          NOTES=$(cat release_notes.txt)
+          PROMPT="Convert these technical release notes into a 3-sentence plain English summary for non-technical stakeholders. No jargon, no bullet points, no code terms. Focus on business value: what changed, why it matters, what to watch for.\n\nRelease notes:\n${NOTES}"
+
+          curl -s https://api.anthropic.com/v1/messages \
+            -H "x-api-key: $ANTHROPIC_API_KEY" \
+            -H "anthropic-version: 2023-06-01" \
+            -H "content-type: application/json" \
+            -d "{
+              \"model\": \"claude-haiku-4-5-20251001\",
+              \"max_tokens\": 300,
+              \"messages\": [{\"role\": \"user\", \"content\": $(echo "$PROMPT" | jq -Rs .)}]
+            }" | jq -r '.content[0].text' > stakeholder_summary.txt
+
+          echo "---" >> release_notes.txt
+          echo "" >> release_notes.txt
+          echo "### 📢 Stakeholder Summary" >> release_notes.txt
+          cat stakeholder_summary.txt >> release_notes.txt
+
+      - name: Create GitHub Release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          TO="${{ steps.tags.outputs.to }}"
+          NOTES=$(cat release_notes.txt)
+
+          # Check if release already exists
+          if gh release view "$TO" >/dev/null 2>&1; then
+            gh release edit "$TO" --notes "$NOTES"
+            echo "Updated existing release $TO"
+          else
+            gh release create "$TO" \
+              --title "Release $TO" \
+              --notes "$NOTES" \
+              --verify-tag
+            echo "Created new release $TO"
+          fi
+
+      - name: Save release notes artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: release-notes-${{ steps.tags.outputs.to }}
+          path: release_notes.txt
+          retention-days: 90

@@ -1,0 +1,619 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>APEX Portal</title>
+<style>
+:root {
+  --primary:       #6B4FBB;
+  --primary-dark:  #4A3280;
+  --primary-deep:  #2D1B69;
+  --primary-light: #EDE9F7;
+  --primary-mid:   #C4B5FD;
+  --bg:            #F8F7FC;
+  --surface:       #FFFFFF;
+  --border:        #E5E0F5;
+  --text:          #1A1033;
+  --text-muted:    #6B7280;
+  --sidebar-w:     240px;
+  --topbar-h:      52px;
+}
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { height: 100%; overflow: hidden; }
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Inter', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  font-size: 14px;
+}
+
+/* ── TOPBAR ── */
+#topbar {
+  position: fixed; top: 0; left: 0; right: 0;
+  height: var(--topbar-h);
+  background: var(--primary-deep);
+  display: flex; align-items: center;
+  padding: 0 20px; gap: 14px;
+  z-index: 200;
+  border-bottom: 1px solid rgba(255,255,255,.08);
+}
+.top-brand {
+  display: flex; align-items: center; gap: 10px;
+  text-decoration: none; flex-shrink: 0;
+}
+.top-logo {
+  width: 30px; height: 30px;
+  background: var(--primary);
+  border-radius: 8px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 11px; font-weight: 900; color: #fff; letter-spacing: -0.5px;
+}
+.top-name { font-size: 15px; font-weight: 800; color: #fff; letter-spacing: -0.3px; }
+.top-badge {
+  font-size: 9px; font-weight: 700; letter-spacing: 0.8px; text-transform: uppercase;
+  background: rgba(167,139,250,.25); color: #C4B5FD;
+  padding: 2px 8px; border-radius: 20px; border: 1px solid rgba(196,181,253,.2);
+}
+.top-sep { flex: 1; }
+#current-page-title {
+  font-size: 13px; color: rgba(255,255,255,.5); font-weight: 500;
+}
+.top-actions { display: flex; gap: 8px; }
+.top-btn {
+  font-size: 12px; font-weight: 600; padding: 5px 14px;
+  border-radius: 7px; cursor: pointer; border: none;
+  text-decoration: none; display: inline-flex; align-items: center; gap: 5px;
+  transition: all .15s;
+}
+.top-btn-outline {
+  background: transparent; border: 1.5px solid rgba(255,255,255,.2);
+  color: rgba(255,255,255,.7);
+}
+.top-btn-outline:hover { border-color: rgba(255,255,255,.5); color: #fff; }
+
+/* ── SIDEBAR ── */
+#sidebar {
+  position: fixed; top: var(--topbar-h); left: 0; bottom: 0;
+  width: var(--sidebar-w);
+  background: var(--surface);
+  border-right: 1px solid var(--border);
+  overflow-y: auto;
+  z-index: 100;
+  display: flex; flex-direction: column;
+}
+.sidebar-section {
+  padding: 16px 12px 8px;
+}
+.sidebar-section-label {
+  font-size: 10px; font-weight: 700; letter-spacing: 1.2px;
+  text-transform: uppercase; color: var(--text-muted);
+  padding: 0 8px; margin-bottom: 6px;
+}
+.nav-item {
+  display: flex; align-items: center; gap: 9px;
+  padding: 8px 10px; border-radius: 8px;
+  cursor: pointer; color: var(--text-muted);
+  font-size: 13px; font-weight: 500;
+  transition: all .15s; user-select: none;
+  text-decoration: none;
+}
+.nav-item:hover { background: var(--primary-light); color: var(--primary); }
+.nav-item.active {
+  background: var(--primary-light); color: var(--primary);
+  font-weight: 700;
+}
+.nav-icon { font-size: 15px; width: 20px; text-align: center; flex-shrink: 0; }
+.sidebar-footer {
+  margin-top: auto; padding: 16px 12px;
+  border-top: 1px solid var(--border);
+}
+.sidebar-footer-text {
+  font-size: 11px; color: var(--text-muted); text-align: center; line-height: 1.5;
+}
+
+/* ── MAIN CONTENT ── */
+#main {
+  position: fixed;
+  top: var(--topbar-h); left: var(--sidebar-w); right: 0; bottom: 0;
+  overflow: hidden;
+}
+
+/* home view */
+#home-view {
+  height: 100%; overflow-y: auto;
+  display: none;
+}
+#home-view.visible { display: block; }
+
+/* iframe view */
+#iframe-view {
+  width: 100%; height: 100%;
+  border: none;
+  display: none;
+}
+#iframe-view.visible { display: block; }
+
+/* ── HOME VIEW STYLES ── */
+.home-hero {
+  background: linear-gradient(145deg, var(--primary-deep) 0%, var(--primary-dark) 50%, var(--primary) 100%);
+  padding: 48px 48px 56px;
+  position: relative; overflow: hidden;
+}
+.home-hero::before {
+  content: '';
+  position: absolute; inset: 0;
+  background: radial-gradient(ellipse 60% 60% at 80% 20%, rgba(196,181,253,.18) 0%, transparent 70%);
+  pointer-events: none;
+}
+.hero-inner { position: relative; max-width: 900px; }
+.hero-eyebrow {
+  display: inline-flex; align-items: center; gap: 7px;
+  background: rgba(255,255,255,.1); border: 1px solid rgba(255,255,255,.18);
+  color: rgba(255,255,255,.85); font-size: 10px; font-weight: 700; letter-spacing: 1px;
+  text-transform: uppercase; padding: 4px 12px; border-radius: 20px; margin-bottom: 18px;
+}
+.pulse { width: 6px; height: 6px; background: #A78BFA; border-radius: 50%; animation: blink 2s infinite; }
+@keyframes blink { 0%,100%{opacity:1} 50%{opacity:.3} }
+.home-hero h1 {
+  font-size: clamp(26px, 4vw, 44px); font-weight: 900;
+  letter-spacing: -1.2px; line-height: 1.1; color: #fff;
+  margin-bottom: 14px;
+}
+.home-hero h1 span { color: #C4B5FD; }
+.hero-sub {
+  font-size: 15px; color: rgba(255,255,255,.7); max-width: 520px;
+  line-height: 1.6; margin-bottom: 28px;
+}
+.hero-stats {
+  display: flex; gap: 32px; flex-wrap: wrap;
+  border-top: 1px solid rgba(255,255,255,.12);
+  padding-top: 24px; margin-top: 4px;
+}
+.stat-val { font-size: 26px; font-weight: 900; color: #fff; }
+.stat-label { font-size: 11px; color: rgba(255,255,255,.55); margin-top: 2px; }
+
+/* cards grid */
+.home-section { padding: 40px 48px; }
+.home-section h2 {
+  font-size: 13px; font-weight: 700; letter-spacing: 1px;
+  text-transform: uppercase; color: var(--primary); margin-bottom: 6px;
+}
+.home-section h3 {
+  font-size: 22px; font-weight: 800; letter-spacing: -0.3px; margin-bottom: 4px;
+}
+.home-section p { color: var(--text-muted); font-size: 14px; margin-bottom: 24px; }
+
+.cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 14px; }
+.card {
+  background: var(--surface); border: 1.5px solid var(--border);
+  border-radius: 12px; padding: 20px 18px; cursor: pointer;
+  transition: all .18s; text-decoration: none; display: block; color: inherit;
+}
+.card:hover {
+  border-color: var(--primary); transform: translateY(-2px);
+  box-shadow: 0 6px 24px rgba(107,79,187,.1);
+}
+.card-icon { font-size: 22px; margin-bottom: 10px; }
+.card-title { font-size: 13px; font-weight: 700; margin-bottom: 4px; }
+.card-desc { font-size: 12px; color: var(--text-muted); line-height: 1.5; }
+.card-arrow {
+  display: inline-block; margin-top: 10px;
+  font-size: 11px; color: var(--primary); font-weight: 600;
+}
+
+/* diagram section */
+.diagram-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+@media (max-width: 900px) { .diagram-grid { grid-template-columns: 1fr; } }
+.diagram-card {
+  background: var(--surface); border: 1.5px solid var(--border);
+  border-radius: 14px; padding: 24px; overflow: hidden;
+}
+.diagram-card h4 { font-size: 14px; font-weight: 700; margin-bottom: 4px; }
+.diagram-card p { font-size: 12px; color: var(--text-muted); margin-bottom: 16px; }
+.diagram-card img {
+  width: 100%; height: auto; border-radius: 8px;
+  border: 1px solid var(--border);
+}
+
+/* quick links strip */
+.qlinks { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 20px; }
+.qlink {
+  display: inline-flex; align-items: center; gap: 6px;
+  background: var(--surface); border: 1.5px solid var(--border);
+  border-radius: 8px; padding: 7px 14px;
+  font-size: 12px; font-weight: 600; color: var(--text-muted);
+  text-decoration: none; transition: all .15s; cursor: pointer;
+}
+.qlink:hover { border-color: var(--primary); color: var(--primary); }
+
+/* info strip */
+.info-strip {
+  background: var(--primary-light); border: 1.5px solid var(--border);
+  border-radius: 12px; padding: 18px 22px;
+  display: flex; align-items: flex-start; gap: 14px; margin-top: 20px;
+}
+.info-strip-icon { font-size: 20px; flex-shrink: 0; margin-top: 2px; }
+.info-strip-body h4 { font-size: 13px; font-weight: 700; color: var(--primary); margin-bottom: 3px; }
+.info-strip-body p { font-size: 12px; color: var(--primary-dark); line-height: 1.6; }
+
+hr.divider { border: none; border-top: 1px solid var(--border); margin: 0; }
+</style>
+</head>
+<body>
+
+<!-- ══════════════════════════════════════════════════════════════════════ -->
+<!-- TOPBAR -->
+<!-- ══════════════════════════════════════════════════════════════════════ -->
+<div id="topbar">
+  <a class="top-brand" href="#" onclick="showHome(); return false;">
+    <div class="top-logo">AX</div>
+    <span class="top-name">APEX</span>
+  </a>
+  <span class="top-badge">Research Preview</span>
+  <div class="top-sep"></div>
+  <span id="current-page-title">Home</span>
+  <div class="top-actions">
+    <a class="top-btn top-btn-outline" href="../../docs/APEX-Framework.md" target="_blank">📄 Framework Doc</a>
+    <a class="top-btn top-btn-outline" href="https://github.com" target="_blank">⬡ GitHub</a>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════════════════ -->
+<!-- SIDEBAR -->
+<!-- ══════════════════════════════════════════════════════════════════════ -->
+<nav id="sidebar">
+
+  <div class="sidebar-section">
+    <div class="sidebar-section-label">Overview</div>
+    <a class="nav-item active" id="nav-home" onclick="showHome(); return false;" href="#">
+      <span class="nav-icon">🏠</span> Home
+    </a>
+  </div>
+
+  <div class="sidebar-section">
+    <div class="sidebar-section-label">Dashboards</div>
+    <a class="nav-item" id="nav-dashboard" onclick="loadPage('../../docs/apex-portal.html', 'Dashboard', 'nav-dashboard'); return false;" href="#">
+      <span class="nav-icon">📊</span> Sprint Dashboard
+    </a>
+    <a class="nav-item" id="nav-governance" onclick="loadPage('../../docs/apex-governance.html', 'Governance', 'nav-governance'); return false;" href="#">
+      <span class="nav-icon">🛡️</span> Governance
+    </a>
+  </div>
+
+  <div class="sidebar-section">
+    <div class="sidebar-section-label">Guides</div>
+    <a class="nav-item" id="nav-adoption" onclick="loadPage('../../docs/adoption-guide.html', 'Adoption Guide', 'nav-adoption'); return false;" href="#">
+      <span class="nav-icon">🚀</span> Adoption Guide
+    </a>
+    <a class="nav-item" id="nav-hub" onclick="loadPage('../../docs/index.html', 'Framework Hub', 'nav-hub'); return false;" href="#">
+      <span class="nav-icon">📐</span> Framework Hub
+    </a>
+  </div>
+
+  <div class="sidebar-section">
+    <div class="sidebar-section-label">Prompt Library</div>
+    <a class="nav-item" id="nav-dev" href="#" onclick="showPromptSection('developer'); return false;">
+      <span class="nav-icon">💻</span> Developer
+    </a>
+    <a class="nav-item" id="nav-ba" href="#" onclick="showPromptSection('ba'); return false;">
+      <span class="nav-icon">📋</span> Business Analyst
+    </a>
+    <a class="nav-item" id="nav-qa" href="#" onclick="showPromptSection('qa'); return false;">
+      <span class="nav-icon">🧪</span> QA / Tester
+    </a>
+    <a class="nav-item" id="nav-pm" href="#" onclick="showPromptSection('pm'); return false;">
+      <span class="nav-icon">📅</span> Programme Manager
+    </a>
+  </div>
+
+  <div class="sidebar-section">
+    <div class="sidebar-section-label">Resources</div>
+    <a class="nav-item" href="../../docs/APEX-Framework.md" target="_blank">
+      <span class="nav-icon">📄</span> Framework Doc
+    </a>
+    <a class="nav-item" href="../../README.md" target="_blank">
+      <span class="nav-icon">ℹ️</span> README
+    </a>
+  </div>
+
+  <div class="sidebar-footer">
+    <p class="sidebar-footer-text">APEX · AI-Powered<br>Engineering eXperience<br><span style="color:var(--primary);font-weight:700;">v1.0 · 2025</span></p>
+  </div>
+</nav>
+
+<!-- ══════════════════════════════════════════════════════════════════════ -->
+<!-- MAIN -->
+<!-- ══════════════════════════════════════════════════════════════════════ -->
+<div id="main">
+
+  <!-- HOME VIEW -->
+  <div id="home-view" class="visible">
+
+    <div class="home-hero">
+      <div class="hero-inner">
+        <div class="hero-eyebrow">
+          <span class="pulse"></span> AI-Augmented SDLC · Research Preview
+        </div>
+        <h1>The <span>APEX</span> Framework<br>Portal</h1>
+        <p class="hero-sub">AI-powered engineering across every persona — developers, BAs, QA, PMs, and beyond. Zero new tools. Maximum impact.</p>
+        <div class="hero-stats">
+          <div>
+            <div class="stat-val">30–40%</div>
+            <div class="stat-label">Faster PR cycle</div>
+          </div>
+          <div>
+            <div class="stat-val">50%+</div>
+            <div class="stat-label">Less boilerplate</div>
+          </div>
+          <div>
+            <div class="stat-val">60%</div>
+            <div class="stat-label">Test writing time saved</div>
+          </div>
+          <div>
+            <div class="stat-val">40+</div>
+            <div class="stat-label">Specialist AI agents</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="home-section">
+      <h2>Quick Access</h2>
+      <h3>Navigate the Platform</h3>
+      <p>Choose a section to get started</p>
+      <div class="cards">
+        <a class="card" onclick="loadPage('../../docs/apex-portal.html','Dashboard','nav-dashboard'); return false;" href="#">
+          <div class="card-icon">📊</div>
+          <div class="card-title">Sprint Dashboard</div>
+          <div class="card-desc">Live sprint velocity, AI gate status, team metrics and activity feed</div>
+          <span class="card-arrow">Open →</span>
+        </a>
+        <a class="card" onclick="loadPage('../../docs/adoption-guide.html','Adoption Guide','nav-adoption'); return false;" href="#">
+          <div class="card-icon">🚀</div>
+          <div class="card-title">Adoption Guide</div>
+          <div class="card-desc">Per-persona quick-starts, prompt library access, CLAUDE.md builder</div>
+          <span class="card-arrow">Open →</span>
+        </a>
+        <a class="card" onclick="loadPage('../../docs/apex-governance.html','Governance','nav-governance'); return false;" href="#">
+          <div class="card-icon">🛡️</div>
+          <div class="card-title">Governance</div>
+          <div class="card-desc">Policy engine, PII guard status, audit log, AI Review Board</div>
+          <span class="card-arrow">Open →</span>
+        </a>
+        <a class="card" onclick="loadPage('../../docs/index.html','Framework Hub','nav-hub'); return false;" href="#">
+          <div class="card-icon">📐</div>
+          <div class="card-title">Framework Hub</div>
+          <div class="card-desc">Full APEX architecture, persona grid, EEIK bootstrap and rollout timeline</div>
+          <span class="card-arrow">Open →</span>
+        </a>
+      </div>
+    </div>
+
+    <hr class="divider">
+
+    <div class="home-section">
+      <h2>Architecture Diagrams</h2>
+      <h3>How APEX Works</h3>
+      <p>AI augmentation layer across all SDLC phases and personas</p>
+      <div class="diagram-grid">
+        <div class="diagram-card">
+          <h4>SDLC Phase Map</h4>
+          <p>Claude Code and GitHub Copilot across every delivery phase</p>
+          <img src="../../docs/ai_sdlc_framework.svg" alt="APEX SDLC Framework Diagram" loading="lazy">
+        </div>
+        <div class="diagram-card">
+          <h4>Persona × Tool Matrix</h4>
+          <p>Which AI tools each team persona uses and when</p>
+          <img src="../../docs/ai_sdlc_persona_rollout.svg" alt="APEX Persona Rollout Diagram" loading="lazy">
+        </div>
+      </div>
+    </div>
+
+    <hr class="divider">
+
+    <div class="home-section">
+      <h2>Prompt Library</h2>
+      <h3>Ready-to-use AI Prompts</h3>
+      <p>Production-grade prompts for every team role — paste into Claude.ai, Claude Code, or Copilot Chat</p>
+      <div class="cards">
+        <div class="card" onclick="showPromptSection('developer')" style="cursor:pointer">
+          <div class="card-icon">💻</div>
+          <div class="card-title">Developer Prompts</div>
+          <div class="card-desc">Test generation, refactoring, COBOL analysis, Spring Boot patterns</div>
+          <span class="card-arrow">Browse →</span>
+        </div>
+        <div class="card" onclick="showPromptSection('ba')" style="cursor:pointer">
+          <div class="card-icon">📋</div>
+          <div class="card-title">BA Prompts</div>
+          <div class="card-desc">User story generation, BRD gap analysis, AC validation</div>
+          <span class="card-arrow">Browse →</span>
+        </div>
+        <div class="card" onclick="showPromptSection('qa')" style="cursor:pointer">
+          <div class="card-icon">🧪</div>
+          <div class="card-title">QA Prompts</div>
+          <div class="card-desc">Cypress E2E, Postman collections, edge case generation</div>
+          <span class="card-arrow">Browse →</span>
+        </div>
+        <div class="card" onclick="showPromptSection('pm')" style="cursor:pointer">
+          <div class="card-icon">📅</div>
+          <div class="card-title">PM Prompts</div>
+          <div class="card-desc">Sprint reports, retro synthesis, risk register, go/no-go</div>
+          <span class="card-arrow">Browse →</span>
+        </div>
+      </div>
+    </div>
+
+    <hr class="divider">
+
+    <div class="home-section" id="prompt-detail-section" style="display:none;">
+      <h2 id="prompt-detail-eyebrow">Prompts</h2>
+      <h3 id="prompt-detail-title">Prompt Library</h3>
+      <div id="prompt-detail-content"></div>
+      <div class="qlinks" style="margin-top:24px;">
+        <a class="qlink" onclick="showHome(); return false;" href="#">← Back to Home</a>
+      </div>
+    </div>
+
+    <div class="home-section">
+      <h2>Governance</h2>
+      <h3>AI Usage Controls</h3>
+      <p>Built-in guardrails to keep AI-generated work safe, auditable, and compliant</p>
+      <div class="cards">
+        <div class="card">
+          <div class="card-icon">🔍</div>
+          <div class="card-title">PII Guard</div>
+          <div class="card-desc">Two-layer scanner (regex + AWS Comprehend) scrubs sensitive data before any external AI call</div>
+        </div>
+        <div class="card">
+          <div class="card-icon">⚙️</div>
+          <div class="card-title">CI/CD Gates</div>
+          <div class="card-desc">GitHub Actions enforce golden rules, OWASP checks, and coverage gates on every AI-assisted PR</div>
+        </div>
+        <div class="card">
+          <div class="card-icon">🚦</div>
+          <div class="card-title">Mainframe Gate</div>
+          <div class="card-desc">Phase-controlled policy — analysis only until ARB approves code generation (Week 17)</div>
+        </div>
+        <div class="card">
+          <div class="card-icon">📋</div>
+          <div class="card-title">AI Review Board</div>
+          <div class="card-desc">Fortnightly ARB reviews violations, approves new tools, and signs off gate transitions</div>
+        </div>
+      </div>
+      <div class="info-strip" style="margin-top:20px;">
+        <div class="info-strip-icon">ℹ️</div>
+        <div class="info-strip-body">
+          <h4>Mainframe Gate: Phase 0 — Analysis Only</h4>
+          <p>AI may explain and document COBOL/JCL programs but must NOT generate or modify mainframe code until the ARB approves Phase 1 at APEX Week 17. See <code>governance/policies/mainframe-gate-policy.md</code> for the full gate criteria.</p>
+        </div>
+      </div>
+    </div>
+
+    <hr class="divider">
+
+    <div class="home-section" style="padding-bottom: 60px;">
+      <h2>Quick Links</h2>
+      <h3>Repository Resources</h3>
+      <p>Key files in the APEX repo</p>
+      <div class="qlinks">
+        <a class="qlink" href="../../README.md" target="_blank">📄 README</a>
+        <a class="qlink" href="../../docs/APEX-Framework.md" target="_blank">📐 Framework Doc</a>
+        <a class="qlink" href="../../governance/policies/ai-usage-policy.md" target="_blank">🛡️ AI Usage Policy</a>
+        <a class="qlink" href="../../governance/policies/mainframe-gate-policy.md" target="_blank">🚦 Mainframe Gate Policy</a>
+        <a class="qlink" href="../../claude-templates/spring-boot/CLAUDE.md" target="_blank">☕ Spring Boot CLAUDE.md</a>
+        <a class="qlink" href="../../claude-templates/angular/CLAUDE.md" target="_blank">⬡ Angular CLAUDE.md</a>
+        <a class="qlink" href="../../claude-templates/mainframe/CLAUDE.md" target="_blank">🖥️ Mainframe CLAUDE.md</a>
+        <a class="qlink" href="../../.github/workflows/ai-pr-review.yml" target="_blank">⚙️ PR Review Workflow</a>
+        <a class="qlink" href="../../.github/workflows/ai-release-notes.yml" target="_blank">📦 Release Notes Workflow</a>
+      </div>
+    </div>
+
+  </div><!-- /home-view -->
+
+  <!-- IFRAME VIEW -->
+  <iframe id="iframe-view" title="APEX Content" sandbox="allow-same-origin allow-scripts allow-popups"></iframe>
+
+</div><!-- /main -->
+
+<script>
+const PROMPTS = {
+  developer: {
+    eyebrow: 'Developer Prompts',
+    title: 'Developer Prompt Library',
+    items: [
+      { icon: '🧪', title: 'Test Generation', desc: 'JUnit 5, Angular Jasmine, Cypress E2E, Testcontainers integration tests, coverage gap filler', file: '../../prompts/developer/test-generation.md' },
+      { icon: '♻️', title: 'Refactoring', desc: 'Hexagonal refactor, legacy → Java 21, God class decomposition, COBOL → Spring Batch mapping', file: '../../prompts/developer/refactoring.md' },
+      { icon: '🖥️', title: 'COBOL Analysis', desc: 'Program explainer, copybook → Java DTO, JCL decoder, migration readiness, runbook generator', file: '../../prompts/developer/cobol-analysis.md' },
+    ]
+  },
+  ba: {
+    eyebrow: 'BA Prompts',
+    title: 'Business Analyst Prompt Library',
+    items: [
+      { icon: '📝', title: 'User Stories', desc: 'Meeting notes → Jira stories, Epic breakdown, AC validator, BRD → story extraction', file: '../../prompts/ba/user-stories.md' },
+      { icon: '🔍', title: 'Gap Analysis', desc: 'BRD vs Jira gap finder, As-Is vs To-Be process gap, API contract vs story alignment', file: '../../prompts/ba/gap-analysis.md' },
+    ]
+  },
+  qa: {
+    eyebrow: 'QA Prompts',
+    title: 'QA / Tester Prompt Library',
+    items: [
+      { icon: '🧪', title: 'Test Cases', desc: 'AC → Cypress POM, OpenAPI → Postman collection, edge case generator, bug → regression test', file: '../../prompts/qa/test-cases.md' },
+    ]
+  },
+  pm: {
+    eyebrow: 'PM Prompts',
+    title: 'Programme Manager Prompt Library',
+    items: [
+      { icon: '📊', title: 'Sprint Reporting', desc: 'Jira → exec status update, retro synthesis, risk register update, go/no-go report', file: '../../prompts/pm/sprint-reporting.md' },
+    ]
+  }
+};
+
+function setActive(id) {
+  document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+  if (id) document.getElementById(id)?.classList.add('active');
+}
+
+function showHome() {
+  document.getElementById('home-view').classList.add('visible');
+  document.getElementById('iframe-view').classList.remove('visible');
+  document.getElementById('iframe-view').src = '';
+  document.getElementById('current-page-title').textContent = 'Home';
+  document.getElementById('prompt-detail-section').style.display = 'none';
+  setActive('nav-home');
+  // scroll to top of home view
+  document.getElementById('home-view').scrollTop = 0;
+}
+
+function loadPage(url, title, navId) {
+  const frame = document.getElementById('iframe-view');
+  frame.src = url;
+  frame.classList.add('visible');
+  document.getElementById('home-view').classList.remove('visible');
+  document.getElementById('current-page-title').textContent = title;
+  setActive(navId);
+}
+
+function showPromptSection(role) {
+  const data = PROMPTS[role];
+  if (!data) return;
+
+  // ensure home view is visible, scroll to section
+  document.getElementById('home-view').classList.add('visible');
+  document.getElementById('iframe-view').classList.remove('visible');
+  document.getElementById('iframe-view').src = '';
+
+  const section = document.getElementById('prompt-detail-section');
+  section.style.display = 'block';
+  document.getElementById('prompt-detail-eyebrow').textContent = data.eyebrow;
+  document.getElementById('prompt-detail-title').textContent = data.title;
+
+  document.getElementById('prompt-detail-content').innerHTML = `
+    <div class="cards">
+      ${data.items.map(item => `
+        <a class="card" href="${item.file}" target="_blank">
+          <div class="card-icon">${item.icon}</div>
+          <div class="card-title">${item.title}</div>
+          <div class="card-desc">${item.desc}</div>
+          <span class="card-arrow">View prompts →</span>
+        </a>
+      `).join('')}
+    </div>
+  `;
+
+  document.getElementById('current-page-title').textContent = data.title;
+  setActive('nav-' + role);
+
+  // scroll to prompt section
+  setTimeout(() => {
+    section.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }, 50);
+}
+
+// initialise
+showHome();
+</script>
+</body>
+</html>
