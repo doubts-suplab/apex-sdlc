@@ -22,22 +22,22 @@ APEX is a non-intrusive AI augmentation layer that sits alongside your existing 
 ## 2. Framework Architecture
 
 ```
-┌─────────────────────────────────────────────────────────────────────┐
-│                        APEX FRAMEWORK LAYERS                        │
-├─────────────────────────────────────────────────────────────────────┤
-│  PERSONA LAYER                                                      │
+┌───────────────────────────────────────────┐
+│                        APEX FRAMEWORK LAYERS                          │
+├───────────────────────────────────────────┤
+│  PERSONA LAYER                                                        │
 │  Dev (IDE)  │  BA/PM (Claude.ai)  │  Tester (CLI)  │  Stakeholder   │
-├─────────────────────────────────────────────────────────────────────┤
+├───────────────────────────────────────────┤
 │  AI ORCHESTRATION LAYER                                             │
 │  Claude Code CLI  │  Copilot API  │  Claude API (Haiku/Sonnet)      │
-├─────────────────────────────────────────────────────────────────────┤
+├───────────────────────────────────────────┤
 │  INTEGRATION LAYER                                                  │
 │  Jira  │  Confluence  │  GitHub  │  SonarQube  │  Slack/Teams       │
-├─────────────────────────────────────────────────────────────────────┤
-│  GOVERNANCE LAYER                                                   │
+├───────────────────────────────────────────┤
+│  GOVERNANCE LAYER                                                     │
 │  Audit Log  │  Policy Engine  │  PII Guard  │  Approval Gates       │
-├─────────────────────────────────────────────────────────────────────┤
-│  DATA LAYER                                                         │
+├───────────────────────────────────────────┤
+│  DATA LAYER                                                           │
 │  CLAUDE.md files  │  Prompt Library  │  Metrics Store               │
-└─────────────────────────────────────────────────────────────────────┘
+└───────────────────────────────────────────┘
 ```
