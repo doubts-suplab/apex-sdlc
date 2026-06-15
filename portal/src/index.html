@@ -3,614 +3,1595 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>APEX Portal</title>
+<title>APEX Portal — EEIK Digital Transformation</title>
 <style>
+/* ============================================================
+   APEX Portal · Design System v1.0
+   Seed data: portal-config.json (override inline defaults)
+   ============================================================ */
 :root {
-  --primary:       #6B4FBB;
-  --primary-dark:  #4A3280;
-  --primary-deep:  #2D1B69;
-  --primary-light: #EDE9F7;
-  --primary-mid:   #C4B5FD;
-  --bg:            #F8F7FC;
-  --surface:       #FFFFFF;
-  --border:        #E5E0F5;
-  --text:          #1A1033;
-  --text-muted:    #6B7280;
-  --sidebar-w:     240px;
-  --topbar-h:      52px;
+  --primary:#6B4FBB; --primary-dark:#4A3280; --primary-deep:#2D1B69;
+  --primary-light:#EDE9F7; --primary-mid:#C4B5FD;
+  --green:#2D7D46;  --green-light:#E8F5E9;
+  --orange:#C05621; --orange-light:#FFF3E0;
+  --blue:#1565C0;   --blue-light:#E3F2FD;
+  --red:#B91C1C;    --red-light:#FEF2F2;
+  --bg:#F8F7FC; --surface:#FFFFFF;
+  --border:#E5E0F5; --text:#1A1033; --muted:#6B7280;
+  --th:54px; --sw:228px;
 }
-*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-html, body { height: 100%; overflow: hidden; }
-body {
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Inter', sans-serif;
-  background: var(--bg);
-  color: var(--text);
-  font-size: 14px;
-}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;overflow:hidden}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','Inter',sans-serif;background:var(--bg);color:var(--text);font-size:14px}
 
-/* ── TOPBAR ── */
-#topbar {
-  position: fixed; top: 0; left: 0; right: 0;
-  height: var(--topbar-h);
-  background: var(--primary-deep);
-  display: flex; align-items: center;
-  padding: 0 20px; gap: 14px;
-  z-index: 200;
-  border-bottom: 1px solid rgba(255,255,255,.08);
+/* ── TOPBAR ─────────────────────────────────────────────── */
+#topbar{
+  position:fixed;top:0;left:0;right:0;height:var(--th);
+  background:var(--primary-deep);
+  display:flex;align-items:center;padding:0 18px;gap:12px;z-index:300;
+  border-bottom:1px solid rgba(255,255,255,.1)
 }
-.top-brand {
-  display: flex; align-items: center; gap: 10px;
-  text-decoration: none; flex-shrink: 0;
-}
-.top-logo {
-  width: 30px; height: 30px;
-  background: var(--primary);
-  border-radius: 8px;
-  display: flex; align-items: center; justify-content: center;
-  font-size: 11px; font-weight: 900; color: #fff; letter-spacing: -0.5px;
-}
-.top-name { font-size: 15px; font-weight: 800; color: #fff; letter-spacing: -0.3px; }
-.top-badge {
-  font-size: 9px; font-weight: 700; letter-spacing: 0.8px; text-transform: uppercase;
-  background: rgba(167,139,250,.25); color: #C4B5FD;
-  padding: 2px 8px; border-radius: 20px; border: 1px solid rgba(196,181,253,.2);
-}
-.top-sep { flex: 1; }
-#current-page-title {
-  font-size: 13px; color: rgba(255,255,255,.5); font-weight: 500;
-}
-.top-actions { display: flex; gap: 8px; }
-.top-btn {
-  font-size: 12px; font-weight: 600; padding: 5px 14px;
-  border-radius: 7px; cursor: pointer; border: none;
-  text-decoration: none; display: inline-flex; align-items: center; gap: 5px;
-  transition: all .15s;
-}
-.top-btn-outline {
-  background: transparent; border: 1.5px solid rgba(255,255,255,.2);
-  color: rgba(255,255,255,.7);
-}
-.top-btn-outline:hover { border-color: rgba(255,255,255,.5); color: #fff; }
+.tb-brand{display:flex;align-items:center;gap:9px;text-decoration:none;flex-shrink:0;margin-right:6px}
+.tb-logo{width:30px;height:30px;background:var(--primary);border-radius:7px;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:900;color:#fff}
+.tb-name{font-size:15px;font-weight:900;color:#fff;letter-spacing:-.3px}
+.tb-sep{width:1px;height:22px;background:rgba(255,255,255,.15);flex-shrink:0}
+.tb-proj{font-size:11.5px;color:rgba(255,255,255,.5);font-weight:500;flex-shrink:0;white-space:nowrap}
+.tb-proj strong{color:rgba(255,255,255,.88);font-weight:700}
+.tb-spacer{flex:1}
+.tb-phase{display:flex;align-items:center;gap:5px;font-size:10px;font-weight:700;letter-spacing:.6px;text-transform:uppercase;background:rgba(45,125,70,.25);color:#6EE7A0;border:1px solid rgba(110,231,160,.2);padding:3px 11px;border-radius:12px;flex-shrink:0}
+.tb-dot{width:6px;height:6px;border-radius:50%;background:#6EE7A0;animation:glow 2s infinite}
+@keyframes glow{0%,100%{opacity:1}50%{opacity:.3}}
 
-/* ── SIDEBAR ── */
-#sidebar {
-  position: fixed; top: var(--topbar-h); left: 0; bottom: 0;
-  width: var(--sidebar-w);
-  background: var(--surface);
-  border-right: 1px solid var(--border);
-  overflow-y: auto;
-  z-index: 100;
-  display: flex; flex-direction: column;
-}
-.sidebar-section {
-  padding: 16px 12px 8px;
-}
-.sidebar-section-label {
-  font-size: 10px; font-weight: 700; letter-spacing: 1.2px;
-  text-transform: uppercase; color: var(--text-muted);
-  padding: 0 8px; margin-bottom: 6px;
-}
-.nav-item {
-  display: flex; align-items: center; gap: 9px;
-  padding: 8px 10px; border-radius: 8px;
-  cursor: pointer; color: var(--text-muted);
-  font-size: 13px; font-weight: 500;
-  transition: all .15s; user-select: none;
-  text-decoration: none;
-}
-.nav-item:hover { background: var(--primary-light); color: var(--primary); }
-.nav-item.active {
-  background: var(--primary-light); color: var(--primary);
-  font-weight: 700;
-}
-.nav-icon { font-size: 15px; width: 20px; text-align: center; flex-shrink: 0; }
-.sidebar-footer {
-  margin-top: auto; padding: 16px 12px;
-  border-top: 1px solid var(--border);
-}
-.sidebar-footer-text {
-  font-size: 11px; color: var(--text-muted); text-align: center; line-height: 1.5;
-}
+/* persona switcher */
+.ps-wrap{position:relative;flex-shrink:0}
+.ps-btn{display:flex;align-items:center;gap:7px;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.18);border-radius:8px;padding:5px 10px 5px 6px;cursor:pointer;color:#fff;font-size:12px;font-weight:600;transition:all .15s}
+.ps-btn:hover{background:rgba(255,255,255,.18)}
+.ps-av{width:24px;height:24px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:800;color:#fff;flex-shrink:0}
+#ps-label{max-width:110px;white-space:nowrap}
+.ps-chev{font-size:9px;opacity:.6;margin-left:2px}
+.ps-drop{position:absolute;top:calc(100% + 8px);right:0;background:#fff;border:1px solid var(--border);border-radius:10px;box-shadow:0 10px 36px rgba(0,0,0,.2);min-width:210px;z-index:1000;overflow:hidden;display:none}
+.ps-drop.open{display:block}
+.ps-drop-hd{padding:10px 14px 8px;font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:1px;color:var(--muted);border-bottom:1px solid var(--border)}
+.ps-item{display:flex;align-items:center;gap:10px;padding:9px 14px;cursor:pointer;transition:background .1s;border-bottom:1px solid var(--border)}
+.ps-item:last-child{border-bottom:none}
+.ps-item:hover{background:var(--primary-light)}
+.ps-item.cur{background:var(--primary-light)}
+.ps-item-av{width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:800;color:#fff;flex-shrink:0}
+.ps-item-name{font-size:12.5px;font-weight:700;color:var(--text)}
+.ps-item-desc{font-size:10.5px;color:var(--muted);margin-top:1px}
+.ps-check{margin-left:auto;color:var(--primary);font-size:13px}
 
-/* ── MAIN CONTENT ── */
-#main {
-  position: fixed;
-  top: var(--topbar-h); left: var(--sidebar-w); right: 0; bottom: 0;
-  overflow: hidden;
-}
+.tb-icon{width:32px;height:32px;border-radius:8px;border:none;background:rgba(255,255,255,.1);color:rgba(255,255,255,.7);display:flex;align-items:center;justify-content:center;font-size:14px;cursor:pointer;transition:all .15s;position:relative;flex-shrink:0}
+.tb-icon:hover{background:rgba(255,255,255,.2);color:#fff}
+.notif-pip{position:absolute;top:5px;right:5px;width:7px;height:7px;background:#F87171;border-radius:50%;border:1.5px solid var(--primary-deep)}
 
-/* home view */
-#home-view {
-  height: 100%; overflow-y: auto;
-  display: none;
-}
-#home-view.visible { display: block; }
+/* ── SIDEBAR ─────────────────────────────────────────────── */
+#sidebar{position:fixed;top:var(--th);left:0;bottom:0;width:var(--sw);background:var(--surface);border-right:1px solid var(--border);display:flex;flex-direction:column;z-index:200;overflow-y:auto}
+#sidebar::-webkit-scrollbar{width:4px}
+#sidebar::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px}
+.sb-sec{padding:12px 12px 4px}
+.sb-lbl{font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:1.2px;color:var(--muted);padding:0 8px 6px}
+.ni{display:flex;align-items:center;gap:8px;padding:7px 10px;border-radius:8px;margin-bottom:2px;cursor:pointer;color:var(--muted);font-size:12.5px;font-weight:500;transition:all .15s;user-select:none;text-decoration:none;border-left:3px solid transparent}
+.ni:hover{background:var(--primary-light);color:var(--primary);border-left-color:var(--primary-mid)}
+.ni.active{background:var(--primary-light);color:var(--primary);font-weight:700;border-left-color:var(--primary)}
+.ni.hidden{display:none!important}
+.ni-icon{font-size:14px;width:18px;text-align:center;flex-shrink:0}
+.ni-badge{margin-left:auto;font-size:9px;font-weight:800;padding:1px 6px;border-radius:8px}
+.nb-r{background:var(--red-light);color:var(--red)}
+.nb-o{background:var(--orange-light);color:var(--orange)}
+.nb-g{background:var(--green-light);color:var(--green)}
+.nb-p{background:var(--primary-light);color:var(--primary)}
+.sb-div{height:1px;background:var(--border);margin:8px 14px}
+.sb-foot{margin-top:auto;padding:12px 14px;border-top:1px solid var(--border);display:flex;align-items:center;gap:8px}
+.sb-av{width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:800;color:#fff;flex-shrink:0}
+.sb-uname{font-size:12px;font-weight:700}
+.sb-urole{font-size:10px;color:var(--muted)}
+.sb-ver{margin-left:auto;font-size:10px;color:var(--muted)}
 
-/* iframe view */
-#iframe-view {
-  width: 100%; height: 100%;
-  border: none;
-  display: none;
-}
-#iframe-view.visible { display: block; }
+/* ── MAIN ────────────────────────────────────────────────── */
+#main{position:fixed;top:var(--th);left:var(--sw);right:0;bottom:0;overflow-y:auto;background:var(--bg)}
+#main::-webkit-scrollbar{width:6px}
+#main::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px}
+.view{display:none;padding:26px 30px 60px;min-height:100%}
+.view.active{display:block}
 
-/* ── HOME VIEW STYLES ── */
-.home-hero {
-  background: linear-gradient(145deg, var(--primary-deep) 0%, var(--primary-dark) 50%, var(--primary) 100%);
-  padding: 48px 48px 56px;
-  position: relative; overflow: hidden;
-}
-.home-hero::before {
-  content: '';
-  position: absolute; inset: 0;
-  background: radial-gradient(ellipse 60% 60% at 80% 20%, rgba(196,181,253,.18) 0%, transparent 70%);
-  pointer-events: none;
-}
-.hero-inner { position: relative; max-width: 900px; }
-.hero-eyebrow {
-  display: inline-flex; align-items: center; gap: 7px;
-  background: rgba(255,255,255,.1); border: 1px solid rgba(255,255,255,.18);
-  color: rgba(255,255,255,.85); font-size: 10px; font-weight: 700; letter-spacing: 1px;
-  text-transform: uppercase; padding: 4px 12px; border-radius: 20px; margin-bottom: 18px;
-}
-.pulse { width: 6px; height: 6px; background: #A78BFA; border-radius: 50%; animation: blink 2s infinite; }
-@keyframes blink { 0%,100%{opacity:1} 50%{opacity:.3} }
-.home-hero h1 {
-  font-size: clamp(26px, 4vw, 44px); font-weight: 900;
-  letter-spacing: -1.2px; line-height: 1.1; color: #fff;
-  margin-bottom: 14px;
-}
-.home-hero h1 span { color: #C4B5FD; }
-.hero-sub {
-  font-size: 15px; color: rgba(255,255,255,.7); max-width: 520px;
-  line-height: 1.6; margin-bottom: 28px;
-}
-.hero-stats {
-  display: flex; gap: 32px; flex-wrap: wrap;
-  border-top: 1px solid rgba(255,255,255,.12);
-  padding-top: 24px; margin-top: 4px;
-}
-.stat-val { font-size: 26px; font-weight: 900; color: #fff; }
-.stat-label { font-size: 11px; color: rgba(255,255,255,.55); margin-top: 2px; }
+/* typography */
+.ey{font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:1px;color:var(--primary);margin-bottom:4px}
+.vt{font-size:21px;font-weight:900;letter-spacing:-.5px;color:var(--text)}
+.vs{font-size:12.5px;color:var(--muted);margin-top:3px}
+.vhrow{display:flex;align-items:flex-end;justify-content:space-between;gap:16px;flex-wrap:wrap;margin-bottom:22px}
+.vactions{display:flex;gap:8px}
+.sec-title{font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.6px;color:var(--muted);margin-bottom:10px}
 
-/* cards grid */
-.home-section { padding: 40px 48px; }
-.home-section h2 {
-  font-size: 13px; font-weight: 700; letter-spacing: 1px;
-  text-transform: uppercase; color: var(--primary); margin-bottom: 6px;
-}
-.home-section h3 {
-  font-size: 22px; font-weight: 800; letter-spacing: -0.3px; margin-bottom: 4px;
-}
-.home-section p { color: var(--text-muted); font-size: 14px; margin-bottom: 24px; }
+/* stat cards */
+.sg{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:22px}
+.sg-3{grid-template-columns:repeat(3,1fr)}
+.sc{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:14px 16px;position:relative;overflow:hidden}
+.sc::before{content:'';position:absolute;top:0;left:0;right:0;height:3px}
+.sc-p::before{background:var(--primary)} .sc-g::before{background:var(--green)}
+.sc-b::before{background:var(--blue)}    .sc-o::before{background:var(--orange)}
+.sc-r::before{background:var(--red)}     .sc-gr::before{background:#9CA3AF}
+.sl{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);margin-bottom:6px}
+.sv{font-size:26px;font-weight:900;color:var(--text);letter-spacing:-1px;line-height:1}
+.su{font-size:13px;font-weight:600;color:var(--muted)}
+.ss{font-size:11px;color:var(--muted);margin-top:5px}
+.st{font-size:11px;font-weight:700;display:inline-flex;align-items:center;gap:2px;margin-top:4px}
+.t-up{color:var(--green)} .t-dn{color:var(--red)} .t-ne{color:var(--muted)}
 
-.cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 14px; }
-.card {
-  background: var(--surface); border: 1.5px solid var(--border);
-  border-radius: 12px; padding: 20px 18px; cursor: pointer;
-  transition: all .18s; text-decoration: none; display: block; color: inherit;
-}
-.card:hover {
-  border-color: var(--primary); transform: translateY(-2px);
-  box-shadow: 0 6px 24px rgba(107,79,187,.1);
-}
-.card-icon { font-size: 22px; margin-bottom: 10px; }
-.card-title { font-size: 13px; font-weight: 700; margin-bottom: 4px; }
-.card-desc { font-size: 12px; color: var(--text-muted); line-height: 1.5; }
-.card-arrow {
-  display: inline-block; margin-top: 10px;
-  font-size: 11px; color: var(--primary); font-weight: 600;
-}
+/* panels */
+.panel{background:var(--surface);border:1px solid var(--border);border-radius:10px;overflow:hidden;margin-bottom:16px}
+.phd{display:flex;align-items:center;gap:10px;padding:11px 16px;border-bottom:1px solid var(--border);background:#FAFAFA}
+.pt{font-size:13px;font-weight:800;flex:1}
+.pa{font-size:11px;color:var(--primary);cursor:pointer;font-weight:600;text-decoration:none;border:none;background:none}
+.pb{padding:16px}
 
-/* diagram section */
-.diagram-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
-@media (max-width: 900px) { .diagram-grid { grid-template-columns: 1fr; } }
-.diagram-card {
-  background: var(--surface); border: 1.5px solid var(--border);
-  border-radius: 14px; padding: 24px; overflow: hidden;
-}
-.diagram-card h4 { font-size: 14px; font-weight: 700; margin-bottom: 4px; }
-.diagram-card p { font-size: 12px; color: var(--text-muted); margin-bottom: 16px; }
-.diagram-card img {
-  width: 100%; height: auto; border-radius: 8px;
-  border: 1px solid var(--border);
-}
+/* grid layouts */
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.g3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px}
 
-/* quick links strip */
-.qlinks { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 20px; }
-.qlink {
-  display: inline-flex; align-items: center; gap: 6px;
-  background: var(--surface); border: 1.5px solid var(--border);
-  border-radius: 8px; padding: 7px 14px;
-  font-size: 12px; font-weight: 600; color: var(--text-muted);
-  text-decoration: none; transition: all .15s; cursor: pointer;
-}
-.qlink:hover { border-color: var(--primary); color: var(--primary); }
+/* table */
+.tw{overflow-x:auto;border-radius:8px;border:1px solid var(--border)}
+table{width:100%;border-collapse:collapse;font-size:12.5px}
+thead th{background:var(--primary-deep);color:#fff;padding:8px 12px;text-align:left;font-size:10px;font-weight:700;letter-spacing:.3px;white-space:nowrap}
+tbody tr{border-bottom:1px solid var(--border)}
+tbody tr:last-child{border-bottom:none}
+tbody tr:hover{background:var(--primary-light)}
+tbody td{padding:8px 12px;vertical-align:middle;line-height:1.4}
+.fw7{font-weight:700}
+.mono{font-family:Consolas,'Fira Code',monospace;font-size:11px}
 
-/* info strip */
-.info-strip {
-  background: var(--primary-light); border: 1.5px solid var(--border);
-  border-radius: 12px; padding: 18px 22px;
-  display: flex; align-items: flex-start; gap: 14px; margin-top: 20px;
-}
-.info-strip-icon { font-size: 20px; flex-shrink: 0; margin-top: 2px; }
-.info-strip-body h4 { font-size: 13px; font-weight: 700; color: var(--primary); margin-bottom: 3px; }
-.info-strip-body p { font-size: 12px; color: var(--primary-dark); line-height: 1.6; }
+/* chips */
+.chip{display:inline-flex;align-items:center;gap:3px;font-size:10px;font-weight:700;padding:2px 8px;border-radius:9px;white-space:nowrap}
+.ch-g{background:var(--green-light);color:var(--green)}
+.ch-r{background:var(--red-light);color:var(--red)}
+.ch-o{background:var(--orange-light);color:var(--orange)}
+.ch-b{background:var(--blue-light);color:var(--blue)}
+.ch-p{background:var(--primary-light);color:var(--primary)}
+.ch-gr{background:#F3F4F6;color:#6B7280}
+.ch-dot{width:5px;height:5px;border-radius:50%;background:currentColor}
 
-hr.divider { border: none; border-top: 1px solid var(--border); margin: 0; }
+/* buttons */
+.btn{display:inline-flex;align-items:center;gap:6px;padding:7px 16px;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer;border:none;transition:all .15s;text-decoration:none}
+.btn-p{background:var(--primary);color:#fff}.btn-p:hover{background:var(--primary-dark)}
+.btn-o{background:transparent;border:1.5px solid var(--primary);color:var(--primary)}.btn-o:hover{background:var(--primary-light)}
+.btn-sm{padding:4px 10px;font-size:11px;border-radius:6px}
+.btn-gh{background:transparent;color:var(--muted);border:1px solid var(--border)}.btn-gh:hover{background:var(--bg);border-color:var(--primary);color:var(--primary)}
+
+/* progress bars */
+.pr{margin-bottom:10px}
+.pr-l{display:flex;justify-content:space-between;margin-bottom:3px;font-size:11px}
+.pr-l .n{color:var(--text);font-weight:600}.pr-l .v{color:var(--muted)}
+.pr-bar{height:7px;background:var(--border);border-radius:4px;overflow:hidden}
+.pr-fill{height:100%;border-radius:4px}
+.pf-p{background:var(--primary)}.pf-g{background:var(--green)}.pf-o{background:var(--orange)}.pf-b{background:var(--blue)}.pf-r{background:var(--red)}
+
+/* activity */
+.act{display:flex;gap:10px;padding:10px 0;border-bottom:1px solid var(--border)}
+.act:last-child{border-bottom:none}
+.act-ico{width:28px;height:28px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:12px;flex-shrink:0;margin-top:1px}
+.act-body{flex:1}
+.act-t{font-size:12.5px;font-weight:600;line-height:1.4}
+.act-m{font-size:11px;color:var(--muted);margin-top:2px}
+.act-time{font-size:10.5px;color:var(--muted);flex-shrink:0;white-space:nowrap}
+
+/* gate rows */
+.gr{display:flex;align-items:center;gap:10px;padding:10px 16px;border-bottom:1px solid var(--border)}
+.gr:last-child{border-bottom:none}
+.gr-ico{font-size:18px;flex-shrink:0;width:26px;text-align:center}
+.gr-name{font-size:12.5px;font-weight:700}
+.gr-det{font-size:11px;color:var(--muted);margin-top:2px}
+
+/* phase banner */
+.phb{display:flex;align-items:center;gap:14px;padding:14px 18px;border-radius:10px;margin-bottom:18px}
+.phb-r{background:var(--red-light);border:1px solid #FECACA}
+.phb-ico{font-size:22px;flex-shrink:0}
+.phb-title{font-size:14px;font-weight:800}
+.phb-sub{font-size:11.5px;color:var(--muted);margin-top:2px}
+.phb-badge{margin-left:auto;flex-shrink:0}
+
+/* prompt lib */
+.ptabs{display:flex;gap:2px;border-bottom:2px solid var(--border);margin-bottom:20px}
+.ptab{padding:8px 16px;font-size:12.5px;font-weight:600;color:var(--muted);cursor:pointer;border:none;background:transparent;transition:all .15s;border-bottom:3px solid transparent;margin-bottom:-2px;border-radius:6px 6px 0 0}
+.ptab:hover{color:var(--primary);background:var(--primary-light)}
+.ptab.active{color:var(--primary);font-weight:800;border-bottom-color:var(--primary);background:var(--primary-light)}
+.ptab-content{display:none}
+.ptab-content.active{display:block}
+.pgrid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.pcard{background:var(--surface);border:1px solid var(--border);border-radius:10px;overflow:hidden;display:flex;flex-direction:column}
+.pcard-hd{padding:12px 14px 10px;border-bottom:1px solid var(--border)}
+.pcard-title{font-size:13px;font-weight:800;margin-bottom:7px}
+.pcard-tags{display:flex;gap:5px;flex-wrap:wrap;align-items:center}
+.pcard-body{padding:10px 14px;flex:1}
+.pcard-desc{font-size:12px;color:var(--muted);line-height:1.5;margin-bottom:8px}
+.pcard-code{background:#1E1433;color:#C4B5FD;border-radius:7px;padding:12px 14px;font-family:'Fira Code',Consolas,monospace;font-size:11px;line-height:1.65;overflow:auto;max-height:190px;border:1px solid #3D2E6B;margin-top:6px}
+.pcard-code pre{margin:0;white-space:pre}
+.pcard-ft{padding:8px 14px;border-top:1px solid var(--border);display:flex;gap:8px;align-items:center}
+.tc{font-size:9.5px;font-weight:700;padding:2px 8px;border-radius:8px}
+.tc-cl{background:var(--primary-light);color:var(--primary-dark)}
+.tc-bt{background:#F5F3FF;color:#4C1D95}
+.gov-chip{display:flex;align-items:center;gap:4px;font-size:9.5px;font-weight:700;color:var(--orange);background:var(--orange-light);border:1px solid #FED7AA;padding:2px 8px;border-radius:8px}
+.copy-btn{margin-left:auto}
+
+/* sprint bars */
+.sbar{height:10px;background:var(--border);border-radius:5px;overflow:hidden;margin:6px 0 4px;position:relative}
+.sbar-fill{height:100%;border-radius:5px;background:linear-gradient(90deg,var(--primary-dark),var(--primary-mid));transition:width .5s}
+.stacked{display:flex;height:28px;border-radius:8px;overflow:hidden;margin:8px 0 14px}
+.ss-seg{display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:800;color:#fff;cursor:default}
+
+/* adoption */
+.adrow{display:flex;align-items:center;gap:10px;margin-bottom:10px}
+.adrow:last-child{margin-bottom:0}
+.ad-label{font-size:11.5px;font-weight:600;width:100px;flex-shrink:0}
+.ad-bar-wrap{flex:1;height:8px;background:var(--border);border-radius:4px;overflow:hidden}
+.ad-fill{height:100%;border-radius:4px;background:var(--primary)}
+.ad-pct{font-size:11px;font-weight:700;color:var(--primary);width:32px;text-align:right;flex-shrink:0}
+.ad-cnt{font-size:10px;color:var(--muted);width:44px;flex-shrink:0}
+
+/* resources */
+.rg{margin-bottom:22px}
+.rg-title{font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:1px;color:var(--muted);margin-bottom:10px;padding-bottom:6px;border-bottom:1px solid var(--border)}
+.rl{display:flex;align-items:center;gap:10px;padding:10px 14px;border:1px solid var(--border);border-radius:8px;margin-bottom:6px;text-decoration:none;color:var(--text);transition:all .15s;background:var(--surface)}
+.rl:hover{border-color:var(--primary);background:var(--primary-light);color:var(--primary)}
+.rl-ico{font-size:16px;flex-shrink:0;width:22px;text-align:center}
+.rl-title{font-size:12.5px;font-weight:700}
+.rl-desc{font-size:11px;color:var(--muted)}
+.rl-arr{margin-left:auto;font-size:12px;color:var(--muted)}
+
+/* notifications panel */
+.np{position:fixed;top:calc(var(--th) + 8px);right:16px;width:310px;background:var(--surface);border:1px solid var(--border);border-radius:12px;box-shadow:0 10px 36px rgba(0,0,0,.18);z-index:500;display:none;overflow:hidden}
+.np.open{display:block}
+.np-hd{display:flex;align-items:center;justify-content:space-between;padding:11px 14px;border-bottom:1px solid var(--border)}
+.np-title{font-size:13px;font-weight:800}
+.np-mark{font-size:11px;color:var(--primary);cursor:pointer;font-weight:600;border:none;background:none}
+.np-item{display:flex;gap:10px;padding:10px 14px;border-bottom:1px solid var(--border);cursor:pointer;transition:background .1s}
+.np-item:last-child{border-bottom:none}
+.np-item:hover{background:var(--bg)}
+.np-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;margin-top:5px}
+.npd-r{background:var(--red)} .npd-o{background:var(--orange)} .npd-g{background:var(--green)} .npd-gr{background:#9CA3AF}
+.np-body{font-size:12px;color:var(--text);line-height:1.5}
+.np-time{font-size:10px;color:var(--muted);margin-top:2px}
+
+/* misc */
+hr.lt{border:none;border-top:1px solid var(--border);margin:18px 0}
+.mt8{margin-top:8px}.mt12{margin-top:12px}.mt16{margin-top:16px}
 </style>
 </head>
 <body>
 
-<!-- ══════════════════════════════════════════════════════════════════════ -->
-<!-- TOPBAR -->
-<!-- ══════════════════════════════════════════════════════════════════════ -->
-<div id="topbar">
-  <a class="top-brand" href="#" onclick="showHome(); return false;">
-    <div class="top-logo">AX</div>
-    <span class="top-name">APEX</span>
+<!-- ══════════════════ TOPBAR ══════════════════ -->
+<nav id="topbar">
+  <a class="tb-brand" href="#" onclick="goView('home');return false">
+    <div class="tb-logo">AX</div>
+    <span class="tb-name">APEX</span>
   </a>
-  <span class="top-badge">Research Preview</span>
-  <div class="top-sep"></div>
-  <span id="current-page-title">Home</span>
-  <div class="top-actions">
-    <a class="top-btn top-btn-outline" href="../../docs/APEX-Framework.md" target="_blank">📄 Framework Doc</a>
-    <a class="top-btn top-btn-outline" href="https://github.com" target="_blank">⬡ GitHub</a>
-  </div>
-</div>
+  <div class="tb-sep"></div>
+  <div class="tb-proj">Project: <strong id="tb-proj-name">EEIK Digital Transformation</strong></div>
+  <div class="tb-spacer"></div>
+  <div class="tb-phase"><span class="tb-dot"></span> <span id="tb-phase-label">Phase 0 Active</span></div>
 
-<!-- ══════════════════════════════════════════════════════════════════════ -->
-<!-- SIDEBAR -->
-<!-- ══════════════════════════════════════════════════════════════════════ -->
-<nav id="sidebar">
-
-  <div class="sidebar-section">
-    <div class="sidebar-section-label">Overview</div>
-    <a class="nav-item active" id="nav-home" onclick="showHome(); return false;" href="#">
-      <span class="nav-icon">🏠</span> Home
-    </a>
+  <!-- Persona switcher -->
+  <div class="ps-wrap">
+    <button class="ps-btn" onclick="togglePersonaDrop()">
+      <div class="ps-av" id="ps-av" style="background:#6B4FBB">DV</div>
+      <span id="ps-label">Developer</span>
+      <span class="ps-chev">&#9660;</span>
+    </button>
+    <div class="ps-drop" id="ps-drop">
+      <div class="ps-drop-hd">Switch Persona</div>
+      <div id="ps-items"></div>
+    </div>
   </div>
 
-  <div class="sidebar-section">
-    <div class="sidebar-section-label">Dashboards</div>
-    <a class="nav-item" id="nav-governance" onclick="loadPage('../../docs/apex-governance.html', 'Governance', 'nav-governance'); return false;" href="#">
-      <span class="nav-icon">📊</span> Governance Dashboard
-    </a>
-  </div>
-
-  <div class="sidebar-section">
-    <div class="sidebar-section-label">Guides</div>
-    <a class="nav-item" id="nav-adoption" onclick="loadPage('../../docs/adoption-guide.html', 'Adoption Guide', 'nav-adoption'); return false;" href="#">
-      <span class="nav-icon">🚀</span> Adoption Guide
-    </a>
-    <a class="nav-item" id="nav-hub" onclick="loadPage('../../docs/index.html', 'Framework Hub', 'nav-hub'); return false;" href="#">
-      <span class="nav-icon">📐</span> Framework Hub
-    </a>
-  </div>
-
-  <div class="sidebar-section">
-    <div class="sidebar-section-label">Prompt Library</div>
-    <a class="nav-item" id="nav-dev" href="#" onclick="showPromptSection('developer'); return false;">
-      <span class="nav-icon">💻</span> Developer
-    </a>
-    <a class="nav-item" id="nav-ba" href="#" onclick="showPromptSection('ba'); return false;">
-      <span class="nav-icon">📋</span> Business Analyst
-    </a>
-    <a class="nav-item" id="nav-qa" href="#" onclick="showPromptSection('qa'); return false;">
-      <span class="nav-icon">🧪</span> QA / Tester
-    </a>
-    <a class="nav-item" id="nav-pm" href="#" onclick="showPromptSection('pm'); return false;">
-      <span class="nav-icon">📅</span> Programme Manager
-    </a>
-  </div>
-
-  <div class="sidebar-section">
-    <div class="sidebar-section-label">Resources</div>
-    <a class="nav-item" href="../../docs/APEX-Framework.md" target="_blank">
-      <span class="nav-icon">📄</span> Framework Doc
-    </a>
-    <a class="nav-item" href="../../README.md" target="_blank">
-      <span class="nav-icon">ℹ️</span> README
-    </a>
-  </div>
-
-  <div class="sidebar-footer">
-    <p class="sidebar-footer-text">APEX · AI-Powered<br>Engineering eXperience<br><span style="color:var(--primary);font-weight:700;">v1.0 · 2025</span></p>
-  </div>
+  <button class="tb-icon" onclick="toggleNotif()" title="Notifications">
+    &#128276;<div class="notif-pip"></div>
+  </button>
+  <button class="tb-icon" title="Settings" onclick="alert('Settings — edit portal-config.json to customise')">&#9881;</button>
 </nav>
 
-<!-- ══════════════════════════════════════════════════════════════════════ -->
-<!-- MAIN -->
-<!-- ══════════════════════════════════════════════════════════════════════ -->
-<div id="main">
+<!-- ══════════════════ SIDEBAR ══════════════════ -->
+<aside id="sidebar">
+  <div class="sb-sec">
+    <div class="sb-lbl">Overview</div>
+    <a class="ni active" id="ni-home" data-view="home" data-p="all" onclick="goView('home');return false" href="#">
+      <span class="ni-icon">&#127968;</span> Home
+    </a>
+  </div>
+  <div class="sb-sec">
+    <div class="sb-lbl">Dashboards</div>
+    <a class="ni" id="ni-sprint" data-view="sprint" data-p="dev,qa,pm,lead" onclick="goView('sprint');return false" href="#">
+      <span class="ni-icon">&#9889;</span> Sprint Dashboard
+    </a>
+    <a class="ni" id="ni-governance" data-view="governance" data-p="lead,ciso" onclick="goView('governance');return false" href="#">
+      <span class="ni-icon">&#128737;</span> Governance
+      <span class="ni-badge nb-o">2 &#9888;</span>
+    </a>
+  </div>
+  <div class="sb-sec">
+    <div class="sb-lbl">Prompt Library</div>
+    <a class="ni" id="ni-prompts-dev" data-view="prompts" data-ptab="dev" data-p="dev,lead" onclick="goView('prompts','dev');return false" href="#">
+      <span class="ni-icon">&#9749;</span> Developer
+    </a>
+    <a class="ni" id="ni-prompts-ba" data-view="prompts" data-ptab="ba" data-p="ba" onclick="goView('prompts','ba');return false" href="#">
+      <span class="ni-icon">&#128203;</span> Business Analyst
+    </a>
+    <a class="ni" id="ni-prompts-qa" data-view="prompts" data-ptab="qa" data-p="qa" onclick="goView('prompts','qa');return false" href="#">
+      <span class="ni-icon">&#129514;</span> QA / Tester
+    </a>
+    <a class="ni" id="ni-prompts-pm" data-view="prompts" data-ptab="pm" data-p="pm" onclick="goView('prompts','pm');return false" href="#">
+      <span class="ni-icon">&#128202;</span> Program Manager
+    </a>
+  </div>
+  <div class="sb-div"></div>
+  <div class="sb-sec">
+    <div class="sb-lbl">Resources</div>
+    <a class="ni" data-p="all" href="../../docs/index.html" target="_blank">
+      <span class="ni-icon">&#128218;</span> Docs Hub <span class="ni-badge nb-p">&#8599;</span>
+    </a>
+    <a class="ni" data-p="all" href="../../docs/apex-framework.html" target="_blank">
+      <span class="ni-icon">&#128208;</span> Framework Doc <span class="ni-badge nb-p">&#8599;</span>
+    </a>
+    <a class="ni" data-p="all" href="../../docs/apex-governance.html" target="_blank">
+      <span class="ni-icon">&#128221;</span> Policy Reference <span class="ni-badge nb-p">&#8599;</span>
+    </a>
+    <a class="ni" data-p="all" href="https://github.com" target="_blank">
+      <span class="ni-icon">&#9419;</span> GitHub <span class="ni-badge nb-p">&#8599;</span>
+    </a>
+  </div>
 
-  <!-- HOME VIEW -->
-  <div id="home-view" class="visible">
+  <div class="sb-foot">
+    <div class="sb-av" id="sb-av" style="background:#6B4FBB">DV</div>
+    <div>
+      <div class="sb-uname" id="sb-uname">Developer</div>
+      <div class="sb-urole" id="sb-urole">Java &middot; Spring Boot</div>
+    </div>
+    <div class="sb-ver">v1.0</div>
+  </div>
+</aside>
 
-    <div class="home-hero">
-      <div class="hero-inner">
-        <div class="hero-eyebrow">
-          <span class="pulse"></span> AI-Augmented SDLC · Research Preview
-        </div>
-        <h1>The <span>APEX</span> Framework<br>Portal</h1>
-        <p class="hero-sub">AI-powered engineering across every persona — developers, BAs, QA, PMs, and beyond. Zero new tools. Maximum impact.</p>
-        <div class="hero-stats">
-          <div>
-            <div class="stat-val">30–40%</div>
-            <div class="stat-label">Faster PR cycle</div>
+<!-- ══════════════════ MAIN CONTENT ══════════════════ -->
+<main id="main">
+
+  <!-- ─────────── HOME ─────────── -->
+  <div class="view active" id="view-home">
+    <div class="vhrow">
+      <div>
+        <div class="ey">Overview</div>
+        <div class="vt">Good morning, <span id="home-greeting-name">Developer</span> &#128075;</div>
+        <div class="vs">Sprint 14 &middot; <span id="home-date"></span> &middot; <span id="home-phase">Phase 0 Active</span></div>
+      </div>
+      <div class="vactions">
+        <button class="btn btn-gh btn-sm" onclick="goView('governance')">&#128737; Gates</button>
+        <button class="btn btn-p btn-sm" onclick="goView('sprint')">&#9889; Sprint &rarr;</button>
+      </div>
+    </div>
+
+    <!-- KPI grid (rendered by JS per persona) -->
+    <div class="sg" id="home-kpis"></div>
+
+    <div class="g2">
+      <!-- Sprint progress -->
+      <div class="panel">
+        <div class="phd"><span class="pt">&#9889; Sprint 14 Progress</span><a class="pa" onclick="goView('sprint');return false" href="#">Full dashboard &rarr;</a></div>
+        <div class="pb">
+          <div style="display:flex;justify-content:space-between;margin-bottom:4px;font-size:12px">
+            <span><strong>38 SP</strong> done of <strong>47 SP</strong> committed</span>
+            <span class="chip ch-p">81%</span>
           </div>
-          <div>
-            <div class="stat-val">50%+</div>
-            <div class="stat-label">Less boilerplate</div>
+          <div class="sbar"><div class="sbar-fill" style="width:81%"></div></div>
+          <div style="display:flex;justify-content:space-between;font-size:10.5px;color:var(--muted);margin-top:4px">
+            <span>Jun 2 &rarr; Jun 20</span><span>5 working days remain</span>
           </div>
-          <div>
-            <div class="stat-val">60%</div>
-            <div class="stat-label">Test writing time saved</div>
-          </div>
-          <div>
-            <div class="stat-val">40+</div>
-            <div class="stat-label">Specialist AI agents</div>
+          <hr class="lt">
+          <div class="g3" style="margin-top:0;text-align:center">
+            <div><div style="font-size:18px;font-weight:900;color:var(--primary)">23<span style="font-size:12px;color:var(--muted)">/31</span></div><div style="font-size:10px;color:var(--muted);margin-top:2px">AI-assisted PRs</div></div>
+            <div><div style="font-size:18px;font-weight:900;color:var(--green)">84<span style="font-size:12px;color:var(--muted)">%</span></div><div style="font-size:10px;color:var(--muted);margin-top:2px">avg coverage</div></div>
+            <div><div style="font-size:18px;font-weight:900;color:var(--orange)">3</div><div style="font-size:10px;color:var(--muted);margin-top:2px">carry-forward SP</div></div>
           </div>
         </div>
       </div>
-    </div>
 
-    <div class="home-section">
-      <h2>Quick Access</h2>
-      <h3>Navigate the Platform</h3>
-      <p>Choose a section to get started</p>
-      <div class="cards">
-        <a class="card" onclick="loadPage('../../docs/apex-governance.html','Governance','nav-governance'); return false;" href="#">
-          <div class="card-icon">📊</div>
-          <div class="card-title">Governance Dashboard</div>
-          <div class="card-desc">Policy engine, audit log, risk register, and AI Review Board tracker</div>
-          <span class="card-arrow">Open →</span>
-        </a>
-        <a class="card" onclick="loadPage('../../docs/adoption-guide.html','Adoption Guide','nav-adoption'); return false;" href="#">
-          <div class="card-icon">🚀</div>
-          <div class="card-title">Adoption Guide</div>
-          <div class="card-desc">Per-persona quick-starts, prompt library access, CLAUDE.md builder</div>
-          <span class="card-arrow">Open →</span>
-        </a>
-        <a class="card" onclick="loadPage('../../docs/apex-governance.html','Governance','nav-governance'); return false;" href="#">
-          <div class="card-icon">🛡️</div>
-          <div class="card-title">Governance</div>
-          <div class="card-desc">Policy engine, PII guard status, audit log, AI Review Board</div>
-          <span class="card-arrow">Open →</span>
-        </a>
-        <a class="card" onclick="loadPage('../../docs/index.html','Framework Hub','nav-hub'); return false;" href="#">
-          <div class="card-icon">📐</div>
-          <div class="card-title">Framework Hub</div>
-          <div class="card-desc">Full APEX architecture, persona grid, EEIK bootstrap and rollout timeline</div>
-          <span class="card-arrow">Open →</span>
-        </a>
+      <!-- Activity feed -->
+      <div class="panel">
+        <div class="phd"><span class="pt">&#128276; Recent Activity</span><span style="font-size:10px;color:var(--muted)">Last 7 days</span></div>
+        <div class="pb" id="home-activity"></div>
       </div>
     </div>
 
-    <hr class="divider">
+    <!-- Team adoption + gate status -->
+    <div class="g2">
+      <div class="panel">
+        <div class="phd"><span class="pt">&#128200; AI Adoption &mdash; <span id="home-adoption-pct">78</span>% overall</span></div>
+        <div class="pb" id="home-adoption"></div>
+      </div>
+      <div class="panel">
+        <div class="phd"><span class="pt">&#128680; Code Review Gates</span><a class="pa" onclick="goView('governance');return false" href="#">Full view &rarr;</a></div>
+        <div id="home-gates"></div>
+      </div>
+    </div>
+  </div>
 
-    <div class="home-section">
-      <h2>Architecture Diagrams</h2>
-      <h3>How APEX Works</h3>
-      <p>AI augmentation layer across all SDLC phases and personas</p>
-      <div class="diagram-grid">
-        <div class="diagram-card">
-          <h4>SDLC Phase Map</h4>
-          <p>Claude Code and GitHub Copilot across every delivery phase</p>
-          <img src="../../docs/ai_sdlc_framework.svg" alt="APEX SDLC Framework Diagram" loading="lazy">
+  <!-- ─────────── SPRINT ─────────── -->
+  <div class="view" id="view-sprint">
+    <div class="vhrow">
+      <div>
+        <div class="ey">Dashboards</div>
+        <div class="vt">Sprint 14 &mdash; AI Velocity</div>
+        <div class="vs">Jun 2 &ndash; Jun 20, 2026 &middot; 5 working days remaining</div>
+      </div>
+      <div class="vactions">
+        <button class="btn btn-gh btn-sm">&#128228; Export Report</button>
+        <button class="btn btn-p btn-sm">&#128221; Generate Exec Summary</button>
+      </div>
+    </div>
+
+    <!-- Sprint meta chips -->
+    <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:20px">
+      <span class="chip ch-p"><span class="ch-dot"></span> Sprint 14 Active</span>
+      <span class="chip ch-g"><span class="ch-dot"></span> On Track</span>
+      <span class="chip ch-o">&#9888; 2 Gates Amber</span>
+      <span class="chip ch-gr">14 working days total</span>
+    </div>
+
+    <!-- Stats row -->
+    <div class="sg">
+      <div class="sc sc-p">
+        <div class="sl">Story Points Done</div>
+        <div class="sv">38<span class="su">/47</span></div>
+        <div class="ss">81% of sprint committed</div>
+        <div class="st t-up">&#8593; +5 SP vs Sprint 13</div>
+      </div>
+      <div class="sc sc-g">
+        <div class="sl">AI-Assisted PRs</div>
+        <div class="sv">23<span class="su">/31</span></div>
+        <div class="ss">74% AI assist rate</div>
+        <div class="st t-up">&#8593; +8 vs Sprint 13</div>
+      </div>
+      <div class="sc sc-b">
+        <div class="sl">Avg Line Coverage</div>
+        <div class="sv">84<span class="su">%</span></div>
+        <div class="ss">Gate: &ge;80% &#10003;</div>
+        <div class="st t-up">&#8593; +3pp</div>
+      </div>
+      <div class="sc sc-o">
+        <div class="sl">Carry Forward</div>
+        <div class="sv">3<span class="su"> SP</span></div>
+        <div class="ss">Entering Sprint 15</div>
+        <div class="st t-up">&#8595; &minus;4 vs Sprint 13</div>
+      </div>
+    </div>
+
+    <div class="g2">
+      <!-- Sprint burndown SVG -->
+      <div class="panel">
+        <div class="phd"><span class="pt">Burndown &mdash; Sprint 14</span><span class="chip ch-g" style="font-size:9px">Ahead of ideal</span></div>
+        <div class="pb">
+          <svg viewBox="0 0 280 115" style="width:100%;height:auto;overflow:visible">
+            <line x1="0" y1="0"  x2="280" y2="0"  stroke="#E5E0F5" stroke-width="1"/>
+            <line x1="0" y1="25" x2="280" y2="25" stroke="#E5E0F5" stroke-width="1"/>
+            <line x1="0" y1="50" x2="280" y2="50" stroke="#E5E0F5" stroke-width="1"/>
+            <line x1="0" y1="75" x2="280" y2="75" stroke="#E5E0F5" stroke-width="1"/>
+            <text x="2" y="9"  font-size="7" fill="#9CA3AF">47</text>
+            <text x="2" y="34" font-size="7" fill="#9CA3AF">35</text>
+            <text x="2" y="59" font-size="7" fill="#9CA3AF">23</text>
+            <text x="2" y="84" font-size="7" fill="#9CA3AF">10</text>
+            <!-- ideal -->
+            <polyline points="12,0 30,6.4 50,12.8 70,20.7 90,27.1 110,33.5 130,39.9 150,46.3 170,52.7 190,59.1 210,65.5 230,71.9 250,78.3 270,84.7 280,100" fill="none" stroke="#C05621" stroke-width="1.5" stroke-dasharray="4 3" opacity=".7"/>
+            <!-- actual -->
+            <polyline points="12,0 30,6.4 50,12.8 70,20.7 90,27.1 110,33.5 130,40 150,48.9 170,59.6 190,68.1 210,80.9" fill="none" stroke="#6B4FBB" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+            <circle cx="12"  cy="0"    r="3" fill="#6B4FBB"/>
+            <circle cx="210" cy="80.9" r="3" fill="#6B4FBB"/>
+            <!-- today -->
+            <line x1="210" y1="0" x2="210" y2="100" stroke="#6B4FBB" stroke-width="1" stroke-dasharray="2 2" opacity=".4"/>
+            <text x="213" y="10" font-size="7" fill="#6B4FBB">Today</text>
+            <!-- legend -->
+            <line x1="12" y1="110" x2="30" y2="110" stroke="#6B4FBB" stroke-width="2"/>
+            <text x="34" y="113" font-size="8" fill="#6B7280">Actual</text>
+            <line x1="75" y1="110" x2="93" y2="110" stroke="#C05621" stroke-width="1.5" stroke-dasharray="3 2"/>
+            <text x="97" y="113" font-size="8" fill="#6B7280">Ideal</text>
+          </svg>
+          <div style="display:flex;justify-content:space-between;font-size:10px;color:var(--muted);margin-top:6px">
+            <span>Jun 2</span><span>Jun 9</span><span>Jun 16</span><span>Jun 20</span>
+          </div>
         </div>
-        <div class="diagram-card">
-          <h4>Persona × Tool Matrix</h4>
-          <p>Which AI tools each team persona uses and when</p>
-          <img src="../../docs/ai_sdlc_persona_rollout.svg" alt="APEX Persona Rollout Diagram" loading="lazy">
+      </div>
+
+      <!-- AI vs Manual + Tool split -->
+      <div>
+        <div class="panel">
+          <div class="phd"><span class="pt">AI vs Manual Commits</span></div>
+          <div class="pb">
+            <div class="stacked">
+              <div class="ss-seg" style="width:74%;background:var(--primary)" title="AI-assisted: 23 PRs">AI 74%</div>
+              <div class="ss-seg" style="width:26%;background:#9CA3AF" title="Manual: 8 PRs">Manual 26%</div>
+            </div>
+            <div class="sec-title mt8">Tool Usage Breakdown</div>
+            <div class="pr">
+              <div class="pr-l"><span class="n">GitHub Copilot</span><span class="v">58% &middot; 18 PRs</span></div>
+              <div class="pr-bar"><div class="pr-fill pf-b" style="width:58%"></div></div>
+            </div>
+            <div class="pr">
+              <div class="pr-l"><span class="n">Claude Code CLI</span><span class="v">31% &middot; 10 PRs</span></div>
+              <div class="pr-bar"><div class="pr-fill pf-p" style="width:31%"></div></div>
+            </div>
+            <div class="pr">
+              <div class="pr-l"><span class="n">Manual</span><span class="v">11% &middot; 3 PRs</span></div>
+              <div class="pr-bar"><div class="pr-fill" style="width:11%;background:var(--muted)"></div></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="panel">
+          <div class="phd"><span class="pt">Open Bugs</span><span class="chip ch-g" style="font-size:9px">0 P1 blockers</span></div>
+          <div class="pb">
+            <div class="g3" style="text-align:center">
+              <div><div style="font-size:22px;font-weight:900;color:var(--muted)">0</div><div style="font-size:10px;color:var(--muted);margin-top:2px">P1 Critical</div></div>
+              <div><div style="font-size:22px;font-weight:900;color:var(--orange)">1</div><div style="font-size:10px;color:var(--muted);margin-top:2px">P2 High</div></div>
+              <div><div style="font-size:22px;font-weight:900;color:var(--blue)">2</div><div style="font-size:10px;color:var(--muted);margin-top:2px">P3 Medium</div></div>
+            </div>
+          </div>
         </div>
       </div>
     </div>
 
-    <hr class="divider">
+    <!-- PR table -->
+    <div class="panel mt16">
+      <div class="phd"><span class="pt">Recent Pull Requests</span><span style="font-size:10px;color:var(--muted)">Sprint 14 &middot; sorted by date</span></div>
+      <div class="tw">
+        <table>
+          <thead>
+            <tr><th>PR</th><th>Title</th><th>Author</th><th>Coverage</th><th>AI</th><th>Status</th><th>Date</th></tr>
+          </thead>
+          <tbody id="sprint-pr-body"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
 
-    <div class="home-section">
-      <h2>Prompt Library</h2>
-      <h3>Ready-to-use AI Prompts</h3>
-      <p>Production-grade prompts for every team role — paste into Claude.ai, Claude Code, or Copilot Chat</p>
-      <div class="cards">
-        <div class="card" onclick="showPromptSection('developer')" style="cursor:pointer">
-          <div class="card-icon">💻</div>
-          <div class="card-title">Developer Prompts</div>
-          <div class="card-desc">Test generation, refactoring, COBOL analysis, Spring Boot patterns</div>
-          <span class="card-arrow">Browse →</span>
-        </div>
-        <div class="card" onclick="showPromptSection('ba')" style="cursor:pointer">
-          <div class="card-icon">📋</div>
-          <div class="card-title">BA Prompts</div>
-          <div class="card-desc">User story generation, BRD gap analysis, AC validation</div>
-          <span class="card-arrow">Browse →</span>
-        </div>
-        <div class="card" onclick="showPromptSection('qa')" style="cursor:pointer">
-          <div class="card-icon">🧪</div>
-          <div class="card-title">QA Prompts</div>
-          <div class="card-desc">Cypress E2E, Postman collections, edge case generation</div>
-          <span class="card-arrow">Browse →</span>
-        </div>
-        <div class="card" onclick="showPromptSection('pm')" style="cursor:pointer">
-          <div class="card-icon">📅</div>
-          <div class="card-title">PM Prompts</div>
-          <div class="card-desc">Sprint reports, retro synthesis, risk register, go/no-go</div>
-          <span class="card-arrow">Browse →</span>
+  <!-- ─────────── GOVERNANCE ─────────── -->
+  <div class="view" id="view-governance">
+    <div class="vhrow">
+      <div>
+        <div class="ey">Dashboards</div>
+        <div class="vt">Governance &amp; Compliance</div>
+        <div class="vs">Sprint 14 &middot; AI Usage Policy v1.0 &middot; Mainframe Gate: Phase 0</div>
+      </div>
+      <div class="vactions">
+        <a class="btn btn-gh btn-sm" href="../../docs/apex-governance.html" target="_blank">&#128221; Policy Reference &#8599;</a>
+        <button class="btn btn-p btn-sm">&#128228; Export Audit Log</button>
+      </div>
+    </div>
+
+    <!-- Phase banner -->
+    <div class="phb phb-r">
+      <div class="phb-ico">&#128308;</div>
+      <div>
+        <div class="phb-title">Mainframe Gate &mdash; Phase 0: Analysis Only</div>
+        <div class="phb-sub">AI may explain &amp; document COBOL/JCL. Code generation blocked until Week 17 ARB gate. 12/20 programs documented toward Phase 1.</div>
+      </div>
+      <div class="phb-badge"><span class="chip ch-r"><span class="ch-dot"></span> ACTIVE</span></div>
+    </div>
+
+    <div class="g2">
+      <!-- Code Review Gates -->
+      <div class="panel">
+        <div class="phd"><span class="pt">&#128680; Code Review Gates</span><span class="chip ch-o" style="font-size:9px">2 amber</span></div>
+        <div id="gov-gates"></div>
+      </div>
+
+      <!-- PII Guard -->
+      <div class="panel">
+        <div class="phd"><span class="pt">&#128737; PII Guard Status</span><span class="chip ch-g" style="font-size:9px">Layer 1 Active</span></div>
+        <div class="pb">
+          <div class="g2" style="gap:10px;margin-bottom:14px">
+            <div class="sc sc-r" style="padding:12px">
+              <div class="sl">Blocks This Sprint</div>
+              <div class="sv">3</div>
+              <div class="ss">Last: Jun 15 09:23</div>
+            </div>
+            <div class="sc sc-g" style="padding:12px">
+              <div class="sl">Last 24h Blocks</div>
+              <div class="sv">0</div>
+              <div class="ss">Clean since 09:23</div>
+            </div>
+          </div>
+          <div class="pr">
+            <div class="pr-l"><span class="n">Layer 1 &mdash; Regex (Active)</span><span class="chip ch-g" style="font-size:9px">ON</span></div>
+            <div class="pr-bar"><div class="pr-fill pf-g" style="width:100%"></div></div>
+          </div>
+          <div class="pr">
+            <div class="pr-l"><span class="n">Layer 2 &mdash; AWS Comprehend</span><span class="chip ch-o" style="font-size:9px">Week 15</span></div>
+            <div class="pr-bar"><div class="pr-fill pf-o" style="width:30%"></div></div>
+          </div>
+          <div style="font-size:11px;color:var(--muted);margin-top:8px">8 pattern categories &middot; Audit: S3 SSE-S3 encrypted &middot; 1-year retention</div>
         </div>
       </div>
     </div>
 
-    <hr class="divider">
-
-    <div class="home-section" id="prompt-detail-section" style="display:none;">
-      <h2 id="prompt-detail-eyebrow">Prompts</h2>
-      <h3 id="prompt-detail-title">Prompt Library</h3>
-      <div id="prompt-detail-content"></div>
-      <div class="qlinks" style="margin-top:24px;">
-        <a class="qlink" onclick="showHome(); return false;" href="#">← Back to Home</a>
-      </div>
-    </div>
-
-    <div class="home-section">
-      <h2>Governance</h2>
-      <h3>AI Usage Controls</h3>
-      <p>Built-in guardrails to keep AI-generated work safe, auditable, and compliant</p>
-      <div class="cards">
-        <div class="card">
-          <div class="card-icon">🔍</div>
-          <div class="card-title">PII Guard</div>
-          <div class="card-desc">Two-layer scanner (regex + AWS Comprehend) scrubs sensitive data before any external AI call</div>
-        </div>
-        <div class="card">
-          <div class="card-icon">⚙️</div>
-          <div class="card-title">CI/CD Gates</div>
-          <div class="card-desc">GitHub Actions enforce golden rules, OWASP checks, and coverage gates on every AI-assisted PR</div>
-        </div>
-        <div class="card">
-          <div class="card-icon">🚦</div>
-          <div class="card-title">Mainframe Gate</div>
-          <div class="card-desc">Phase-controlled policy — analysis only until ARB approves code generation (Week 17)</div>
-        </div>
-        <div class="card">
-          <div class="card-icon">📋</div>
-          <div class="card-title">AI Review Board</div>
-          <div class="card-desc">Fortnightly ARB reviews violations, approves new tools, and signs off gate transitions</div>
-        </div>
-      </div>
-      <div class="info-strip" style="margin-top:20px;">
-        <div class="info-strip-icon">ℹ️</div>
-        <div class="info-strip-body">
-          <h4>Mainframe Gate: Phase 0 — Analysis Only</h4>
-          <p>AI may explain and document COBOL/JCL programs but must NOT generate or modify mainframe code until the ARB approves Phase 1 at APEX Week 17. See <code>governance/policies/mainframe-gate-policy.md</code> for the full gate criteria.</p>
+    <!-- Phase 1 Progress -->
+    <div class="panel">
+      <div class="phd"><span class="pt">&#128221; Phase 1 Readiness (Week 17 gate)</span><span class="chip ch-o" style="font-size:9px">2/5 criteria met</span></div>
+      <div class="pb">
+        <div class="g2" style="gap:14px">
+          <div>
+            <div class="pr">
+              <div class="pr-l"><span class="n">COBOL programs documented</span><span class="v">12 / 20</span></div>
+              <div class="pr-bar"><div class="pr-fill pf-o" style="width:60%"></div></div>
+            </div>
+            <div class="pr">
+              <div class="pr-l"><span class="n">Copybook validations</span><span class="v">1 / 2</span></div>
+              <div class="pr-bar"><div class="pr-fill pf-o" style="width:50%"></div></div>
+            </div>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:10px;justify-content:center">
+            <div style="display:flex;align-items:center;gap:8px;font-size:12px">&#9989; PII Guard enabled &amp; tested on mainframe prompts</div>
+            <div style="display:flex;align-items:center;gap:8px;font-size:12px">&#9203; AI literacy training &mdash; mainframe dev team (2h session)</div>
+            <div style="display:flex;align-items:center;gap:8px;font-size:12px">&#9203; Security guild prompt library approval</div>
+          </div>
         </div>
       </div>
     </div>
 
-    <hr class="divider">
+    <div class="g2">
+      <!-- Audit log -->
+      <div class="panel">
+        <div class="phd"><span class="pt">&#128220; Audit Log</span><span style="font-size:10px;color:var(--muted)">Last 8 events &middot; S3 + DynamoDB</span></div>
+        <div class="tw" id="gov-audit"></div>
+      </div>
 
-    <div class="home-section" style="padding-bottom: 60px;">
-      <h2>Quick Links</h2>
-      <h3>Repository Resources</h3>
-      <p>Key files in the APEX repo</p>
-      <div class="qlinks">
-        <a class="qlink" href="../../README.md" target="_blank">📄 README</a>
-        <a class="qlink" href="../../docs/APEX-Framework.md" target="_blank">📐 Framework Doc</a>
-        <a class="qlink" href="../../governance/policies/ai-usage-policy.md" target="_blank">🛡️ AI Usage Policy</a>
-        <a class="qlink" href="../../governance/policies/mainframe-gate-policy.md" target="_blank">🚦 Mainframe Gate Policy</a>
-        <a class="qlink" href="../../claude-templates/spring-boot/CLAUDE.md" target="_blank">☕ Spring Boot CLAUDE.md</a>
-        <a class="qlink" href="../../claude-templates/angular/CLAUDE.md" target="_blank">⬡ Angular CLAUDE.md</a>
-        <a class="qlink" href="../../claude-templates/mainframe/CLAUDE.md" target="_blank">🖥️ Mainframe CLAUDE.md</a>
-        <a class="qlink" href="../../.github/workflows/ai-pr-review.yml" target="_blank">⚙️ PR Review Workflow</a>
-        <a class="qlink" href="../../.github/workflows/ai-release-notes.yml" target="_blank">📦 Release Notes Workflow</a>
+      <!-- ARB + Adoption -->
+      <div>
+        <div class="panel">
+          <div class="phd"><span class="pt">&#127963; AI Review Board</span><span class="chip ch-b" style="font-size:9px">Next: Jun 22</span></div>
+          <div class="pb">
+            <div style="font-size:12px;color:var(--muted);margin-bottom:10px">Chair: Suplab &middot; Last meeting: Jun 8, 2026</div>
+            <div class="sec-title">Open Agenda Items (2)</div>
+            <div style="display:flex;flex-direction:column;gap:8px">
+              <div style="font-size:12px;padding:8px;background:var(--orange-light);border-radius:6px;border:1px solid #FED7AA">
+                1. Review Week 17 Phase 1 mainframe gate criteria progress (12/20 programs documented)
+              </div>
+              <div style="font-size:12px;padding:8px;background:var(--blue-light);border-radius:6px;border:1px solid #90CAF9">
+                2. Approve Claude Haiku for automated test generation pipeline (POC results attached)
+              </div>
+            </div>
+            <hr class="lt">
+            <a class="btn btn-o btn-sm" href="../../docs/apex-governance.html#sec-arb" target="_blank">&#128221; View ARB Charter &#8599;</a>
+          </div>
+        </div>
+
+        <div class="panel">
+          <div class="phd"><span class="pt">&#128202; Team Adoption</span><span style="font-size:11px;color:var(--primary);font-weight:700">78% overall</span></div>
+          <div class="pb" id="gov-adoption"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ─────────── PROMPTS ─────────── -->
+  <div class="view" id="view-prompts">
+    <div class="vhrow">
+      <div>
+        <div class="ey">Prompt Library</div>
+        <div class="vt">APEX Prompt Templates</div>
+        <div class="vs">Production-tested prompts by persona &mdash; click &#8966; Copy to use in Claude Code CLI or Claude.ai</div>
+      </div>
+      <div class="vactions">
+        <button class="btn btn-gh btn-sm">&#128269; Search prompts</button>
+        <button class="btn btn-p btn-sm">+ Submit prompt</button>
       </div>
     </div>
 
-  </div><!-- /home-view -->
+    <div class="ptabs">
+      <button class="ptab active" data-tab="dev"  onclick="switchPromptTab('dev')">&#9749; Developer</button>
+      <button class="ptab"        data-tab="ba"   onclick="switchPromptTab('ba')">&#128203; Business Analyst</button>
+      <button class="ptab"        data-tab="qa"   onclick="switchPromptTab('qa')">&#129514; QA / Tester</button>
+      <button class="ptab"        data-tab="pm"   onclick="switchPromptTab('pm')">&#128202; Program Manager</button>
+    </div>
 
-  <!-- IFRAME VIEW -->
-  <iframe id="iframe-view" title="APEX Content" sandbox="allow-same-origin allow-scripts allow-popups"></iframe>
+    <div id="ptab-dev"  class="ptab-content active"><div class="pgrid" id="pgrid-dev"></div></div>
+    <div id="ptab-ba"   class="ptab-content"><div class="pgrid" id="pgrid-ba"></div></div>
+    <div id="ptab-qa"   class="ptab-content"><div class="pgrid" id="pgrid-qa"></div></div>
+    <div id="ptab-pm"   class="ptab-content"><div class="pgrid" id="pgrid-pm"></div></div>
+  </div>
 
-</div><!-- /main -->
+  <!-- ─────────── RESOURCES ─────────── -->
+  <div class="view" id="view-resources">
+    <div class="vhrow">
+      <div>
+        <div class="ey">Resources</div>
+        <div class="vt">Links &amp; Reference</div>
+        <div class="vs">Docs, policies, templates and workflows for your APEX project</div>
+      </div>
+    </div>
+    <div class="g2">
+      <div>
+        <div class="rg">
+          <div class="rg-title">Documentation Site</div>
+          <a class="rl" href="../../docs/index.html" target="_blank"><span class="rl-ico">&#127968;</span><div><div class="rl-title">APEX Hub</div><div class="rl-desc">Central docs homepage</div></div><span class="rl-arr">&#8599;</span></a>
+          <a class="rl" href="../../docs/adoption-guide.html" target="_blank"><span class="rl-ico">&#128218;</span><div><div class="rl-title">Adoption Guide</div><div class="rl-desc">Week-by-week rollout plan</div></div><span class="rl-arr">&#8599;</span></a>
+          <a class="rl" href="../../docs/apex-framework.html" target="_blank"><span class="rl-ico">&#128208;</span><div><div class="rl-title">Framework Reference</div><div class="rl-desc">Architecture, principles, metrics</div></div><span class="rl-arr">&#8599;</span></a>
+          <a class="rl" href="../../docs/apex-governance.html" target="_blank"><span class="rl-ico">&#128737;</span><div><div class="rl-title">Governance Policy</div><div class="rl-desc">AI usage policy, gates, ARB charter</div></div><span class="rl-arr">&#8599;</span></a>
+        </div>
+        <div class="rg">
+          <div class="rg-title">Governance &amp; Policies</div>
+          <a class="rl" href="../../governance/policies/ai-usage-policy.md" target="_blank"><span class="rl-ico">&#128221;</span><div><div class="rl-title">AI Usage Policy</div><div class="rl-desc">11-section policy markdown source</div></div><span class="rl-arr">&#8599;</span></a>
+          <a class="rl" href="../../governance/policies/mainframe-gate-policy.md" target="_blank"><span class="rl-ico">&#128187;</span><div><div class="rl-title">Mainframe Gate Policy</div><div class="rl-desc">Phase 0/1/2 gate criteria</div></div><span class="rl-arr">&#8599;</span></a>
+          <a class="rl" href="portal-config.json" target="_blank"><span class="rl-ico">&#9881;</span><div><div class="rl-title">portal-config.json</div><div class="rl-desc">Portal seed data &amp; project config</div></div><span class="rl-arr">&#8599;</span></a>
+        </div>
+      </div>
+      <div>
+        <div class="rg">
+          <div class="rg-title">CLAUDE.md Templates</div>
+          <a class="rl" href="../../claude-templates/spring-boot/CLAUDE.md" target="_blank"><span class="rl-ico">&#9749;</span><div><div class="rl-title">Spring Boot CLAUDE.md</div><div class="rl-desc">Java 21 &middot; Jakarta &middot; JUnit 5</div></div><span class="rl-arr">&#8599;</span></a>
+          <a class="rl" href="../../claude-templates/angular/CLAUDE.md" target="_blank"><span class="rl-ico">&#11043;</span><div><div class="rl-title">Angular CLAUDE.md</div><div class="rl-desc">Standalone &middot; Signals &middot; NgRx</div></div><span class="rl-arr">&#8599;</span></a>
+          <a class="rl" href="../../claude-templates/mainframe/CLAUDE.md" target="_blank"><span class="rl-ico">&#128187;</span><div><div class="rl-title">Mainframe CLAUDE.md</div><div class="rl-desc">COBOL &middot; JCL &middot; Phase 0 gates</div></div><span class="rl-arr">&#8599;</span></a>
+          <a class="rl" href="../../claude-templates/shared-lib/CLAUDE.md" target="_blank"><span class="rl-ico">&#128230;</span><div><div class="rl-title">Shared Lib CLAUDE.md</div><div class="rl-desc">Cross-service library standards</div></div><span class="rl-arr">&#8599;</span></a>
+        </div>
+        <div class="rg">
+          <div class="rg-title">GitHub Workflows</div>
+          <a class="rl" href="../../.github/workflows/ai-pr-review.yml" target="_blank"><span class="rl-ico">&#9881;</span><div><div class="rl-title">ai-pr-review.yml</div><div class="rl-desc">5-gate automated PR review</div></div><span class="rl-arr">&#8599;</span></a>
+          <a class="rl" href="../../.github/workflows/ai-release-notes.yml" target="_blank"><span class="rl-ico">&#128230;</span><div><div class="rl-title">ai-release-notes.yml</div><div class="rl-desc">Automated release note generation</div></div><span class="rl-arr">&#8599;</span></a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</main>
+
+<!-- Notifications panel -->
+<div class="np" id="notif-panel">
+  <div class="np-hd">
+    <span class="np-title">Notifications</span>
+    <button class="np-mark" onclick="closeNotif()">Mark all read</button>
+  </div>
+  <div class="np-item"><div class="np-dot npd-r"></div><div><div class="np-body">PII scan blocked &mdash; customer email detected in prompt (ravi.m)</div><div class="np-time">2h ago &middot; PII Guard &middot; Layer 1</div></div></div>
+  <div class="np-item"><div class="np-dot npd-o"></div><div><div class="np-body">Coverage warning &mdash; billing-service at 76% (gate: &ge;80%)</div><div class="np-time">Yesterday &middot; ci-bot &middot; Sprint 14</div></div></div>
+  <div class="np-item"><div class="np-dot npd-o"></div><div><div class="np-body">Golden Rule violation &mdash; @Autowired field in PR #408 (pending fix)</div><div class="np-time">Yesterday &middot; priya.s &middot; code-reviewer</div></div></div>
+  <div class="np-item"><div class="np-dot npd-g"></div><div><div class="np-body">PR #417 reviewed &mdash; 0 HIGH findings, coverage 84%</div><div class="np-time">4h ago &middot; ai-bot &middot; feat(billing)</div></div></div>
+  <div class="np-item"><div class="np-dot npd-gr"></div><div><div class="np-body">ARB meeting scheduled &mdash; Jun 22 &middot; 2 agenda items queued</div><div class="np-time">4d ago &middot; suplab</div></div></div>
+</div>
 
 <script>
-const PROMPTS = {
-  developer: {
-    eyebrow: 'Developer Prompts',
-    title: 'Developer Prompt Library',
-    items: [
-      { icon: '🧪', title: 'Test Generation', desc: 'JUnit 5, Angular Jasmine, Cypress E2E, Testcontainers integration tests, coverage gap filler', file: '../../prompts/developer/test-generation.md' },
-      { icon: '♻️', title: 'Refactoring', desc: 'Hexagonal refactor, legacy → Java 21, God class decomposition, COBOL → Spring Batch mapping', file: '../../prompts/developer/refactoring.md' },
-      { icon: '🖥️', title: 'COBOL Analysis', desc: 'Program explainer, copybook → Java DTO, JCL decoder, migration readiness, runbook generator', file: '../../prompts/developer/cobol-analysis.md' },
+/* ============================================================
+   APEX Portal Data + Logic
+   Inline seed = file:// safe fallback.
+   fetch('./portal-config.json') merges overrides on HTTP.
+   ============================================================ */
+
+// ── SEED DATA ────────────────────────────────────────────────
+const SEED = {
+  project:{ name:'EEIK Digital Transformation', phase:'Phase 0', week:14 },
+  adoption:{
+    overall:78,
+    byPersona:[
+      {persona:'Developer',        done:8,  total:10},
+      {persona:'Business Analyst', done:3,  total:4},
+      {persona:'QA Engineer',      done:2,  total:3},
+      {persona:'Program Manager',  done:2,  total:2},
+      {persona:'Tech Lead',        done:2,  total:2},
     ]
   },
-  ba: {
-    eyebrow: 'BA Prompts',
-    title: 'Business Analyst Prompt Library',
-    items: [
-      { icon: '📝', title: 'User Stories', desc: 'Meeting notes → Jira stories, Epic breakdown, AC validator, BRD → story extraction', file: '../../prompts/ba/user-stories.md' },
-      { icon: '🔍', title: 'Gap Analysis', desc: 'BRD vs Jira gap finder, As-Is vs To-Be process gap, API contract vs story alignment', file: '../../prompts/ba/gap-analysis.md' },
-    ]
-  },
-  qa: {
-    eyebrow: 'QA Prompts',
-    title: 'QA / Tester Prompt Library',
-    items: [
-      { icon: '🧪', title: 'Test Cases', desc: 'AC → Cypress POM, OpenAPI → Postman collection, edge case generator, bug → regression test', file: '../../prompts/qa/test-cases.md' },
-    ]
-  },
-  pm: {
-    eyebrow: 'PM Prompts',
-    title: 'Programme Manager Prompt Library',
-    items: [
-      { icon: '📊', title: 'Sprint Reporting', desc: 'Jira → exec status update, retro synthesis, risk register update, go/no-go report', file: '../../prompts/pm/sprint-reporting.md' },
-    ]
-  }
+  activity:[
+    {iconBg:'#FEF2F2',icon:'🛡️',  title:'PII scan blocked — customer email in prompt',     meta:'ravi.m · governance/pii-guard',           time:'2h ago'},
+    {iconBg:'#E8F5E9',icon:'✅',  title:'PR #417 AI-reviewed — 0 HIGH findings, cov 84%', meta:'priya.s · feat(billing): payment gateway', time:'4h ago'},
+    {iconBg:'#FFF3E0',icon:'⚠️', title:'Coverage warning — billing-service 76% (gate 80%)',meta:'ci-bot · sprint 14 gate check',           time:'Yesterday'},
+    {iconBg:'#FEF2F2',icon:'🚨', title:'Golden Rule violation — @Autowired in PR #408',   meta:'priya.s · fix pending',                   time:'Yesterday'},
+    {iconBg:'#EDE9F7',icon:'💬', title:'COBOL analyser prompt used (Phase 0 compliant)',  meta:'ananya.r · mainframe analysis',           time:'2d ago'},
+    {iconBg:'#E3F2FD',icon:'📅', title:'ARB meeting scheduled — Jun 22 · 2 agenda items', meta:'suplab · Phase 1 gate + Haiku approval',  time:'4d ago'},
+  ],
+  gates:[
+    {icon:'✅',name:'Automated PR Review',              detail:'31/31 PRs scanned via ai-pr-review.yml'},
+    {icon:'✅',name:'Human Reviewer (2× for AI PRs)',   detail:'All ai-assisted PRs have ≥2 human approvals'},
+    {icon:'✅',name:'Security Scan — No HIGH Findings', detail:'0 HIGH severity findings across 31 PRs'},
+    {icon:'⚠️',name:'Golden Rules Check',               detail:'1 open violation: @Autowired field in PR #408'},
+    {icon:'⚠️',name:'Coverage Gate ≥80%',               detail:'billing-service at 76% — target: end of Sprint 14'},
+  ],
+  prs:[
+    {n:417,title:'feat(billing): add payment gateway integration',  author:'priya.s',   cov:84, ai:true,  status:'passed',date:'Jun 15'},
+    {n:416,title:'test(auth): integration tests for JWT flow',       author:'karthik.v', cov:91, ai:true,  status:'passed',date:'Jun 14'},
+    {n:415,title:'refactor(order): hexagonal architecture migration',author:'ananya.r',  cov:88, ai:true,  status:'passed',date:'Jun 13'},
+    {n:414,title:'feat(angular): order-list standalone component',   author:'priya.s',   cov:79, ai:true,  status:'passed',date:'Jun 13'},
+    {n:413,title:'chore(ci): update ai-pr-review workflow v2.1',    author:'ravi.m',    cov:null,ai:false, status:'passed',date:'Jun 12'},
+    {n:412,title:'feat(reporting): sprint summary generator',        author:'karthik.v', cov:82, ai:true,  status:'passed',date:'Jun 12'},
+    {n:411,title:'fix(auth): remove @Autowired field injection',     author:'priya.s',   cov:86, ai:true,  status:'fixed', date:'Jun 11'},
+    {n:408,title:'feat(billing): billing service class',             author:'priya.s',   cov:76, ai:true,  status:'amber', date:'Jun 10'},
+  ],
+  auditLog:[
+    {ts:'Jun 15 09:23',type:'PII_SCAN_BLOCK',       sev:'high', desc:'Customer email in prompt blocked (dev: ravi.m)'},
+    {ts:'Jun 15 08:44',type:'PR_REVIEW',             sev:'info', desc:'PR #417 reviewed — 0 findings, coverage 84%'},
+    {ts:'Jun 14 16:12',type:'COVERAGE_WARNING',      sev:'amber',desc:'billing-service 76% < 80% coverage gate'},
+    {ts:'Jun 14 14:30',type:'GOLDEN_RULE_VIOLATION', sev:'high', desc:'@Autowired field injection in PR #408'},
+    {ts:'Jun 13 11:05',type:'PR_REVIEW',             sev:'info', desc:'PR #412 reviewed — 0 findings, coverage 82%'},
+    {ts:'Jun 13 09:15',type:'PROMPT_USAGE',          sev:'info', desc:'COBOL analyser prompt used (Phase 0 compliant)'},
+    {ts:'Jun 12 15:44',type:'PR_REVIEW',             sev:'amber',desc:'PR #405 — 1 MEDIUM finding (SQL injection risk, fixed)'},
+    {ts:'Jun 11 10:20',type:'ARB_SCHEDULED',         sev:'info', desc:'Next ARB: Jun 22 2026 — 2 agenda items queued'},
+  ],
 };
 
-function setActive(id) {
-  document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
-  if (id) document.getElementById(id)?.classList.add('active');
+// ── PERSONAS ─────────────────────────────────────────────────
+const PERSONAS = [
+  {id:'dev',  label:'Developer',         initials:'DV', color:'#6B4FBB', desc:'Java · Spring Boot · Angular',         nav:['home','sprint','prompts']},
+  {id:'ba',   label:'Business Analyst',  initials:'BA', color:'#1565C0', desc:'User stories · Gap analysis · AC',     nav:['home','prompts']},
+  {id:'qa',   label:'QA Engineer',       initials:'QA', color:'#2D7D46', desc:'Coverage · Cypress · JUnit 5',         nav:['home','sprint','prompts']},
+  {id:'pm',   label:'Program Manager',   initials:'PM', color:'#C05621', desc:'Velocity · Reporting · Risk register', nav:['home','sprint','prompts']},
+  {id:'lead', label:'Tech Lead',         initials:'TL', color:'#4A3280', desc:'Architecture · Governance · Standards', nav:['home','sprint','governance','prompts']},
+  {id:'ciso', label:'CISO / Compliance', initials:'CI', color:'#B91C1C', desc:'Audit · PII Guard · Policy compliance', nav:['home','governance']},
+];
+
+// ── KPI SETS PER PERSONA ──────────────────────────────────────
+const KPIS = {
+  dev: [
+    {l:'AI-Assisted PRs',  v:'23',    u:'/31',   s:'Sprint 14 · 74% rate',          t:'↑ +8 vs Sprint 13',  d:'up',c:'sc-p'},
+    {l:'Avg Coverage',     v:'84',    u:'%',     s:'Gate: ≥80% ✅',                  t:'↑ +3pp',             d:'up',c:'sc-g'},
+    {l:'Days Remaining',   v:'5',     u:' days', s:'9 SP still in progress',         t:'38/47 SP done',      d:'ne',c:'sc-b'},
+    {l:'Gate Status',      v:'4',     u:'/5 ✅',  s:'1 amber (billing coverage)',     t:'⚠️ PR #408 pending', d:'dn',c:'sc-o'},
+  ],
+  ba: [
+    {l:'Stories Ready',    v:'12',    u:'',      s:'For dev pickup this sprint',     t:'↑ +4 vs Sprint 13',  d:'up',c:'sc-p'},
+    {l:'AC Completeness',  v:'94',    u:'%',     s:'Testable acceptance criteria',   t:'↑ +6pp',             d:'up',c:'sc-g'},
+    {l:'Sprint Progress',  v:'38',    u:'/47 SP',s:'81% sprint velocity',            t:'↑ +5 SP vs S13',     d:'up',c:'sc-b'},
+    {l:'Prompts Used',     v:'18',    u:'',      s:'BA-category this sprint',        t:'75% BA adoption',    d:'up',c:'sc-o'},
+  ],
+  qa: [
+    {l:'Test Coverage',    v:'84',    u:'%',     s:'Gate: ≥80% ✅',                  t:'↑ +3pp',             d:'up',c:'sc-g'},
+    {l:'Open Bugs',        v:'3',     u:'',      s:'0 P1 · 1 P2 · 2 P3',            t:'↓ −2 vs Sprint 13',  d:'up',c:'sc-p'},
+    {l:'AI Test Gen PRs',  v:'8',     u:'',      s:'Cypress + JUnit 5 this sprint',  t:'35% of test PRs',    d:'ne',c:'sc-b'},
+    {l:'Modules at Gate',  v:'1',     u:'/8',    s:'billing-service 76%',            t:'⚠️ Needs attention', d:'dn',c:'sc-o'},
+  ],
+  pm: [
+    {l:'Sprint Velocity',  v:'38',    u:'/47 SP',s:'Sprint 14 · 81%',               t:'↑ +5 SP vs Sprint 13',d:'up',c:'sc-p'},
+    {l:'AI Adoption',      v:'78',    u:'%',     s:'14/18 team members',             t:'↑ +12pp this qtr',   d:'up',c:'sc-g'},
+    {l:'Carry Forward',    v:'3',     u:' SP',   s:'Entering Sprint 15',             t:'↓ −4 vs Sprint 13',  d:'up',c:'sc-b'},
+    {l:'Risk Register',    v:'2',     u:' HIGH', s:'5 risks total · 1 new',          t:'Review needed',      d:'dn',c:'sc-o'},
+  ],
+  lead: [
+    {l:'AI Adoption',      v:'78',    u:'%',     s:'14/18 team members',             t:'↑ +12pp this qtr',   d:'up',c:'sc-p'},
+    {l:'Coverage Gate',    v:'4',     u:'/5 ✅',  s:'billing-svc amber',              t:'⚠️ Week 3 target',   d:'dn',c:'sc-g'},
+    {l:'Mainframe Gate',   v:'Ph 0',  u:'',      s:'Analysis only · Phase 1 Wk 17',  t:'12/20 programs',     d:'ne',c:'sc-b'},
+    {l:'Violations',       v:'2',     u:'',      s:'Golden Rules this sprint',        t:'1 pending fix',      d:'dn',c:'sc-o'},
+  ],
+  ciso: [
+    {l:'PII Blocks',       v:'3',     u:'',      s:'This sprint · 0 last 24h',       t:'Layer 1 regex active',d:'ne',c:'sc-r'},
+    {l:'Audit Events',     v:'47',    u:'',      s:'Last 30 days',                   t:'8 this sprint',      d:'ne',c:'sc-p'},
+    {l:'Policy Compliance',v:'100',   u:'%',     s:'AI Usage Policy v1.0',           t:'✅ Full compliance',  d:'up',c:'sc-g'},
+    {l:'ARB Next Meeting', v:'Jun 22',u:'',      s:'2026 · 2 open items',            t:'Phase 1 gate review',d:'ne',c:'sc-b'},
+  ],
+};
+
+// ── PROMPTS DATA ──────────────────────────────────────────────
+const PROMPTS = {
+  dev:[
+    {
+      title:'Hexagonal Architecture Refactor',
+      tool:'cl',
+      desc:'Refactor a service class to Ports & Adapters with strict domain / application / infrastructure / web layer separation.',
+      gov:null,
+      text:`Refactor [ClassName] to follow Hexagonal Architecture (Ports & Adapters).
+
+Current state: [describe — e.g. service class directly calls JPA repository and REST client]
+
+Target structure:
+- domain/         → pure business logic, no framework annotations
+- application/    → use-case orchestration, calls domain + ports
+- infrastructure/ → JPA adapter, REST adapter (implements port interfaces)
+- web/            → controller (calls application layer only)
+
+Rules:
+- Domain classes have zero Spring annotations
+- Port interfaces live in the application layer
+- Adapters implement ports and live in infrastructure
+- Show before/after for each class
+
+[Paste class(es) here]`
+    },
+    {
+      title:'Legacy to Modern Java (Java 21)',
+      tool:'bt',
+      desc:'Modernise Java 8/11 code to Java 21: records, sealed classes, switch expressions, text blocks, Stream.toList(), jakarta.*.',
+      gov:null,
+      text:`Modernise this Java code from [Java 8/11] patterns to Java 21.
+
+Apply:
+- Records instead of POJOs with getters/setters (where immutable)
+- Sealed classes for type hierarchies (where applicable)
+- Switch expressions instead of switch statements
+- Text blocks for multi-line strings
+- var where type is obvious from context
+- Stream.toList() instead of .collect(Collectors.toList())
+- Optional chains instead of null checks
+- Replace javax.* with jakarta.* (Spring Boot 3.x)
+
+Do NOT change: method signatures that are part of a public API.
+Show diff format: old code → new code per change.
+
+[Paste class here]`
+    },
+    {
+      title:'JUnit 5 Full Test Suite',
+      tool:'cl',
+      desc:'Generate complete JUnit 5 + Mockito 5 test suite: constructor injection, AssertJ assertions, Testcontainers for DB.',
+      gov:null,
+      text:`Generate complete JUnit 5 + Mockito 5 tests for [ClassName].
+
+Requirements:
+- @ExtendWith(MockitoExtension.class)
+- Constructor injection — use @InjectMocks and @Mock
+- Cover: all public methods, happy path + top 3 edge cases each
+- Use AssertJ assertions (assertThat, not assertTrue/assertEquals)
+- Name tests: should_[expectedBehaviour]_when_[condition]
+- For DB: use @Testcontainers + @Container (PostgreSQL)
+- For Kafka: use EmbeddedKafkaBroker
+- Flag methods needing integration tests vs unit
+
+[Paste class here]`
+    },
+    {
+      title:'Spring Boot Integration Test',
+      tool:'cl',
+      desc:'@SpringBootTest with WebTestClient, Testcontainers PostgreSQL, @Sql seed, WireMock for external REST clients.',
+      gov:null,
+      text:`Write a @SpringBootTest integration test for [ControllerName].
+
+Requirements:
+- @SpringBootTest(webEnvironment = RANDOM_PORT)
+- @AutoConfigureWebTestClient
+- Testcontainers: @Testcontainers + @Container (PostgreSQL)
+- @Sql to seed test data from a SQL fixture file
+- Test all endpoints: 200 success, 400 validation, 404, 401
+- Assert response body fields explicitly — not just status codes
+- Mock external REST clients with WireMock (@WireMockTest)
+
+[Paste controller signature / OpenAPI spec here]`
+    },
+    {
+      title:'COBOL Program Explainer',
+      tool:'cl',
+      desc:'Explain a COBOL program in plain English — inputs/outputs, processing logic, external calls, migration complexity score.',
+      gov:'Phase 0 only — analysis, no code generation',
+      text:`Explain what this COBOL program does in plain English.
+
+Structure your answer as:
+1. Purpose — what business problem does this solve? (2 sentences)
+2. Inputs — datasets read, queues consumed, DB2 tables selected
+3. Outputs — datasets written, DB2 tables updated/inserted
+4. Processing logic — step-by-step plain English (no COBOL syntax)
+5. External dependencies — CALL, EXEC CICS, EXEC SQL, COPY books
+6. Error handling — FILE-STATUS checks, SQLCODE, abend points
+7. Restart/recovery — checkpoint logic, restart conditions
+8. Migration complexity — Low / Medium / High + reason
+
+[Paste COBOL program here]`
+    },
+    {
+      title:'COBOL → Spring Batch Design',
+      tool:'cl',
+      desc:'Map each COBOL SECTION to a Spring Batch component. Design review — no generated code until Phase 1 gate passes.',
+      gov:'Phase 0 only — design review, no code generation',
+      text:`Analyse this COBOL batch program and propose a Spring Batch design.
+
+For each COBOL SECTION, map to:
+- Spring Batch component (ItemReader / ItemProcessor / ItemWriter / Tasklet)
+- Java class name and package
+- Input/Output model (Java record or class)
+- Business rules to preserve verbatim
+
+Constraints:
+- Keep same transaction boundary as COBOL COMMIT points
+- Flag COBOL-specific behaviour (FILE STATUS, level-88 conditions)
+  that needs special handling in Java
+- Do NOT generate Spring Batch code — design review only
+
+[Paste COBOL program here]`
+    },
+  ],
+  ba:[
+    {
+      title:'Meeting Notes → Jira User Stories',
+      tool:'cl',
+      desc:'Convert meeting notes or stakeholder conversations into structured Jira user stories with Gherkin AC and story points.',
+      gov:null,
+      text:`You are a Business Analyst on an enterprise Java/Angular project.
+
+Convert the meeting notes below into well-structured Jira user stories.
+
+For each story produce:
+- Title: [verb] + [object] + [context]
+- User Story: As a [persona], I want to [action] so that [value]
+- Acceptance Criteria (Gherkin):
+    Given [precondition]
+    When [action]
+    Then [outcome]
+- Story Points: [1/2/3/5/8] with rationale
+- Dependencies: [what this blocks or is blocked by]
+- Out of scope: [explicitly excluded]
+
+After all stories: flag ambiguities needing BA clarification
+before dev picks up.
+
+Meeting notes:
+[PASTE HERE]`
+    },
+    {
+      title:'BRD → User Story Extraction',
+      tool:'cl',
+      desc:'Extract implicit user stories from a BRD section, identify non-functional requirements, propose an epic structure.',
+      gov:null,
+      text:`Read this Business Requirements Document section and extract
+all implicit user stories.
+
+For each requirement:
+1. Identify the user persona affected
+2. Write the user story (As a / I want / So that)
+3. Write 3 acceptance criteria in Gherkin
+4. Flag non-functional requirements (performance, security,
+   accessibility) separately
+
+Then create an epic structure grouping related stories.
+
+BRD section:
+[PASTE HERE]`
+    },
+    {
+      title:'AC Validator',
+      tool:'cl',
+      desc:'Review user stories and acceptance criteria for testability, edge cases, conflicts, and scope clarity.',
+      gov:null,
+      text:`Review these user stories and acceptance criteria.
+
+For each story check:
+- Is it in correct "As a / I want / So that" format?
+- Are acceptance criteria testable?
+- Are there missing edge cases (empty, error, max input)?
+- Are there conflicting criteria?
+- Is scope clear enough for a developer to estimate?
+
+Flag: ambiguous, incomplete, or untestable criteria.
+Suggest: improved phrasing for each flagged item.
+
+Stories:
+[PASTE HERE]`
+    },
+    {
+      title:'BRD vs Jira — Gap Analysis',
+      tool:'cl',
+      desc:'Compare a BRD section against Jira user stories to find missing requirements, scope creep, and non-functional gaps.',
+      gov:null,
+      text:`Compare this BRD section with these Jira user stories.
+
+Identify:
+1. Missing requirements — BRD items with no corresponding story
+2. Ambiguous AC — stories too vague for dev/QA
+3. Scope creep — stories that go beyond BRD requirements
+4. Conflicting requirements — where BRD and stories contradict
+5. Non-functional gaps — performance, security, accessibility
+   in BRD not reflected in stories
+
+Output as a table:
+| Gap Type | BRD Reference | Story (if any) | Action |
+
+BRD:
+[PASTE BRD SECTION]
+
+Jira Stories:
+[PASTE STORIES]`
+    },
+  ],
+  qa:[
+    {
+      title:'AC → Cypress E2E (Page Object Model)',
+      tool:'bt',
+      desc:'Generate Cypress E2E tests (Page Object Model) from Gherkin AC — typed selectors, cy.intercept stubs, fixture data.',
+      gov:null,
+      text:`Write Cypress E2E tests using Page Object Model for these AC.
+
+Structure:
+1. Page Object class with typed selectors (data-testid)
+2. Test spec using the Page Object
+3. Fixtures for API stubs (cy.intercept)
+
+For each AC scenario:
+- Happy path test
+- Validation error test (if form involved)
+- Network error / API failure test
+
+Requirements:
+- TypeScript strict mode
+- cy.intercept() for ALL API calls — no real network calls
+- Custom Cypress commands for repeated flows (login, navigation)
+- Assertions on: URL, page content, error messages, loading states
+
+Acceptance Criteria:
+[PASTE GHERKIN AC HERE]
+
+API endpoints involved:
+[PASTE ENDPOINTS]`
+    },
+    {
+      title:'Edge Case Generator',
+      tool:'cl',
+      desc:'Systematically identify edge cases: boundary values, injection, concurrency, session expiry, a11y, i18n.',
+      gov:null,
+      text:`Given these acceptance criteria, identify all edge cases beyond
+the happy path.
+
+Categories:
+- Boundary values (min, max, min-1, max+1)
+- Empty / null / blank inputs
+- Special characters and SQL/XSS injection strings
+- Concurrent requests / race conditions
+- Session expiry mid-flow
+- Large data volumes (performance edge)
+- Internationalisation (unicode, RTL, date formats)
+- Accessibility (keyboard-only, screen reader)
+- Mobile viewport (if applicable)
+
+For each edge case:
+- Test ID: EC-[number]
+- Scenario description
+- Expected result
+- Risk if not tested: Low / Medium / High
+
+AC:
+[PASTE]
+
+System context:
+[DESCRIBE stack, data model]`
+    },
+    {
+      title:'Bug Report → Regression Test',
+      tool:'cl',
+      desc:'Given a bug and fix, generate JUnit 5 + Cypress tests that fail on the bug and pass on the fix.',
+      gov:null,
+      text:`A bug was found and fixed. Generate a regression test that
+would have caught it.
+
+Bug description: [describe the bug, the fix, the root cause]
+
+Generate:
+1. JUnit 5 unit test targeting the fixed method (must fail
+   on buggy code, pass on fixed code)
+2. Cypress E2E test covering the user flow that exposed the bug
+3. Where each test should live in the test suite
+
+The test MUST fail on buggy code and pass on fixed code.`
+    },
+    {
+      title:'OpenAPI → Postman Collection',
+      tool:'cl',
+      desc:'Generate Postman Collection v2.1 from OpenAPI 3.0 — happy path, error cases, pre-request token refresh.',
+      gov:null,
+      text:`Generate a Postman Collection (v2.1 JSON) from this OpenAPI 3.0 spec.
+
+For each endpoint include:
+- Happy path with realistic example data
+- 400 Bad Request (missing required field)
+- 400 Bad Request (invalid field format)
+- 401 Unauthorized (missing/invalid token)
+- 404 Not Found (where applicable)
+
+Collection variables:
+- {{baseUrl}} — from environment variable
+- {{authToken}} — set via pre-request script from login endpoint
+- {{testEntityId}} — set from create response
+
+Pre-request scripts: token refresh
+Test scripts: status code + response body assertions
+
+OpenAPI Spec:
+[PASTE YAML / JSON]`
+    },
+  ],
+  pm:[
+    {
+      title:'Jira Export → Exec Status Update',
+      tool:'cl',
+      desc:'Convert a Jira sprint export into a CTO-ready executive update — delivered outcomes, risks, next priorities, KPIs.',
+      gov:null,
+      text:`You are a Program Manager. Convert this Jira sprint export into
+a concise executive status update.
+
+Format:
+**[Project Name] — Sprint [N] Status Update**
+**Date:** [date] | **Sprint:** [start] – [end]
+
+**Delivered this sprint**
+[3–5 bullet points — business outcomes, not ticket titles]
+
+**In progress / carrying forward**
+[2–3 bullets with brief reason for carry-forward]
+
+**Risks & blockers**
+[List with owner + mitigation — or "None this sprint"]
+
+**Next sprint priorities**
+[Top 3 items planned]
+
+**Key metrics**
+- Velocity: [X] SP delivered vs [Y] committed ([Z]%)
+- Bugs found/fixed: [N]/[M]
+- Carry-forward: [N] stories
+
+Tone: plain English, confident, no jargon. Suitable for CTO/Director.
+
+Jira export:
+[PASTE SPRINT DATA / CSV / JSON]`
+    },
+    {
+      title:'Sprint Retro Synthesis',
+      tool:'cl',
+      desc:'Synthesise retrospective sticky notes / Miro board export into a structured summary with themes, actions, and health signal.',
+      gov:null,
+      text:`Synthesise these retrospective notes into a structured summary.
+
+Format:
+## Sprint [N] Retrospective Summary
+
+### What went well
+[Theme → specific examples]
+
+### What didn't go well
+[Theme → specific examples]
+
+### Action items
+| Action | Owner | Due | Priority |
+|--------|-------|-----|---------|
+
+### Patterns across last 3 sprints
+[Recurring themes that need escalation]
+
+### Team health signal
+[Green / Amber / Red] — reason in one sentence
+
+Retro notes:
+[PASTE]`
+    },
+    {
+      title:'Risk Register Update',
+      tool:'cl',
+      desc:'Update a risk register based on sprint outcomes — adjust likelihood/impact, close resolved risks, add new ones.',
+      gov:null,
+      text:`Update this risk register based on the latest sprint outcomes.
+
+For each risk:
+- Has likelihood changed? (increase / decrease / same)
+- Has impact changed?
+- Is the mitigation still valid?
+- Has any risk materialised (become an issue)?
+
+Add new risks identified this sprint.
+Remove risks that are now closed.
+
+Output as markdown table:
+| ID | Risk | Likelihood | Impact | Mitigation | Owner | Status |
+
+Current risk register:
+[PASTE]
+
+Sprint outcomes and blockers:
+[PASTE]`
+    },
+    {
+      title:'Release Go / No-Go Report',
+      tool:'cl',
+      desc:'Generate a go/no-go report with gate assessment across feature completeness, coverage, security, UAT, and rollback plan.',
+      gov:null,
+      text:`Generate a release go/no-go report for [Release Name / Version].
+
+Assess each gate:
+- [ ] Feature completeness: [X/Y stories done]
+- [ ] Test coverage: [%] (gate: 80%)
+- [ ] Open P1/P2 bugs: [count] (gate: 0 P1, <3 P2)
+- [ ] Performance test results: pass/fail
+- [ ] Security scan: pass/fail
+- [ ] UAT sign-off: obtained / pending
+- [ ] Deployment runbook: reviewed / pending
+- [ ] Rollback plan: documented / pending
+- [ ] Stakeholder comms: sent / pending
+
+Decision: GO / NO-GO / CONDITIONAL GO (with conditions listed)
+
+Data:
+[PASTE — Jira metrics, test results, UAT status]`
+    },
+  ],
+};
+
+// ── STATE ─────────────────────────────────────────────────────
+let currentPersona = localStorage.getItem('apex-persona') || 'dev';
+let currentView    = 'home';
+let cfg            = SEED;
+
+// ── INIT ──────────────────────────────────────────────────────
+document.addEventListener('DOMContentLoaded', () => {
+  fetch('./portal-config.json')
+    .then(r => r.ok ? r.json() : null)
+    .then(data => { if(data) mergeConfig(data); })
+    .catch(() => {})
+    .finally(() => bootstrap());
+});
+
+function mergeConfig(data) {
+  if(data.project) {
+    cfg.project = {...cfg.project, ...data.project};
+    document.getElementById('tb-proj-name').textContent = data.project.name || cfg.project.name;
+  }
+  if(data.sprint)               cfg.sprint    = {...(cfg.sprint||{}), ...data.sprint};
+  if(data.adoption)             cfg.adoption  = {...cfg.adoption, ...data.adoption};
+  if(data.activity?.events)     cfg.activity  = data.activity.events;
+  if(data.governance?.auditLog?.events) cfg.auditLog = data.governance.auditLog.events;
+  if(data.governance?.codeReviewGates)  cfg.gates    = data.governance.codeReviewGates;
+  if(data.sprint?.recentPRs)    cfg.prs       = data.sprint.recentPRs.map(p => ({
+    n:p.number, title:p.title, author:p.author, cov:p.coverage,
+    ai:p.aiAssisted, status:p.status, date:p.date?.replace('2026-','Jun ').replace('-','/')
+  }));
 }
 
-function showHome() {
-  document.getElementById('home-view').classList.add('visible');
-  document.getElementById('iframe-view').classList.remove('visible');
-  document.getElementById('iframe-view').src = '';
-  document.getElementById('current-page-title').textContent = 'Home';
-  document.getElementById('prompt-detail-section').style.display = 'none';
-  setActive('nav-home');
-  // scroll to top of home view
-  document.getElementById('home-view').scrollTop = 0;
+function bootstrap() {
+  buildPersonaDropdown();
+  applyPersona(currentPersona, false);
+  renderActivity();
+  renderAdoption('home-adoption');
+  renderAdoption('gov-adoption');
+  renderGates('home-gates');
+  renderGates('gov-gates');
+  renderAuditLog();
+  renderPRTable();
+  renderAllPrompts();
+  setDate();
 }
 
-function loadPage(url, title, navId) {
-  const frame = document.getElementById('iframe-view');
-  frame.src = url;
-  frame.classList.add('visible');
-  document.getElementById('home-view').classList.remove('visible');
-  document.getElementById('current-page-title').textContent = title;
-  setActive(navId);
+function setDate() {
+  const d = new Date();
+  document.getElementById('home-date').textContent =
+    d.toLocaleDateString('en-GB',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
 }
 
-function showPromptSection(role) {
-  const data = PROMPTS[role];
-  if (!data) return;
-
-  // ensure home view is visible, scroll to section
-  document.getElementById('home-view').classList.add('visible');
-  document.getElementById('iframe-view').classList.remove('visible');
-  document.getElementById('iframe-view').src = '';
-
-  const section = document.getElementById('prompt-detail-section');
-  section.style.display = 'block';
-  document.getElementById('prompt-detail-eyebrow').textContent = data.eyebrow;
-  document.getElementById('prompt-detail-title').textContent = data.title;
-
-  document.getElementById('prompt-detail-content').innerHTML = `
-    <div class="cards">
-      ${data.items.map(item => `
-        <a class="card" href="${item.file}" target="_blank">
-          <div class="card-icon">${item.icon}</div>
-          <div class="card-title">${item.title}</div>
-          <div class="card-desc">${item.desc}</div>
-          <span class="card-arrow">View prompts →</span>
-        </a>
-      `).join('')}
-    </div>
-  `;
-
-  document.getElementById('current-page-title').textContent = data.title;
-  setActive('nav-' + role);
-
-  // scroll to prompt section
-  setTimeout(() => {
-    section.scrollIntoView({ behavior: 'smooth', block: 'start' });
-  }, 50);
+// ── PERSONA ───────────────────────────────────────────────────
+function buildPersonaDropdown() {
+  const c = document.getElementById('ps-items');
+  c.innerHTML = PERSONAS.map(p => `
+    <div class="ps-item ${p.id===currentPersona?'cur':''}" onclick="applyPersona('${p.id}')">
+      <div class="ps-item-av" style="background:${p.color}">${p.initials}</div>
+      <div><div class="ps-item-name">${p.label}</div><div class="ps-item-desc">${p.desc}</div></div>
+      ${p.id===currentPersona?'<span class="ps-check">&#10003;</span>':''}
+    </div>`).join('');
 }
 
-// initialise
-showHome();
+function applyPersona(id, save=true) {
+  const p = PERSONAS.find(x => x.id===id);
+  if(!p) return;
+  currentPersona = id;
+  if(save) localStorage.setItem('apex-persona', id);
+
+  // topbar
+  const av = document.getElementById('ps-av');
+  av.textContent = p.initials; av.style.background = p.color;
+  document.getElementById('ps-label').textContent = p.label;
+
+  // sidebar footer
+  const sbAv = document.getElementById('sb-av');
+  sbAv.textContent = p.initials; sbAv.style.background = p.color;
+  document.getElementById('sb-uname').textContent = p.label;
+  document.getElementById('sb-urole').textContent = p.desc;
+  document.getElementById('home-greeting-name').textContent = p.label;
+
+  // sidebar nav visibility
+  document.querySelectorAll('[data-p]').forEach(el => {
+    const allowed = el.dataset.p;
+    if(allowed === 'all') { el.classList.remove('hidden'); return; }
+    el.classList.toggle('hidden', !allowed.split(',').some(x => x.trim()===id));
+  });
+
+  // if current view inaccessible → home
+  const viewMap = {home:'home',sprint:'sprint',governance:'governance',prompts:'prompts'};
+  const viewBase = currentView.replace('prompts-','prompts');
+  if(!p.nav.some(v => viewBase.startsWith(v))) goView('home');
+
+  // default prompt tab
+  const tabMap = {dev:'dev',ba:'ba',qa:'qa',pm:'pm',lead:'dev',ciso:'dev'};
+  switchPromptTab(tabMap[id] || 'dev');
+
+  renderKPIs(id);
+  buildPersonaDropdown();
+  document.getElementById('ps-drop').classList.remove('open');
+}
+
+function togglePersonaDrop() {
+  document.getElementById('ps-drop').classList.toggle('open');
+  document.getElementById('notif-panel').classList.remove('open');
+}
+
+// ── VIEWS ─────────────────────────────────────────────────────
+function goView(name, ptab) {
+  document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+  document.querySelectorAll('.ni').forEach(n => n.classList.remove('active'));
+  currentView = name;
+  const viewEl = document.getElementById('view-' + name);
+  if(viewEl) viewEl.classList.add('active');
+
+  const niId = ptab ? 'ni-prompts-' + ptab : 'ni-' + name;
+  const ni = document.getElementById(niId) || document.getElementById('ni-' + name);
+  if(ni) ni.classList.add('active');
+
+  if(name === 'prompts' && ptab) switchPromptTab(ptab);
+
+  document.getElementById('ps-drop').classList.remove('open');
+  document.getElementById('notif-panel').classList.remove('open');
+  document.getElementById('main').scrollTop = 0;
+}
+
+// ── PROMPT TABS ───────────────────────────────────────────────
+function switchPromptTab(tab) {
+  document.querySelectorAll('.ptab').forEach(t => t.classList.toggle('active', t.dataset.tab===tab));
+  document.querySelectorAll('.ptab-content').forEach(c => c.classList.toggle('active', c.id==='ptab-'+tab));
+}
+
+// ── RENDER: KPIs ──────────────────────────────────────────────
+function renderKPIs(persona) {
+  const kpis = KPIS[persona] || KPIS.dev;
+  document.getElementById('home-kpis').innerHTML = kpis.map(k => `
+    <div class="sc ${k.c}">
+      <div class="sl">${k.l}</div>
+      <div class="sv">${k.v}<span class="su">${k.u}</span></div>
+      <div class="ss">${k.s}</div>
+      <div class="st ${k.d==='up'?'t-up':k.d==='dn'?'t-dn':'t-ne'}">${k.t}</div>
+    </div>`).join('');
+}
+
+// ── RENDER: ACTIVITY ──────────────────────────────────────────
+function renderActivity() {
+  document.getElementById('home-activity').innerHTML = cfg.activity.map(a => `
+    <div class="act">
+      <div class="act-ico" style="background:${a.iconBg}">${a.icon}</div>
+      <div class="act-body">
+        <div class="act-t">${a.title}</div>
+        <div class="act-m">${a.meta}</div>
+      </div>
+      <div class="act-time">${a.time}</div>
+    </div>`).join('');
+}
+
+// ── RENDER: ADOPTION ──────────────────────────────────────────
+function renderAdoption(containerId) {
+  const el = document.getElementById(containerId);
+  if(!el) return;
+  el.innerHTML = cfg.adoption.byPersona.map(a => {
+    const pct = Math.round((a.done/a.total)*100);
+    return `<div class="adrow">
+      <div class="ad-label">${a.persona}</div>
+      <div class="ad-bar-wrap"><div class="ad-fill" style="width:${pct}%"></div></div>
+      <div class="ad-pct">${pct}%</div>
+      <div class="ad-cnt">${a.done}/${a.total}</div>
+    </div>`;
+  }).join('');
+}
+
+// ── RENDER: GATES ─────────────────────────────────────────────
+function renderGates(containerId) {
+  const el = document.getElementById(containerId);
+  if(!el) return;
+  el.innerHTML = cfg.gates.map(g => {
+    const pass  = g.icon==='✅' || g.status==='pass';
+    const amber = g.icon==='⚠️' || g.status==='amber';
+    const ico   = pass ? '✅' : amber ? '⚠️' : '❌';
+    return `<div class="gr">
+      <div class="gr-ico">${ico}</div>
+      <div>
+        <div class="gr-name">${g.name || g.id}</div>
+        <div class="gr-det">${g.detail || g.desc || ''}</div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// ── RENDER: AUDIT LOG ─────────────────────────────────────────
+function renderAuditLog() {
+  const el = document.getElementById('gov-audit');
+  if(!el) return;
+  const sevChip = {
+    high: '<span class="chip ch-r">HIGH</span>',
+    amber:'<span class="chip ch-o">AMBER</span>',
+    info: '<span class="chip ch-gr">INFO</span>',
+  };
+  el.innerHTML = `<table>
+    <thead><tr><th>Timestamp</th><th>Event Type</th><th>Severity</th><th>Description</th></tr></thead>
+    <tbody>${(cfg.auditLog||SEED.auditLog).map(e => `
+      <tr>
+        <td class="mono">${e.ts}</td>
+        <td class="mono fw7" style="font-size:10px">${e.type}</td>
+        <td>${sevChip[e.sev||e.severity]||''}</td>
+        <td>${e.desc||e.description||''}</td>
+      </tr>`).join('')}
+    </tbody></table>`;
+}
+
+// ── RENDER: PR TABLE ──────────────────────────────────────────
+function renderPRTable() {
+  const body = document.getElementById('sprint-pr-body');
+  if(!body) return;
+  const statusChip = {
+    passed:'<span class="chip ch-g">&#10003; Passed</span>',
+    amber: '<span class="chip ch-o">&#9888; Amber</span>',
+    fixed: '<span class="chip ch-b">&#128295; Fixed</span>',
+  };
+  body.innerHTML = (cfg.prs||SEED.prs).map(pr => `
+    <tr>
+      <td class="mono fw7">#${pr.n}</td>
+      <td>${pr.title}</td>
+      <td class="mono">${pr.author}</td>
+      <td>${pr.cov!=null?`<span class="${pr.cov>=80?'chip ch-g':'chip ch-o'}">${pr.cov}%</span>`:'&mdash;'}</td>
+      <td>${pr.ai?'<span class="chip ch-p">AI</span>':'<span class="chip ch-gr">Manual</span>'}</td>
+      <td>${statusChip[pr.status]||pr.status}</td>
+      <td class="mono" style="font-size:11px">${pr.date}</td>
+    </tr>`).join('');
+}
+
+// ── RENDER: PROMPTS ───────────────────────────────────────────
+function renderAllPrompts() {
+  ['dev','ba','qa','pm'].forEach(tab => {
+    const grid = document.getElementById('pgrid-' + tab);
+    if(!grid) return;
+    grid.innerHTML = (PROMPTS[tab]||[]).map(p => {
+      const tcls = p.tool==='cl' ? 'tc-cl' : 'tc-bt';
+      const tlbl = p.tool==='cl' ? 'Claude Code CLI' : 'Claude + Copilot';
+      const govChip = p.gov
+        ? `<span class="gov-chip">&#9888; ${p.gov}</span>` : '';
+      return `<div class="pcard">
+        <div class="pcard-hd">
+          <div class="pcard-title">${p.title}</div>
+          <div class="pcard-tags">
+            <span class="tc ${tcls}">${tlbl}</span>${govChip}
+          </div>
+        </div>
+        <div class="pcard-body">
+          <div class="pcard-desc">${p.desc}</div>
+          <div class="pcard-code"><pre>${escHtml(p.text)}</pre></div>
+        </div>
+        <div class="pcard-ft">
+          <button class="btn btn-o btn-sm copy-btn" data-text="${escAttr(p.text)}" onclick="copyPrompt(this)">&#8966; Copy Prompt</button>
+        </div>
+      </div>`;
+    }).join('');
+  });
+}
+
+function escHtml(s){ return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+function escAttr(s){ return s.replace(/"/g,'&quot;'); }
+
+// ── COPY ──────────────────────────────────────────────────────
+function copyPrompt(btn) {
+  const text = btn.getAttribute('data-text').replace(/&quot;/g,'"');
+  const do_copy = () => {
+    const orig = btn.innerHTML;
+    btn.innerHTML = '&#10003; Copied!';
+    btn.style.cssText = 'background:var(--green);color:#fff;border-color:var(--green)';
+    setTimeout(() => { btn.innerHTML = orig; btn.style.cssText = ''; }, 1800);
+  };
+  if(navigator.clipboard) {
+    navigator.clipboard.writeText(text).then(do_copy).catch(fallback);
+  } else { fallback(); }
+  function fallback() {
+    const ta = document.createElement('textarea');
+    ta.value = text; ta.style.cssText = 'position:fixed;opacity:0';
+    document.body.appendChild(ta); ta.select();
+    document.execCommand('copy'); document.body.removeChild(ta);
+    do_copy();
+  }
+}
+
+// ── NOTIFICATIONS ─────────────────────────────────────────────
+function toggleNotif() {
+  document.getElementById('notif-panel').classList.toggle('open');
+  document.getElementById('ps-drop').classList.remove('open');
+}
+function closeNotif() { document.getElementById('notif-panel').classList.remove('open'); }
+
+// ── OUTSIDE CLICK ─────────────────────────────────────────────
+document.addEventListener('click', e => {
+  if(!e.target.closest('.ps-wrap'))
+    document.getElementById('ps-drop').classList.remove('open');
+  if(!e.target.closest('.np') && !e.target.closest('.tb-icon'))
+    document.getElementById('notif-panel').classList.remove('open');
+});
 </script>
 </body>
 </html>

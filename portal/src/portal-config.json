@@ -1,0 +1,142 @@
+{
+  "_schema": "apex-portal-config@1.0",
+  "_comment": "Generated from project-manifest.yaml by /generate-repo. Replace all values with your project's real data. Keys prefixed with _source show where real data comes from.",
+
+  "project": {
+    "name": "EEIK Digital Transformation",
+    "code": "EEIK",
+    "phase": "Phase 0",
+    "currentWeek": 14,
+    "arbNextDate": "2026-06-22",
+    "docsBaseUrl": "../../docs"
+  },
+
+  "team": {
+    "_source": "Manually maintained or from HR system / Jira user list",
+    "members": [
+      { "id": "suplab",   "name": "Suplab",     "role": "Enterprise AI Architect", "persona": "lead", "initials": "SA", "color": "#6B4FBB" },
+      { "id": "priya.s",  "name": "Priya Shah",  "role": "Dev Lead · Squad Alpha",  "persona": "dev",  "initials": "PS", "color": "#4A3280" },
+      { "id": "ravi.m",   "name": "Ravi Menon",  "role": "CISO · Security",         "persona": "ciso", "initials": "RM", "color": "#B91C1C" },
+      { "id": "ananya.r", "name": "Ananya Rao",  "role": "BA Lead",                 "persona": "ba",   "initials": "AR", "color": "#1565C0" },
+      { "id": "karthik.v","name": "Karthik V",   "role": "Programme Manager",       "persona": "pm",   "initials": "KV", "color": "#C05621" }
+    ],
+    "totalDevs": 10,
+    "aiEnabledDevs": 8
+  },
+
+  "sprint": {
+    "_source": "Jira API: GET /rest/agile/1.0/board/{boardId}/sprint?state=active",
+    "number": 14,
+    "startDate": "2026-06-02",
+    "endDate": "2026-06-20",
+    "daysRemaining": 5,
+    "committed": 47,
+    "done": 38,
+    "inProgress": 6,
+    "carryForward": 3,
+    "totalPRs": 31,
+    "aiAssistedPRs": 23,
+    "avgCoverage": 84,
+    "coverageGate": 80,
+    "openBugs": { "p1": 0, "p2": 1, "p3": 2 },
+    "toolUsage": {
+      "_source": "GitHub API: PR labels + Claude API usage logs in CloudWatch /apex/automation",
+      "copilot": 58,
+      "claude": 31,
+      "manual": 11
+    },
+    "burndown": {
+      "_source": "Jira API: /rest/agile/1.0/sprint/{id}/properties (burndown chart data)",
+      "ideal": [47, 44, 41, 37, 34, 31, 28, 25, 21, 18, 15, 12, 8, 5, 0],
+      "actual": [47, 44, 41, 35, 31, 28, 22, 18, 13, 9, 9]
+    },
+    "recentPRs": [
+      { "number": 417, "title": "feat(billing): add payment gateway integration",  "author": "priya.s",   "coverage": 84, "status": "passed", "aiAssisted": true,  "date": "2026-06-15" },
+      { "number": 416, "title": "test(auth): integration tests for JWT flow",       "author": "karthik.v", "coverage": 91, "status": "passed", "aiAssisted": true,  "date": "2026-06-14" },
+      { "number": 415, "title": "refactor(order): hexagonal architecture migration","author": "ananya.r",  "coverage": 88, "status": "passed", "aiAssisted": true,  "date": "2026-06-13" },
+      { "number": 414, "title": "feat(angular): order-list standalone component",  "author": "priya.s",   "coverage": 79, "status": "passed", "aiAssisted": true,  "date": "2026-06-13" },
+      { "number": 413, "title": "chore(ci): update ai-pr-review workflow v2.1",    "author": "ravi.m",    "coverage": null,"status": "passed", "aiAssisted": false, "date": "2026-06-12" },
+      { "number": 412, "title": "feat(reporting): sprint summary generator",        "author": "karthik.v", "coverage": 82, "status": "passed", "aiAssisted": true,  "date": "2026-06-12" },
+      { "number": 411, "title": "fix(auth): remove @Autowired field injection",     "author": "priya.s",   "coverage": 86, "status": "fixed",  "aiAssisted": true,  "date": "2026-06-11" },
+      { "number": 408, "title": "feat(billing): billing service class (OPEN)",      "author": "priya.s",   "coverage": 76, "status": "amber",  "aiAssisted": true,  "date": "2026-06-10" }
+    ]
+  },
+
+  "governance": {
+    "mainframeGate": {
+      "_source": "governance/policies/mainframe-gate-policy.md + governance/mainframe-gate-log.md",
+      "currentPhase": 0,
+      "phase1TargetWeek": 17,
+      "phase1Criteria": {
+        "programsDocumented": { "done": 12, "required": 20 },
+        "aiLiteracyTraining": false,
+        "copyBookValidations": { "done": 1, "required": 2 },
+        "piiGuardEnabled": true,
+        "securityGuildApproval": false
+      }
+    },
+    "codeReviewGates": [
+      { "id": "auto-pr",    "name": "Automated PR Review",      "status": "pass",  "detail": "31/31 PRs scanned this sprint via ai-pr-review.yml" },
+      { "id": "human-rev",  "name": "Human Reviewer (2× for AI PRs)", "status": "pass", "detail": "All ai-assisted PRs have ≥2 human approvals" },
+      { "id": "owasp",      "name": "Security Scan — No HIGH Findings","status": "pass", "detail": "0 HIGH severity findings across 31 PRs" },
+      { "id": "golden",     "name": "Golden Rules Check",        "status": "amber", "detail": "1 open violation: @Autowired field in PR #408 (pending fix)" },
+      { "id": "coverage",   "name": "Coverage Gate ≥80%",        "status": "amber", "detail": "billing-service at 76% — target: Week 3 Sprint 14" }
+    ],
+    "piiGuard": {
+      "_source": "S3 audit bucket: apex-audit-logs / CloudWatch /apex/pii-scan",
+      "layer1Status": "active",
+      "layer2Status": "planned-week15",
+      "blocksThisSprint": 3,
+      "lastBlock": "2026-06-15T09:23:00Z",
+      "lastBlockDesc": "Customer email detected in prompt (dev: ravi.m)",
+      "totalEventsLast30d": 47
+    },
+    "auditLog": {
+      "_source": "S3 audit bucket + DynamoDB apex-audit table",
+      "events": [
+        { "ts": "2026-06-15 09:23", "type": "PII_SCAN_BLOCK",       "severity": "high",   "desc": "Customer email in prompt blocked",              "actor": "ravi.m" },
+        { "ts": "2026-06-15 08:44", "type": "PR_REVIEW",            "severity": "info",   "desc": "PR #417 reviewed — 0 findings, coverage 84%",   "actor": "ai-bot" },
+        { "ts": "2026-06-14 16:12", "type": "COVERAGE_WARNING",     "severity": "amber",  "desc": "billing-service 76% < 80% coverage gate",       "actor": "ci-bot" },
+        { "ts": "2026-06-14 14:30", "type": "GOLDEN_RULE_VIOLATION","severity": "high",   "desc": "@Autowired field injection in PR #408",          "actor": "priya.s" },
+        { "ts": "2026-06-13 11:05", "type": "PR_REVIEW",            "severity": "info",   "desc": "PR #412 reviewed — 0 findings, coverage 82%",   "actor": "ai-bot" },
+        { "ts": "2026-06-13 09:15", "type": "PROMPT_USAGE",         "severity": "info",   "desc": "COBOL analyser prompt used (Phase 0 compliant)", "actor": "ananya.r" },
+        { "ts": "2026-06-12 15:44", "type": "PR_REVIEW",            "severity": "amber",  "desc": "PR #405 — 1 MEDIUM finding (SQL injection risk, fixed)", "actor": "ai-bot" },
+        { "ts": "2026-06-11 10:20", "type": "ARB_SCHEDULED",        "severity": "info",   "desc": "Next ARB: 22 Jun 2026 — 2 agenda items queued", "actor": "suplab" }
+      ]
+    },
+    "arb": {
+      "nextMeeting": "2026-06-22",
+      "openItems": 2,
+      "agendaItems": [
+        "Review Week 17 Phase 1 mainframe gate criteria progress (12/20 programs documented)",
+        "Approve Claude Haiku for automated test generation pipeline (POC results attached)"
+      ],
+      "chair": "Suplab",
+      "lastMeeting": "2026-06-08"
+    }
+  },
+
+  "adoption": {
+    "_source": "Manually tracked or from GitHub label analytics + Jira plugin",
+    "overall": 78,
+    "byPersona": [
+      { "persona": "Developer",        "done": 8,  "total": 10 },
+      { "persona": "Business Analyst", "done": 3,  "total": 4  },
+      { "persona": "QA Engineer",      "done": 2,  "total": 3  },
+      { "persona": "Program Manager",  "done": 2,  "total": 2  },
+      { "persona": "Tech Lead",        "done": 2,  "total": 2  }
+    ]
+  },
+
+  "activity": {
+    "_source": "Aggregated from GitHub webhooks + CloudWatch + Jira webhook",
+    "events": [
+      { "type": "pii_block",  "icon": "🛡️", "iconBg": "#FEF2F2", "title": "PII scan blocked — customer email in prompt",          "meta": "ravi.m · governance/pii-guard",                "time": "2h ago" },
+      { "type": "pr_pass",    "icon": "✅", "iconBg": "#E8F5E9", "title": "PR #417 AI-reviewed — 0 HIGH findings, coverage 84%",  "meta": "priya.s · feat(billing): payment gateway",     "time": "4h ago" },
+      { "type": "pr_amber",   "icon": "⚠️", "iconBg": "#FFF3E0", "title": "Coverage warning — billing-service at 76% (gate: 80%)","meta": "ci-bot · sprint 14 gate check",                "time": "Yesterday" },
+      { "type": "violation",  "icon": "🚨", "iconBg": "#FEF2F2", "title": "Golden Rule violation — @Autowired in PR #408",         "meta": "priya.s · fix pending",                        "time": "Yesterday" },
+      { "type": "prompt",     "icon": "💬", "iconBg": "#EDE9F7", "title": "COBOL analyser prompt used (Phase 0 compliant)",        "meta": "ananya.r · mainframe analysis",                "time": "2d ago" },
+      { "type": "arb",        "icon": "📅", "iconBg": "#E3F2FD", "title": "ARB meeting scheduled — Jun 22 · 2 agenda items",      "meta": "suplab · Phase 1 gate + Haiku approval",       "time": "4d ago" }
+    ]
+  }
+}
