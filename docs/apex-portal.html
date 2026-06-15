@@ -1,0 +1,592 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>APEX — AI-Powered Engineering eXperience</title>
+<style>
+  :root {
+    --primary: #6B4FBB;
+    --primary-light: #EDE9F7;
+    --primary-dark: #4A3280;
+    --green: #2D7D46;
+    --green-light: #E8F5E9;
+    --orange: #C05621;
+    --orange-light: #FFF3E0;
+    --blue: #1565C0;
+    --blue-light: #E3F2FD;
+    --bg: #F8F9FA;
+    --surface: #FFFFFF;
+    --border: #E2E8F0;
+    --text: #1A202C;
+    --text-muted: #718096;
+    --red: #C53030;
+    --red-light: #FFF5F5;
+    --sidebar-w: 240px;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: var(--bg); color: var(--text); display: flex; min-height: 100vh; font-size: 14px; }
+
+  /* Sidebar */
+  .sidebar { width: var(--sidebar-w); background: var(--text); color: #fff; display: flex; flex-direction: column; flex-shrink: 0; position: fixed; height: 100vh; overflow-y: auto; }
+  .sidebar-brand { padding: 20px 16px 16px; border-bottom: 1px solid #2D3748; }
+  .brand-logo { display: flex; align-items: center; gap: 10px; }
+  .brand-icon { width: 36px; height: 36px; background: var(--primary); border-radius: 8px; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 14px; color: #fff; letter-spacing: -0.5px; }
+  .brand-name { font-weight: 700; font-size: 16px; }
+  .brand-sub { font-size: 10px; color: #A0AEC0; margin-top: 2px; }
+  .sidebar-section { padding: 16px 0 8px; }
+  .sidebar-label { font-size: 10px; font-weight: 700; color: #718096; text-transform: uppercase; letter-spacing: 0.8px; padding: 0 16px 8px; }
+  .nav-item { display: flex; align-items: center; gap: 10px; padding: 8px 16px; cursor: pointer; border-radius: 0; transition: background 0.15s; color: #CBD5E0; font-size: 13px; }
+  .nav-item:hover { background: #2D3748; color: #fff; }
+  .nav-item.active { background: var(--primary); color: #fff; }
+  .nav-icon { width: 18px; height: 18px; opacity: 0.8; }
+  .nav-badge { margin-left: auto; background: var(--orange); color: #fff; font-size: 10px; font-weight: 700; padding: 1px 6px; border-radius: 10px; }
+  .sidebar-footer { margin-top: auto; padding: 16px; border-top: 1px solid #2D3748; }
+  .user-pill { display: flex; align-items: center; gap: 8px; }
+  .avatar { width: 30px; height: 30px; background: var(--primary); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700; color: #fff; }
+  .user-info .name { font-size: 13px; font-weight: 600; }
+  .user-info .role { font-size: 11px; color: #718096; }
+
+  /* Main */
+  .main { margin-left: var(--sidebar-w); flex: 1; display: flex; flex-direction: column; }
+  .topbar { background: var(--surface); border-bottom: 1px solid var(--border); padding: 12px 28px; display: flex; align-items: center; gap: 16px; position: sticky; top: 0; z-index: 10; }
+  .topbar-title { font-size: 16px; font-weight: 700; flex: 1; }
+  .phase-badge { display: flex; align-items: center; gap: 6px; background: var(--primary-light); color: var(--primary); font-size: 11px; font-weight: 600; padding: 4px 12px; border-radius: 20px; }
+  .phase-dot { width: 7px; height: 7px; background: var(--primary); border-radius: 50%; animation: pulse 2s infinite; }
+  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.4} }
+  .btn { padding: 7px 16px; border-radius: 6px; font-size: 13px; font-weight: 600; cursor: pointer; border: none; transition: all 0.15s; }
+  .btn-primary { background: var(--primary); color: #fff; }
+  .btn-primary:hover { background: var(--primary-dark); }
+  .btn-outline { background: transparent; color: var(--primary); border: 1.5px solid var(--primary); }
+  .btn-outline:hover { background: var(--primary-light); }
+
+  .content { padding: 24px 28px; flex: 1; }
+
+  /* Stats row */
+  .stats-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 24px; }
+  .stat-card { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 16px 20px; }
+  .stat-label { font-size: 11px; color: var(--text-muted); font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; }
+  .stat-value { font-size: 28px; font-weight: 800; margin: 4px 0 2px; }
+  .stat-delta { font-size: 12px; font-weight: 600; }
+  .stat-delta.up { color: var(--green); }
+  .stat-delta.down { color: var(--red); }
+  .stat-delta.neutral { color: var(--text-muted); }
+
+  /* Two col layout */
+  .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 24px; }
+  .three-col { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; margin-bottom: 24px; }
+
+  /* Cards */
+  .card { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 20px; }
+  .card-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; }
+  .card-title { font-size: 14px; font-weight: 700; }
+  .card-link { font-size: 12px; color: var(--primary); font-weight: 600; cursor: pointer; }
+
+  /* SDLC Phase Timeline */
+  .phase-timeline { display: flex; gap: 0; margin-bottom: 24px; }
+  .phase-step { flex: 1; position: relative; }
+  .phase-step:not(:last-child)::after { content: ''; position: absolute; top: 20px; right: -8px; width: 16px; height: 2px; background: var(--border); z-index: 1; }
+  .phase-inner { background: var(--surface); border: 2px solid var(--border); border-radius: 10px; padding: 14px 12px; margin: 0 4px; cursor: pointer; transition: all 0.15s; }
+  .phase-inner:hover { border-color: var(--primary); }
+  .phase-inner.active { border-color: var(--primary); background: var(--primary-light); }
+  .phase-inner.done { border-color: var(--green); background: var(--green-light); }
+  .phase-num { font-size: 10px; font-weight: 700; color: var(--text-muted); }
+  .phase-name { font-size: 12px; font-weight: 700; margin: 4px 0 2px; }
+  .phase-status { font-size: 10px; font-weight: 600; }
+  .phase-inner.done .phase-status { color: var(--green); }
+  .phase-inner.active .phase-status { color: var(--primary); }
+  .phase-inner .phase-status { color: var(--text-muted); }
+
+  /* Persona grid */
+  .persona-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; margin-bottom: 24px; }
+  .persona-card { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 16px; cursor: pointer; transition: all 0.15s; }
+  .persona-card:hover { border-color: var(--primary); box-shadow: 0 2px 8px rgba(107,79,187,0.12); transform: translateY(-1px); }
+  .persona-header { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
+  .persona-icon { width: 36px; height: 36px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 18px; flex-shrink: 0; }
+  .persona-name { font-size: 13px; font-weight: 700; }
+  .persona-tool { font-size: 11px; color: var(--text-muted); }
+  .persona-adoption { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
+  .adoption-bar { flex: 1; height: 5px; background: var(--border); border-radius: 3px; overflow: hidden; }
+  .adoption-fill { height: 100%; border-radius: 3px; }
+  .adoption-pct { font-size: 11px; font-weight: 700; min-width: 32px; text-align: right; }
+  .persona-prompts { font-size: 11px; color: var(--text-muted); }
+
+  /* Activity feed */
+  .activity-item { display: flex; gap: 10px; padding: 10px 0; border-bottom: 1px solid var(--border); }
+  .activity-item:last-child { border-bottom: none; }
+  .activity-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; margin-top: 5px; }
+  .activity-text { font-size: 12px; line-height: 1.5; }
+  .activity-time { font-size: 11px; color: var(--text-muted); }
+  .activity-meta { font-size: 11px; color: var(--text-muted); margin-top: 2px; }
+
+  /* Tool status */
+  .tool-row { display: flex; align-items: center; gap: 10px; padding: 10px 0; border-bottom: 1px solid var(--border); }
+  .tool-row:last-child { border-bottom: none; }
+  .tool-status-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+  .tool-status-dot.green { background: #38A169; }
+  .tool-status-dot.yellow { background: #D69E2E; }
+  .tool-status-dot.red { background: var(--red); }
+  .tool-name { font-size: 13px; font-weight: 600; flex: 1; }
+  .tool-meta { font-size: 11px; color: var(--text-muted); }
+  .tool-badge { font-size: 10px; font-weight: 700; padding: 2px 8px; border-radius: 10px; }
+  .badge-green { background: var(--green-light); color: var(--green); }
+  .badge-yellow { background: #FEFCBF; color: #744210; }
+  .badge-purple { background: var(--primary-light); color: var(--primary); }
+
+  /* Upcoming tasks */
+  .task-item { display: flex; align-items: flex-start; gap: 10px; padding: 10px 0; border-bottom: 1px solid var(--border); }
+  .task-item:last-child { border-bottom: none; }
+  .task-check { width: 16px; height: 16px; border: 2px solid var(--border); border-radius: 4px; flex-shrink: 0; margin-top: 1px; }
+  .task-check.done { background: var(--green); border-color: var(--green); }
+  .task-title { font-size: 13px; font-weight: 500; }
+  .task-title.done { text-decoration: line-through; color: var(--text-muted); }
+  .task-meta { font-size: 11px; color: var(--text-muted); margin-top: 2px; }
+  .task-phase { font-size: 10px; font-weight: 700; padding: 1px 7px; border-radius: 8px; margin-left: auto; flex-shrink: 0; }
+
+  /* Alert banner */
+  .alert { display: flex; align-items: center; gap: 12px; padding: 12px 16px; border-radius: 8px; margin-bottom: 20px; font-size: 13px; }
+  .alert-info { background: var(--blue-light); color: var(--blue); border: 1px solid #90CAF9; }
+  .alert-icon { font-size: 16px; }
+
+  /* Quick actions */
+  .quick-actions { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 24px; }
+  .qa-card { background: var(--surface); border: 1.5px solid var(--border); border-radius: 8px; padding: 14px; cursor: pointer; text-align: center; transition: all 0.15s; }
+  .qa-card:hover { border-color: var(--primary); background: var(--primary-light); }
+  .qa-icon { font-size: 24px; margin-bottom: 6px; }
+  .qa-label { font-size: 12px; font-weight: 600; color: var(--text); }
+  .qa-sub { font-size: 10px; color: var(--text-muted); margin-top: 2px; }
+
+  /* Section title */
+  .section-title { font-size: 15px; font-weight: 700; margin-bottom: 14px; }
+</style>
+</head>
+<body>
+
+<!-- Sidebar -->
+<nav class="sidebar">
+  <div class="sidebar-brand">
+    <div class="brand-logo">
+      <div class="brand-icon">AX</div>
+      <div>
+        <div class="brand-name">APEX</div>
+        <div class="brand-sub">AI Engineering Platform</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="sidebar-section">
+    <div class="sidebar-label">Main</div>
+    <div class="nav-item active">
+      <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+      Dashboard
+    </div>
+    <div class="nav-item">
+      <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 8v4l3 3"/></svg>
+      SDLC Timeline
+    </div>
+    <div class="nav-item">
+      <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+      Personas
+    </div>
+  </div>
+
+  <div class="sidebar-section">
+    <div class="sidebar-label">Build &amp; Integrate</div>
+    <div class="nav-item">
+      <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>
+      CLAUDE.md Builder
+    </div>
+    <div class="nav-item">
+      <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg>
+      Prompt Library
+      <span class="nav-badge">47</span>
+    </div>
+    <div class="nav-item">
+      <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
+      Automation Pipelines
+    </div>
+    <div class="nav-item">
+      <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M4.93 4.93a10 10 0 0 0 0 14.14"/></svg>
+      Integrations
+    </div>
+  </div>
+
+  <div class="sidebar-section">
+    <div class="sidebar-label">Governance</div>
+    <div class="nav-item">
+      <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+      Policy Engine
+    </div>
+    <div class="nav-item">
+      <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+      Audit Log
+    </div>
+    <div class="nav-item">
+      <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+      Metrics
+    </div>
+  </div>
+
+  <div class="sidebar-footer">
+    <div class="user-pill">
+      <div class="avatar">S</div>
+      <div class="user-info">
+        <div class="name">Suplab</div>
+        <div class="role">Enterprise AI Architect</div>
+      </div>
+    </div>
+  </div>
+</nav>
+
+<!-- Main content -->
+<main class="main">
+  <div class="topbar">
+    <div class="topbar-title">APEX Dashboard</div>
+    <div class="phase-badge">
+      <div class="phase-dot"></div>
+      Phase 1 — Developer Pilot Active
+    </div>
+    <button class="btn btn-outline">View Roadmap</button>
+    <button class="btn btn-primary">+ New Automation</button>
+  </div>
+
+  <div class="content">
+
+    <!-- Alert -->
+    <div class="alert alert-info">
+      <span class="alert-icon">💡</span>
+      <span><strong>Week 4 of Phase 1:</strong> Pilot squad reports 38% reduction in boilerplate. BA onboarding workshop scheduled for Week 7. <a href="#" style="color:inherit;font-weight:700;">View report →</a></span>
+    </div>
+
+    <!-- Stats -->
+    <div class="stats-row">
+      <div class="stat-card">
+        <div class="stat-label">PR Cycle Time</div>
+        <div class="stat-value" style="color:var(--green)">2.4d</div>
+        <div class="stat-delta up">↓ 28% vs baseline</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">AI Acceptance Rate</div>
+        <div class="stat-value" style="color:var(--primary)">74%</div>
+        <div class="stat-delta up">↑ 12pts this sprint</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Active AI Users</div>
+        <div class="stat-value">18</div>
+        <div class="stat-delta neutral">of 22 devs onboarded</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Policy Violations</div>
+        <div class="stat-value" style="color:var(--orange)">2</div>
+        <div class="stat-delta neutral">this month · reviewed</div>
+      </div>
+    </div>
+
+    <!-- SDLC Timeline -->
+    <div class="section-title">SDLC Phase Coverage</div>
+    <div class="phase-timeline">
+      <div class="phase-step">
+        <div class="phase-inner done">
+          <div class="phase-num">PHASE 1</div>
+          <div class="phase-name">Requirements</div>
+          <div class="phase-status">✓ Active</div>
+        </div>
+      </div>
+      <div class="phase-step">
+        <div class="phase-inner done">
+          <div class="phase-num">PHASE 2</div>
+          <div class="phase-name">Architecture</div>
+          <div class="phase-status">✓ Active</div>
+        </div>
+      </div>
+      <div class="phase-step">
+        <div class="phase-inner active">
+          <div class="phase-num">PHASE 3</div>
+          <div class="phase-name">Development</div>
+          <div class="phase-status">● In Pilot</div>
+        </div>
+      </div>
+      <div class="phase-step">
+        <div class="phase-inner active">
+          <div class="phase-num">PHASE 4</div>
+          <div class="phase-name">Testing</div>
+          <div class="phase-status">● In Pilot</div>
+        </div>
+      </div>
+      <div class="phase-step">
+        <div class="phase-inner">
+          <div class="phase-num">PHASE 5</div>
+          <div class="phase-name">CI/CD Review</div>
+          <div class="phase-status">Planned Wk 11</div>
+        </div>
+      </div>
+      <div class="phase-step">
+        <div class="phase-inner">
+          <div class="phase-num">PHASE 6</div>
+          <div class="phase-name">Documentation</div>
+          <div class="phase-status">Planned Wk 13</div>
+        </div>
+      </div>
+      <div class="phase-step">
+        <div class="phase-inner">
+          <div class="phase-num">PHASE 7</div>
+          <div class="phase-name">Governance</div>
+          <div class="phase-status">Planned Wk 15</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Quick Actions -->
+    <div class="section-title">Quick Actions</div>
+    <div class="quick-actions">
+      <div class="qa-card">
+        <div class="qa-icon">📝</div>
+        <div class="qa-label">Generate CLAUDE.md</div>
+        <div class="qa-sub">For a new repo</div>
+      </div>
+      <div class="qa-card">
+        <div class="qa-icon">🔍</div>
+        <div class="qa-label">Browse Prompts</div>
+        <div class="qa-sub">47 prompts available</div>
+      </div>
+      <div class="qa-card">
+        <div class="qa-icon">⚙️</div>
+        <div class="qa-label">New Pipeline</div>
+        <div class="qa-sub">Jira → Claude trigger</div>
+      </div>
+      <div class="qa-card">
+        <div class="qa-icon">📊</div>
+        <div class="qa-label">Governance Report</div>
+        <div class="qa-sub">June 2026 summary</div>
+      </div>
+    </div>
+
+    <!-- Persona adoption + activity feed -->
+    <div class="two-col">
+      <div>
+        <div class="section-title">Persona Adoption</div>
+        <div class="persona-grid" style="grid-template-columns:1fr 1fr;">
+
+          <div class="persona-card">
+            <div class="persona-header">
+              <div class="persona-icon" style="background:var(--green-light)">👨‍💻</div>
+              <div><div class="persona-name">Developer</div><div class="persona-tool">Claude Code + Copilot</div></div>
+            </div>
+            <div class="persona-adoption">
+              <div class="adoption-bar"><div class="adoption-fill" style="width:82%;background:var(--green)"></div></div>
+              <div class="adoption-pct" style="color:var(--green)">82%</div>
+            </div>
+            <div class="persona-prompts">18 active users · 340 prompts/wk</div>
+          </div>
+
+          <div class="persona-card">
+            <div class="persona-header">
+              <div class="persona-icon" style="background:var(--orange-light)">📋</div>
+              <div><div class="persona-name">Business Analyst</div><div class="persona-tool">Claude.ai Desktop</div></div>
+            </div>
+            <div class="persona-adoption">
+              <div class="adoption-bar"><div class="adoption-fill" style="width:45%;background:var(--orange)"></div></div>
+              <div class="adoption-pct" style="color:var(--orange)">45%</div>
+            </div>
+            <div class="persona-prompts">Onboarding Week 7 · 5 users</div>
+          </div>
+
+          <div class="persona-card">
+            <div class="persona-header">
+              <div class="persona-icon" style="background:var(--primary-light)">🧪</div>
+              <div><div class="persona-name">Tester / QA</div><div class="persona-tool">Claude Code CLI</div></div>
+            </div>
+            <div class="persona-adoption">
+              <div class="adoption-bar"><div class="adoption-fill" style="width:68%;background:var(--primary)"></div></div>
+              <div class="adoption-pct" style="color:var(--primary)">68%</div>
+            </div>
+            <div class="persona-prompts">6 active users · 88 prompts/wk</div>
+          </div>
+
+          <div class="persona-card">
+            <div class="persona-header">
+              <div class="persona-icon" style="background:var(--blue-light)">📈</div>
+              <div><div class="persona-name">PM / Stakeholder</div><div class="persona-tool">Copilot M365</div></div>
+            </div>
+            <div class="persona-adoption">
+              <div class="adoption-bar"><div class="adoption-fill" style="width:30%;background:var(--blue)"></div></div>
+              <div class="adoption-pct" style="color:var(--blue)">30%</div>
+            </div>
+            <div class="persona-prompts">Scheduled Week 10</div>
+          </div>
+
+        </div>
+      </div>
+
+      <div>
+        <div class="card" style="margin-bottom:0;height:100%">
+          <div class="card-header">
+            <div class="card-title">Recent Activity</div>
+            <div class="card-link">View all →</div>
+          </div>
+          <div class="activity-item">
+            <div class="activity-dot" style="background:var(--green)"></div>
+            <div>
+              <div class="activity-text"><strong>Claude Code</strong> generated 24 JUnit tests for <code>OrderService</code></div>
+              <div class="activity-meta">Squad Alpha · Java/Spring Boot · 12 min ago</div>
+            </div>
+          </div>
+          <div class="activity-item">
+            <div class="activity-dot" style="background:var(--primary)"></div>
+            <div>
+              <div class="activity-text"><strong>PR #482</strong> auto-described by Copilot · 2 reviewers assigned</div>
+              <div class="activity-meta">Squad Beta · Angular · 34 min ago</div>
+            </div>
+          </div>
+          <div class="activity-item">
+            <div class="activity-dot" style="background:var(--orange)"></div>
+            <div>
+              <div class="activity-text"><strong>Governance:</strong> PII pattern detected in prompt · request blocked</div>
+              <div class="activity-meta">Dev: r.kumar · Policy: PII-002 · 1h ago</div>
+            </div>
+          </div>
+          <div class="activity-item">
+            <div class="activity-dot" style="background:var(--green)"></div>
+            <div>
+              <div class="activity-text"><strong>COBOL analysis</strong> completed for <code>PYRL001.cbl</code> — 847 lines documented</div>
+              <div class="activity-meta">Mainframe Squad · 2h ago</div>
+            </div>
+          </div>
+          <div class="activity-item">
+            <div class="activity-dot" style="background:var(--primary)"></div>
+            <div>
+              <div class="activity-text"><strong>Sprint retro draft</strong> generated for Sprint 24 in Confluence</div>
+              <div class="activity-meta">Automation bridge · Squad Alpha · 3h ago</div>
+            </div>
+          </div>
+          <div class="activity-item">
+            <div class="activity-dot" style="background:var(--blue)"></div>
+            <div>
+              <div class="activity-text"><strong>CLAUDE.md</strong> updated for <code>payments-service</code> repo</div>
+              <div class="activity-meta">Tech Lead: s.das · PR #117 merged · 5h ago</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Tool Status + Upcoming -->
+    <div class="two-col" style="margin-top:20px">
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">Tool Integration Status</div>
+          <div class="card-link">Manage →</div>
+        </div>
+        <div class="tool-row">
+          <div class="tool-status-dot green"></div>
+          <div class="tool-name">Claude Code CLI</div>
+          <div class="tool-meta">v1.x · 18 seats</div>
+          <span class="tool-badge badge-green">Operational</span>
+        </div>
+        <div class="tool-row">
+          <div class="tool-status-dot green"></div>
+          <div class="tool-name">GitHub Copilot Business</div>
+          <div class="tool-meta">22 seats · IntelliJ + VS Code</div>
+          <span class="tool-badge badge-green">Operational</span>
+        </div>
+        <div class="tool-row">
+          <div class="tool-status-dot green"></div>
+          <div class="tool-name">Claude API (Sonnet)</div>
+          <div class="tool-meta">Automation bridge · 42k tokens/day</div>
+          <span class="tool-badge badge-green">Operational</span>
+        </div>
+        <div class="tool-row">
+          <div class="tool-status-dot yellow"></div>
+          <div class="tool-name">Jira Webhook Bridge</div>
+          <div class="tool-meta">Sprint trigger · partial config</div>
+          <span class="tool-badge badge-yellow">In Progress</span>
+        </div>
+        <div class="tool-row">
+          <div class="tool-status-dot yellow"></div>
+          <div class="tool-name">Confluence Auto-Writer</div>
+          <div class="tool-meta">Retro automation · testing</div>
+          <span class="tool-badge badge-yellow">In Progress</span>
+        </div>
+        <div class="tool-row">
+          <div class="tool-status-dot" style="background:var(--border)"></div>
+          <div class="tool-name">AI CI/CD Gates</div>
+          <div class="tool-meta">GitHub Actions · Planned Wk 11</div>
+          <span class="tool-badge badge-purple">Planned</span>
+        </div>
+        <div class="tool-row">
+          <div class="tool-status-dot" style="background:var(--border)"></div>
+          <div class="tool-name">PII Guard (AWS Comprehend)</div>
+          <div class="tool-meta">Pre-prompt scanner · Planned Wk 15</div>
+          <span class="tool-badge badge-purple">Planned</span>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">Upcoming Milestones</div>
+          <div class="card-link">Full roadmap →</div>
+        </div>
+        <div class="task-item">
+          <div class="task-check done"></div>
+          <div>
+            <div class="task-title done">Install Claude Code + Copilot for pilot squad</div>
+            <div class="task-meta">Completed Week 3</div>
+          </div>
+          <span class="task-phase" style="background:var(--green-light);color:var(--green)">P0</span>
+        </div>
+        <div class="task-item">
+          <div class="task-check done"></div>
+          <div>
+            <div class="task-title done">Write CLAUDE.md for payments-service repo</div>
+            <div class="task-meta">Completed Week 4</div>
+          </div>
+          <span class="task-phase" style="background:var(--green-light);color:var(--green)">P0</span>
+        </div>
+        <div class="task-item">
+          <div class="task-check" style="background:var(--primary);border-color:var(--primary)"></div>
+          <div>
+            <div class="task-title">BA + QA onboarding workshop</div>
+            <div class="task-meta">Week 7 · Scheduled Jun 14</div>
+          </div>
+          <span class="task-phase" style="background:var(--primary-light);color:var(--primary)">P1</span>
+        </div>
+        <div class="task-item">
+          <div class="task-check"></div>
+          <div>
+            <div class="task-title">Deploy Jira → Sprint retro automation</div>
+            <div class="task-meta">Week 8 · AI Platform Engineer</div>
+          </div>
+          <span class="task-phase" style="background:var(--primary-light);color:var(--primary)">P1</span>
+        </div>
+        <div class="task-item">
+          <div class="task-check"></div>
+          <div>
+            <div class="task-title">AI PR Review GitHub Action (security scan)</div>
+            <div class="task-meta">Week 11 · DevOps Engineer</div>
+          </div>
+          <span class="task-phase" style="background:var(--orange-light);color:var(--orange)">P2</span>
+        </div>
+        <div class="task-item">
+          <div class="task-check"></div>
+          <div>
+            <div class="task-title">APEX Governance Dashboard v1 launch</div>
+            <div class="task-meta">Week 15 · Full-stack + Platform</div>
+          </div>
+          <span class="task-phase" style="background:var(--orange-light);color:var(--orange)">P2</span>
+        </div>
+        <div class="task-item">
+          <div class="task-check"></div>
+          <div>
+            <div class="task-title">Mainframe COBOL analysis pipeline</div>
+            <div class="task-meta">Week 17 · High ROI · 8 dev-days</div>
+          </div>
+          <span class="task-phase" style="background:#E2E8F0;color:#4A5568">P3</span>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</main>
+
+</body>
+</html>

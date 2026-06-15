@@ -1,0 +1,540 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>APEX — Adoption Guide & Onboarding</title>
+<style>
+  :root {
+    --primary: #6B4FBB;
+    --primary-light: #EDE9F7;
+    --primary-dark: #4A3280;
+    --green: #2D7D46;
+    --green-light: #E8F5E9;
+    --orange: #C05621;
+    --orange-light: #FFF3E0;
+    --blue: #1565C0;
+    --blue-light: #E3F2FD;
+    --bg: #F8F9FA;
+    --surface: #FFFFFF;
+    --border: #E2E8F0;
+    --text: #1A202C;
+    --text-muted: #718096;
+    --sidebar-w: 240px;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: var(--bg); color: var(--text); font-size: 14px; }
+
+  /* Hero */
+  .hero { background: linear-gradient(135deg, #2D1B69 0%, #4A3280 50%, #6B4FBB 100%); color: #fff; padding: 48px 60px; }
+  .hero-tag { display: inline-flex; align-items: center; gap: 6px; background: rgba(255,255,255,0.15); font-size: 11px; font-weight: 700; padding: 4px 12px; border-radius: 20px; margin-bottom: 16px; letter-spacing: 0.5px; }
+  .hero h1 { font-size: 32px; font-weight: 800; margin-bottom: 10px; }
+  .hero p { font-size: 15px; color: rgba(255,255,255,0.75); max-width: 600px; line-height: 1.6; margin-bottom: 24px; }
+  .hero-btns { display: flex; gap: 12px; }
+  .btn { padding: 9px 20px; border-radius: 8px; font-size: 13px; font-weight: 600; cursor: pointer; border: none; transition: all 0.15s; }
+  .btn-white { background: #fff; color: var(--primary); }
+  .btn-ghost { background: rgba(255,255,255,0.15); color: #fff; border: 1.5px solid rgba(255,255,255,0.3); }
+  .btn-primary { background: var(--primary); color: #fff; }
+  .btn-primary:hover { background: var(--primary-dark); }
+  .btn-outline { background: transparent; border: 1.5px solid var(--primary); color: var(--primary); }
+
+  /* Persona picker */
+  .persona-section { padding: 40px 60px; background: var(--surface); border-bottom: 1px solid var(--border); }
+  .section-label { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.8px; color: var(--text-muted); margin-bottom: 12px; }
+  .section-title { font-size: 20px; font-weight: 800; margin-bottom: 6px; }
+  .section-sub { font-size: 13px; color: var(--text-muted); margin-bottom: 24px; }
+  .persona-tabs { display: flex; gap: 10px; flex-wrap: wrap; }
+  .persona-tab { display: flex; align-items: center; gap: 8px; padding: 10px 18px; border-radius: 30px; cursor: pointer; border: 2px solid var(--border); font-size: 13px; font-weight: 600; background: var(--bg); transition: all 0.15s; }
+  .persona-tab:hover { border-color: var(--primary); }
+  .persona-tab.active { border-color: var(--primary); background: var(--primary-light); color: var(--primary); }
+  .persona-emoji { font-size: 18px; }
+
+  /* Steps section */
+  .steps-section { padding: 40px 60px; }
+  .steps-header { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 32px; }
+  .persona-context { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 16px 20px; max-width: 340px; }
+  .context-label { font-size: 11px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 6px; }
+  .context-tools { display: flex; gap: 6px; flex-wrap: wrap; }
+  .context-tool { font-size: 11px; font-weight: 600; padding: 3px 10px; border-radius: 10px; }
+
+  .steps-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; margin-bottom: 40px; }
+  .step-card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 20px; position: relative; }
+  .step-card.highlight { border-color: var(--primary); box-shadow: 0 4px 16px rgba(107,79,187,0.12); }
+  .step-num { width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 800; color: #fff; margin-bottom: 12px; }
+  .step-title { font-size: 14px; font-weight: 700; margin-bottom: 6px; }
+  .step-desc { font-size: 12px; color: var(--text-muted); line-height: 1.6; margin-bottom: 12px; }
+  .step-action { font-size: 12px; font-weight: 600; color: var(--primary); cursor: pointer; }
+  .step-time { position: absolute; top: 16px; right: 16px; font-size: 10px; font-weight: 700; color: var(--text-muted); background: var(--bg); padding: 2px 8px; border-radius: 8px; }
+  .code-block { background: #1A202C; color: #E2E8F0; font-family: 'Courier New', monospace; font-size: 12px; padding: 12px 14px; border-radius: 8px; margin-top: 10px; line-height: 1.7; }
+  .code-block .cmd { color: #68D391; }
+  .code-block .comment { color: #718096; }
+  .code-block .string { color: #F6AD55; }
+
+  /* Prompt library */
+  .prompt-section { padding: 40px 60px; background: var(--surface); border-top: 1px solid var(--border); }
+  .prompt-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; margin-top: 20px; }
+  .prompt-card { background: var(--bg); border: 1px solid var(--border); border-radius: 10px; padding: 16px; cursor: pointer; transition: all 0.15s; }
+  .prompt-card:hover { border-color: var(--primary); background: var(--primary-light); }
+  .prompt-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; }
+  .prompt-persona { font-size: 10px; font-weight: 700; padding: 2px 8px; border-radius: 8px; }
+  .prompt-copy { font-size: 11px; color: var(--primary); font-weight: 600; }
+  .prompt-title { font-size: 13px; font-weight: 700; margin-bottom: 6px; }
+  .prompt-preview { font-size: 11px; color: var(--text-muted); font-style: italic; line-height: 1.5; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
+
+  /* CLAUDE.md builder */
+  .builder-section { padding: 40px 60px; }
+  .builder-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
+  .form-group { margin-bottom: 14px; }
+  .form-label { font-size: 12px; font-weight: 700; margin-bottom: 5px; display: block; }
+  .form-input { width: 100%; padding: 9px 12px; border: 1.5px solid var(--border); border-radius: 8px; font-size: 13px; outline: none; transition: border 0.15s; font-family: inherit; }
+  .form-input:focus { border-color: var(--primary); }
+  select.form-input { background: var(--surface); }
+  .form-input[readonly] { background: var(--bg); color: var(--text-muted); cursor: default; }
+  .output-pane { background: #1A202C; color: #E2E8F0; font-family: 'Courier New', monospace; font-size: 12px; padding: 20px; border-radius: 10px; line-height: 1.8; height: 100%; min-height: 440px; overflow-y: auto; }
+  .out-comment { color: #718096; }
+  .out-key { color: #63B3ED; }
+  .out-val { color: #F6AD55; }
+  .out-list { color: #68D391; }
+
+  /* Rollout timeline */
+  .timeline-section { padding: 40px 60px; background: var(--surface); border-top: 1px solid var(--border); }
+  .timeline { display: flex; gap: 0; position: relative; }
+  .timeline::before { content: ''; position: absolute; top: 24px; left: 0; right: 0; height: 2px; background: var(--border); }
+  .tl-item { flex: 1; position: relative; text-align: center; }
+  .tl-dot { width: 48px; height: 48px; border-radius: 50%; margin: 0 auto 12px; display: flex; align-items: center; justify-content: center; font-size: 18px; position: relative; z-index: 1; border: 3px solid var(--surface); }
+  .tl-done { background: var(--green); }
+  .tl-active { background: var(--primary); animation: pulse 2s infinite; }
+  .tl-pending { background: var(--border); }
+  .tl-week { font-size: 11px; font-weight: 700; color: var(--text-muted); }
+  .tl-title { font-size: 13px; font-weight: 700; margin: 4px 0 2px; }
+  .tl-desc { font-size: 11px; color: var(--text-muted); }
+  @keyframes pulse { 0%,100%{box-shadow:0 0 0 0 rgba(107,79,187,0.3)} 50%{box-shadow:0 0 0 8px rgba(107,79,187,0)} }
+
+  /* Footer nav */
+  .footer-nav { background: var(--text); color: #fff; padding: 24px 60px; display: flex; align-items: center; justify-content: space-between; }
+  .footer-brand { font-size: 16px; font-weight: 800; }
+  .footer-links { display: flex; gap: 24px; }
+  .footer-link { font-size: 12px; color: #A0AEC0; cursor: pointer; }
+  .footer-link:hover { color: #fff; }
+</style>
+</head>
+<body>
+
+<!-- Hero -->
+<div class="hero">
+  <div class="hero-tag">✦ APEX Adoption Guide</div>
+  <h1>Get Started with AI-Augmented SDLC</h1>
+  <p>APEX brings Claude Code and GitHub Copilot into your existing workflow — without changing how you work. Pick your role and follow the 20-minute quick-start.</p>
+  <div class="hero-btns">
+    <button class="btn btn-white">Pick My Role →</button>
+    <button class="btn btn-ghost">Browse Prompt Library</button>
+  </div>
+</div>
+
+<!-- Persona picker -->
+<div class="persona-section">
+  <div class="section-label">Step 1 — Identify your role</div>
+  <div class="section-title">Who are you?</div>
+  <div class="section-sub">Select your persona to see the tailored quick-start guide, tools, and prompt library for your role.</div>
+  <div class="persona-tabs">
+    <div class="persona-tab active">
+      <span class="persona-emoji">👨‍💻</span> Developer
+    </div>
+    <div class="persona-tab">
+      <span class="persona-emoji">📋</span> Business Analyst
+    </div>
+    <div class="persona-tab">
+      <span class="persona-emoji">🧪</span> Tester / QA
+    </div>
+    <div class="persona-tab">
+      <span class="persona-emoji">🔄</span> Agile Coach
+    </div>
+    <div class="persona-tab">
+      <span class="persona-emoji">📈</span> Program Manager
+    </div>
+    <div class="persona-tab">
+      <span class="persona-emoji">👔</span> Stakeholder
+    </div>
+  </div>
+</div>
+
+<!-- Quick-start steps -->
+<div class="steps-section">
+  <div class="steps-header">
+    <div>
+      <div class="section-label">Step 2 — Quick start</div>
+      <div class="section-title">Developer Onboarding</div>
+      <div class="section-sub">Angular · Java · Spring Boot · Mainframe  ·  Estimated time: 20 minutes</div>
+    </div>
+    <div class="persona-context">
+      <div class="context-label">Your AI Tools</div>
+      <div class="context-tools">
+        <span class="context-tool" style="background:var(--primary-light);color:var(--primary)">Claude Code CLI</span>
+        <span class="context-tool" style="background:var(--green-light);color:var(--green)">GitHub Copilot</span>
+        <span class="context-tool" style="background:var(--blue-light);color:var(--blue)">IntelliJ / VS Code</span>
+      </div>
+      <div style="margin-top:10px;font-size:11px;color:var(--text-muted)">
+        ℹ️ You don't need to learn new tools. AI runs inside your existing IDE and terminal.
+      </div>
+    </div>
+  </div>
+
+  <div class="steps-grid">
+
+    <div class="step-card highlight">
+      <span class="step-time">5 min</span>
+      <div class="step-num" style="background:var(--primary)">1</div>
+      <div class="step-title">Install Claude Code CLI</div>
+      <div class="step-desc">One npm install. Works in any terminal — iTerm, VS Code integrated, IntelliJ terminal. Verify with claude --version.</div>
+      <div class="code-block">
+        <div><span class="cmd">$</span> npm install -g @anthropic-ai/claude-code</div>
+        <div><span class="cmd">$</span> claude --version</div>
+        <div><span class="comment"># Sign in with your Anthropic team account</span></div>
+        <div><span class="cmd">$</span> claude auth login</div>
+      </div>
+    </div>
+
+    <div class="step-card highlight">
+      <span class="step-time">5 min</span>
+      <div class="step-num" style="background:var(--primary)">2</div>
+      <div class="step-title">Open your repo &amp; explore</div>
+      <div class="step-desc">Navigate to your Spring Boot or Angular repo. Run claude to start. Your CLAUDE.md context file is already there — Claude knows your stack.</div>
+      <div class="code-block">
+        <div><span class="cmd">$</span> cd payments-service</div>
+        <div><span class="cmd">$</span> claude</div>
+        <div><span class="comment"># Try your first prompt:</span></div>
+        <div><span class="string">"Explain this codebase architecture"</span></div>
+      </div>
+    </div>
+
+    <div class="step-card highlight">
+      <span class="step-time">5 min</span>
+      <div class="step-num" style="background:var(--primary)">3</div>
+      <div class="step-title">Enable Copilot in IDE</div>
+      <div class="step-desc">Install the GitHub Copilot extension in IntelliJ IDEA or VS Code. Sign in with your GitHub account (your seat is pre-provisioned).</div>
+      <div class="code-block">
+        <div><span class="comment"># IntelliJ: Preferences → Plugins</span></div>
+        <div><span class="comment"># Search: "GitHub Copilot" → Install</span></div>
+        <div></div>
+        <div><span class="comment"># VS Code: Extensions (Ctrl+Shift+X)</span></div>
+        <div><span class="comment"># Search: "GitHub Copilot" → Install</span></div>
+      </div>
+    </div>
+
+    <div class="step-card">
+      <span class="step-time">3 min</span>
+      <div class="step-num" style="background:var(--green)">4</div>
+      <div class="step-title">Generate your first tests</div>
+      <div class="step-desc">Ask Claude Code to write JUnit 5 tests for any class. Review the output — accept, modify, or reject. Never commit without reading it.</div>
+      <div class="code-block">
+        <div><span class="string">"Generate JUnit 5 + Mockito tests for</span></div>
+        <div><span class="string"> all public methods in OrderService.</span></div>
+        <div><span class="string"> Use Testcontainers for DB calls."</span></div>
+      </div>
+    </div>
+
+    <div class="step-card">
+      <span class="step-time">2 min</span>
+      <div class="step-num" style="background:var(--green)">5</div>
+      <div class="step-title">Try Copilot inline</div>
+      <div class="step-desc">Open any Java or Angular file. Start typing a method. Copilot will suggest completions — press Tab to accept, Esc to dismiss. That's it.</div>
+      <div class="code-block">
+        <div><span class="comment">// Type this in your Java service:</span></div>
+        <div><span class="cmd">public</span> List&lt;Order&gt; getOrdersBy</div>
+        <div><span class="comment">// Copilot completes → Tab to accept</span></div>
+      </div>
+    </div>
+
+    <div class="step-card">
+      <span class="step-time">∞</span>
+      <div class="step-num" style="background:var(--orange)">6</div>
+      <div class="step-title">Share &amp; learn daily</div>
+      <div class="step-desc">Post what worked (and what didn't) in #ai-sdlc on Slack. Browse the Prompt Library for battle-tested prompts from your peers. Tune your CLAUDE.md as you learn.</div>
+      <div style="margin-top:10px;background:var(--orange-light);border-radius:6px;padding:10px;font-size:11px;color:var(--orange);">
+        <strong>Golden rule:</strong> AI is a junior pair programmer. You're the senior. Always review before you commit.
+      </div>
+    </div>
+
+  </div>
+
+  <!-- COBOL special section -->
+  <div style="background:var(--surface);border:2px solid var(--orange);border-radius:12px;padding:24px;margin-bottom:40px;">
+    <div style="display:flex;align-items:center;gap:12px;margin-bottom:14px;">
+      <span style="font-size:24px;">🖥️</span>
+      <div>
+        <div style="font-size:14px;font-weight:700;">Mainframe / COBOL Track</div>
+        <div style="font-size:12px;color:var(--text-muted);">Special guidance for the mainframe modernisation pipeline</div>
+      </div>
+      <span style="margin-left:auto;font-size:11px;font-weight:700;background:var(--orange-light);color:var(--orange);padding:4px 12px;border-radius:10px;">High ROI</span>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px;">
+      <div style="background:var(--bg);border-radius:8px;padding:14px;">
+        <div style="font-size:12px;font-weight:700;margin-bottom:6px;">📖 Understand</div>
+        <div style="font-size:11px;color:var(--text-muted);line-height:1.6;">"Explain what PYRL001.cbl does in plain English and list all external program calls."</div>
+      </div>
+      <div style="background:var(--bg);border-radius:8px;padding:14px;">
+        <div style="font-size:12px;font-weight:700;margin-bottom:6px;">📄 Document</div>
+        <div style="font-size:11px;color:var(--text-muted);line-height:1.6;">"Generate runbook documentation for this COBOL batch job including input/output files and error codes."</div>
+      </div>
+      <div style="background:var(--bg);border-radius:8px;padding:14px;">
+        <div style="font-size:12px;font-weight:700;margin-bottom:6px;">🔄 Modernise</div>
+        <div style="font-size:11px;color:var(--text-muted);line-height:1.6;">"Identify the business logic in this COBOL program that could migrate to a Spring Batch job. Show the equivalent Java structure."</div>
+      </div>
+    </div>
+    <div style="margin-top:12px;font-size:11px;color:var(--orange);font-weight:600;">⚠ Governance rule: COBOL analysis only in Phase 3. No auto-deploy until Mainframe gate is active (Week 17).</div>
+  </div>
+</div>
+
+<!-- Prompt library -->
+<div class="prompt-section">
+  <div class="section-label">Step 3 — Use proven prompts</div>
+  <div class="section-title">Prompt Library</div>
+  <div class="section-sub">Copy-paste prompts refined by your team. Filter by persona or ceremony.</div>
+
+  <div style="display:flex;gap:8px;margin-bottom:4px;flex-wrap:wrap;">
+    <button class="btn btn-primary" style="font-size:11px;padding:5px 12px;border-radius:20px;">All</button>
+    <button class="btn btn-outline" style="font-size:11px;padding:5px 12px;border-radius:20px;">Developer</button>
+    <button class="btn btn-outline" style="font-size:11px;padding:5px 12px;border-radius:20px;">BA</button>
+    <button class="btn btn-outline" style="font-size:11px;padding:5px 12px;border-radius:20px;">QA</button>
+    <button class="btn btn-outline" style="font-size:11px;padding:5px 12px;border-radius:20px;">PM</button>
+    <button class="btn btn-outline" style="font-size:11px;padding:5px 12px;border-radius:20px;">COBOL</button>
+  </div>
+
+  <div class="prompt-grid">
+
+    <div class="prompt-card">
+      <div class="prompt-header">
+        <span class="prompt-persona" style="background:var(--green-light);color:var(--green)">Developer</span>
+        <span class="prompt-copy">Copy ↗</span>
+      </div>
+      <div class="prompt-title">JUnit 5 Test Generator</div>
+      <div class="prompt-preview">"Generate JUnit 5 + Mockito tests for all public methods in [ClassName]. Use Testcontainers for DB interactions. Cover happy path and top 3 error cases."</div>
+    </div>
+
+    <div class="prompt-card">
+      <div class="prompt-header">
+        <span class="prompt-persona" style="background:var(--green-light);color:var(--green)">Developer</span>
+        <span class="prompt-copy">Copy ↗</span>
+      </div>
+      <div class="prompt-title">Hexagonal Refactor</div>
+      <div class="prompt-preview">"Refactor this class to follow Hexagonal Architecture. Move business logic to domain layer, infrastructure concerns to adapters. Show before/after."</div>
+    </div>
+
+    <div class="prompt-card">
+      <div class="prompt-header">
+        <span class="prompt-persona" style="background:var(--orange-light);color:var(--orange)">COBOL</span>
+        <span class="prompt-copy">Copy ↗</span>
+      </div>
+      <div class="prompt-title">COBOL Program Explainer</div>
+      <div class="prompt-preview">"Explain what this COBOL program does in plain English. List: purpose, inputs, outputs, external calls, error handling. Then describe the Java equivalent structure."</div>
+    </div>
+
+    <div class="prompt-card">
+      <div class="prompt-header">
+        <span class="prompt-persona" style="background:var(--primary-light);color:var(--primary)">BA</span>
+        <span class="prompt-copy">Copy ↗</span>
+      </div>
+      <div class="prompt-title">Meeting → User Stories</div>
+      <div class="prompt-preview">"Convert these meeting notes into Jira user stories with Gherkin acceptance criteria. Format: As a [role], I want [feature] so that [benefit]. Given/When/Then AC."</div>
+    </div>
+
+    <div class="prompt-card">
+      <div class="prompt-header">
+        <span class="prompt-persona" style="background:var(--primary-light);color:var(--primary)">BA</span>
+        <span class="prompt-copy">Copy ↗</span>
+      </div>
+      <div class="prompt-title">Requirements Gap Finder</div>
+      <div class="prompt-preview">"Compare this BRD with these Jira stories and identify: missing requirements, ambiguous acceptance criteria, conflicting constraints."</div>
+    </div>
+
+    <div class="prompt-card">
+      <div class="prompt-header">
+        <span class="prompt-persona" style="background:var(--blue-light);color:var(--blue)">QA</span>
+        <span class="prompt-copy">Copy ↗</span>
+      </div>
+      <div class="prompt-title">AC → Cypress Tests</div>
+      <div class="prompt-preview">"Write Cypress E2E tests for these acceptance criteria. Use Page Object Model pattern. Include: happy path, error states, and boundary conditions."</div>
+    </div>
+
+    <div class="prompt-card">
+      <div class="prompt-header">
+        <span class="prompt-persona" style="background:var(--blue-light);color:var(--blue)">QA</span>
+        <span class="prompt-copy">Copy ↗</span>
+      </div>
+      <div class="prompt-title">API Test Collection</div>
+      <div class="prompt-preview">"Given this OpenAPI 3.0 spec, generate a Postman collection with: environment variables, happy path requests, 4xx/5xx error cases, and auth token handling."</div>
+    </div>
+
+    <div class="prompt-card">
+      <div class="prompt-header">
+        <span class="prompt-persona" style="background:#EDF2F7;color:#4A5568">PM</span>
+        <span class="prompt-copy">Copy ↗</span>
+      </div>
+      <div class="prompt-title">Sprint Exec Summary</div>
+      <div class="prompt-preview">"Summarise this sprint for a non-technical executive. 3 paragraphs: what was delivered, risks/blockers encountered, and priorities for next sprint."</div>
+    </div>
+
+    <div class="prompt-card">
+      <div class="prompt-header">
+        <span class="prompt-persona" style="background:#EDF2F7;color:#4A5568">All</span>
+        <span class="prompt-copy">Copy ↗</span>
+      </div>
+      <div class="prompt-title">AI Output Verifier</div>
+      <div class="prompt-preview">"Review your previous output. Flag: anything you're not confident about, assumptions made, and what a human should double-check before using this."</div>
+    </div>
+
+  </div>
+</div>
+
+<!-- CLAUDE.md builder -->
+<div class="builder-section">
+  <div class="section-label">Step 4 — Configure for your repo</div>
+  <div class="section-title">CLAUDE.md Builder</div>
+  <div class="section-sub">Fill in your repo details. A CLAUDE.md context file is generated instantly — drop it in your repo root.</div>
+
+  <div class="builder-grid">
+    <div>
+      <div class="form-group">
+        <label class="form-label">Project Name</label>
+        <input class="form-input" type="text" value="payments-service" />
+      </div>
+      <div class="form-group">
+        <label class="form-label">Stack Type</label>
+        <select class="form-input">
+          <option selected>Spring Boot (Java)</option>
+          <option>Angular SPA</option>
+          <option>COBOL Mainframe</option>
+          <option>Shared Library</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Architecture Pattern</label>
+        <select class="form-input">
+          <option selected>Hexagonal / Clean Architecture</option>
+          <option>Layered (MVC)</option>
+          <option>Event-driven / CQRS</option>
+          <option>Microservice</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Java Version</label>
+        <input class="form-input" type="text" value="21" />
+      </div>
+      <div class="form-group">
+        <label class="form-label">Test Framework</label>
+        <input class="form-input" type="text" value="JUnit 5, Mockito, Testcontainers" />
+      </div>
+      <div class="form-group">
+        <label class="form-label">Forbidden Patterns</label>
+        <input class="form-input" type="text" value="@Autowired on fields, raw SQL, @Data on entities" />
+      </div>
+      <div class="form-group">
+        <label class="form-label">Mainframe Integration?</label>
+        <select class="form-input">
+          <option>None</option>
+          <option selected>Yes — IBM MQ</option>
+          <option>Yes — REST Gateway</option>
+          <option>Yes — CICS</option>
+        </select>
+      </div>
+      <button class="btn btn-primary" style="width:100%;margin-top:6px;">Generate CLAUDE.md →</button>
+    </div>
+
+    <div>
+      <div style="font-size:12px;font-weight:700;margin-bottom:8px;color:var(--text-muted);">GENERATED OUTPUT — DROP INTO REPO ROOT</div>
+      <div class="output-pane">
+        <div><span class="out-comment"># payments-service — Claude Code Context</span></div>
+        <div><span class="out-comment"># Auto-generated by APEX Builder · Jun 2026</span></div>
+        <div>&nbsp;</div>
+        <div><span class="out-key">## Architecture</span></div>
+        <div>- Pattern: <span class="out-val">Hexagonal / Clean Architecture</span></div>
+        <div>- Framework: <span class="out-val">Spring Boot 3.x, Java 21</span></div>
+        <div>- Build: <span class="out-val">Maven</span></div>
+        <div>- Package: <span class="out-val">.domain / .application / .infrastructure / .web</span></div>
+        <div>&nbsp;</div>
+        <div><span class="out-key">## Conventions</span></div>
+        <div>- Naming: <span class="out-val">camelCase services, PascalCase DTOs</span></div>
+        <div>- Test: <span class="out-val">JUnit 5, Mockito, Testcontainers</span></div>
+        <div>- API: <span class="out-val">REST, OpenAPI 3.0, versioned /api/v{n}/</span></div>
+        <div>&nbsp;</div>
+        <div><span class="out-key">## Constraints (Do NOT violate)</span></div>
+        <div><span class="out-list">- No @Autowired on fields</span></div>
+        <div><span class="out-list">- No raw SQL (use JPA / QueryDSL)</span></div>
+        <div><span class="out-list">- No @Data on JPA entities</span></div>
+        <div><span class="out-list">- No hardcoded credentials or IPs</span></div>
+        <div><span class="out-list">- All controllers must have @Operation</span></div>
+        <div>&nbsp;</div>
+        <div><span class="out-key">## Mainframe Integration</span></div>
+        <div>- Integration: <span class="out-val">IBM MQ</span></div>
+        <div>- COBOL programs: <span class="out-val">[list key programs]</span></div>
+        <div>- Note: <span class="out-val">Analysis only — no auto-deploy to MF</span></div>
+        <div>&nbsp;</div>
+        <div><span class="out-key">## PRs must include</span></div>
+        <div><span class="out-list">- Unit tests (min 80% line coverage delta)</span></div>
+        <div><span class="out-list">- Javadoc on public methods</span></div>
+        <div><span class="out-list">- DB migration script if schema changed</span></div>
+        <div><span class="out-list">- OpenAPI spec update if contract changed</span></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Rollout timeline -->
+<div class="timeline-section">
+  <div class="section-label">Rollout Progress</div>
+  <div class="section-title" style="margin-bottom:32px;">Where are we?</div>
+
+  <div class="timeline">
+    <div class="tl-item">
+      <div class="tl-dot tl-done">✓</div>
+      <div class="tl-week">Weeks 1–2</div>
+      <div class="tl-title">Foundation</div>
+      <div class="tl-desc">Tools installed<br>Baseline measured</div>
+    </div>
+    <div class="tl-item">
+      <div class="tl-dot tl-done">✓</div>
+      <div class="tl-week">Weeks 3–6</div>
+      <div class="tl-title">Dev Pilot</div>
+      <div class="tl-desc">Claude Code + Copilot<br>1 squad active</div>
+    </div>
+    <div class="tl-item">
+      <div class="tl-dot tl-active">●</div>
+      <div class="tl-week">Weeks 7–10</div>
+      <div class="tl-title">BA / QA / PM</div>
+      <div class="tl-desc">Prompt library live<br>All personas onboard</div>
+    </div>
+    <div class="tl-item">
+      <div class="tl-dot tl-pending"></div>
+      <div class="tl-week">Weeks 11–14</div>
+      <div class="tl-title">CI/CD Automation</div>
+      <div class="tl-desc">GitHub Actions<br>Jira bridge live</div>
+    </div>
+    <div class="tl-item">
+      <div class="tl-dot tl-pending"></div>
+      <div class="tl-week">Weeks 15–17</div>
+      <div class="tl-title">Govern &amp; Scale</div>
+      <div class="tl-desc">All squads live<br>Governance active</div>
+    </div>
+    <div class="tl-item">
+      <div class="tl-dot tl-pending"></div>
+      <div class="tl-week">Weeks 17–20</div>
+      <div class="tl-title">Mainframe Track</div>
+      <div class="tl-desc">COBOL pipeline<br>Modernisation starts</div>
+    </div>
+  </div>
+</div>
+
+<!-- Footer -->
+<div class="footer-nav">
+  <div class="footer-brand">APEX · AI-Powered Engineering eXperience</div>
+  <div class="footer-links">
+    <span class="footer-link">Governance Policy</span>
+    <span class="footer-link">Prompt Library</span>
+    <span class="footer-link">CLAUDE.md Builder</span>
+    <span class="footer-link">#ai-sdlc on Slack</span>
+    <span class="footer-link">AI Review Board</span>
+  </div>
+</div>
+
+</body>
+</html>
