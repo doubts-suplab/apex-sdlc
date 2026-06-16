@@ -1,14 +1,7 @@
 name: Refresh Portal Data
 
 on:
-  schedule:
-    - cron: "0 */2 * * *"
   workflow_dispatch:
-  push:
-    branches:
-      - main
-    paths:
-      - "scripts/fetch_portal_data.py"
 
 permissions:
   contents: write
