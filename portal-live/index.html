@@ -1,0 +1,609 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>APEX SDLC — Live Dashboard</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #0f1117;
+      --surface: #1a1d27;
+      --surface2: #222535;
+      --border: #2e3148;
+      --text: #e2e4ef;
+      --text-muted: #7b7f9e;
+      --accent: #4f6ef7;
+      --green: #22c55e;
+      --amber: #f59e0b;
+      --red: #ef4444;
+      --grey: #6b7280;
+      --nav-h: 56px;
+      --sidebar-w: 200px;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      font-size: 14px;
+      line-height: 1.5;
+      min-height: 100vh;
+    }
+
+    /* ── Nav ── */
+    .nav {
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      height: var(--nav-h);
+      background: #111320;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      padding: 0 20px;
+      gap: 12px;
+      z-index: 100;
+    }
+    .nav-logo {
+      font-size: 17px;
+      font-weight: 700;
+      letter-spacing: 0.5px;
+      color: var(--accent);
+    }
+    .nav-label {
+      font-size: 12px;
+      color: var(--text-muted);
+      border-left: 1px solid var(--border);
+      padding-left: 12px;
+    }
+    .nav-spacer { flex: 1; }
+    .nav-badge {
+      font-size: 11px;
+      padding: 3px 10px;
+      border-radius: 20px;
+      font-weight: 500;
+      white-space: nowrap;
+    }
+    .nav-badge.fresh  { background: #14532d; color: #86efac; border: 1px solid #166534; }
+    .nav-badge.stale  { background: #451a03; color: #fcd34d; border: 1px solid #78350f; }
+    .nav-badge.nodata { background: #1f2937; color: #9ca3af; border: 1px solid #374151; }
+
+    /* ── Layout ── */
+    .layout {
+      display: flex;
+      padding-top: var(--nav-h);
+      min-height: 100vh;
+    }
+
+    /* ── Sidebar ── */
+    .sidebar {
+      width: var(--sidebar-w);
+      min-width: var(--sidebar-w);
+      background: var(--surface);
+      border-right: 1px solid var(--border);
+      padding: 24px 0;
+      position: fixed;
+      top: var(--nav-h);
+      bottom: 0;
+      overflow-y: auto;
+    }
+    .sidebar-section {
+      font-size: 10px;
+      font-weight: 600;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      padding: 0 20px 8px;
+    }
+    .sidebar a {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 9px 20px;
+      color: var(--text-muted);
+      text-decoration: none;
+      font-size: 13px;
+      border-left: 3px solid transparent;
+      transition: color 0.15s, border-color 0.15s, background 0.15s;
+    }
+    .sidebar a:hover, .sidebar a.active {
+      color: var(--text);
+      background: var(--surface2);
+    }
+    .sidebar a.active {
+      border-left-color: var(--accent);
+      color: #a5b4fc;
+    }
+    .sidebar-icon { font-size: 15px; }
+
+    /* ── Main content ── */
+    .main {
+      margin-left: var(--sidebar-w);
+      flex: 1;
+      padding: 28px 32px;
+      max-width: 1100px;
+    }
+
+    /* ── Page title ── */
+    .page-title {
+      font-size: 22px;
+      font-weight: 700;
+      margin-bottom: 4px;
+    }
+    .page-sub {
+      color: var(--text-muted);
+      font-size: 13px;
+      margin-bottom: 28px;
+    }
+
+    /* ── Stat cards ── */
+    .stat-row {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 16px;
+      margin-bottom: 28px;
+    }
+    .stat-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 20px 22px;
+    }
+    .stat-card-label {
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.8px;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      margin-bottom: 12px;
+    }
+    .stat-card-value {
+      font-size: 26px;
+      font-weight: 700;
+      line-height: 1;
+      margin-bottom: 8px;
+    }
+    .stat-card-sub {
+      font-size: 12px;
+      color: var(--text-muted);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      flex-wrap: wrap;
+    }
+    .pct-badge {
+      background: #1e3a5f;
+      color: #93c5fd;
+      font-size: 11px;
+      font-weight: 600;
+      padding: 2px 8px;
+      border-radius: 12px;
+      border: 1px solid #2563eb44;
+    }
+    .check-green { color: var(--green); }
+    .check-red   { color: var(--red); }
+
+    /* ── Section headers ── */
+    .section-header {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--text);
+      margin-bottom: 14px;
+      padding-bottom: 8px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    /* ── PR Table ── */
+    .table-wrap {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      overflow: hidden;
+      margin-bottom: 28px;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+    thead tr {
+      background: var(--surface2);
+    }
+    th {
+      text-align: left;
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.7px;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      padding: 10px 14px;
+      white-space: nowrap;
+    }
+    td {
+      padding: 10px 14px;
+      border-top: 1px solid var(--border);
+      vertical-align: middle;
+    }
+    tr:hover td { background: #1e2133; }
+    .pr-num { color: var(--text-muted); font-size: 12px; }
+    .pr-title { max-width: 280px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .pr-title a { color: var(--text); text-decoration: none; }
+    .pr-title a:hover { color: #a5b4fc; }
+    .badge-ai {
+      display: inline-block;
+      background: #14532d;
+      color: #86efac;
+      border: 1px solid #166534;
+      font-size: 10px;
+      font-weight: 700;
+      padding: 2px 7px;
+      border-radius: 4px;
+      letter-spacing: 0.5px;
+    }
+    .badge-sec {
+      display: inline-block;
+      background: #451a03;
+      color: #fcd34d;
+      font-size: 12px;
+      padding: 1px 6px;
+      border-radius: 4px;
+    }
+    .dash { color: var(--border); }
+    .state-open   { color: var(--green); font-size: 12px; }
+    .state-closed { color: var(--grey);  font-size: 12px; }
+    .state-merged { color: #a78bfa;      font-size: 12px; }
+    .pr-date { color: var(--text-muted); font-size: 12px; white-space: nowrap; }
+
+    /* ── Adoption bar ── */
+    .adoption-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 20px 22px;
+      margin-bottom: 28px;
+    }
+    .adoption-label {
+      font-size: 13px;
+      color: var(--text-muted);
+      margin-bottom: 10px;
+    }
+    .adoption-bar-track {
+      background: var(--surface2);
+      border-radius: 6px;
+      height: 18px;
+      overflow: hidden;
+      margin-bottom: 8px;
+      border: 1px solid var(--border);
+    }
+    .adoption-bar-fill {
+      height: 100%;
+      background: linear-gradient(90deg, #2563eb, #4f6ef7);
+      border-radius: 6px;
+      transition: width 0.6s ease;
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      padding-right: 8px;
+    }
+    .adoption-bar-fill-text {
+      font-size: 10px;
+      font-weight: 700;
+      color: #fff;
+      white-space: nowrap;
+    }
+    .adoption-summary {
+      font-size: 12px;
+      color: var(--text-muted);
+    }
+
+    /* ── Placeholder / fallback ── */
+    .placeholder {
+      background: var(--surface);
+      border: 1px dashed var(--border);
+      border-radius: 10px;
+      padding: 40px 32px;
+      text-align: center;
+    }
+    .placeholder-icon { font-size: 32px; margin-bottom: 12px; }
+    .placeholder-title { font-size: 16px; font-weight: 600; margin-bottom: 8px; }
+    .placeholder-sub { font-size: 13px; color: var(--text-muted); max-width: 500px; margin: 0 auto; line-height: 1.7; }
+    .placeholder-sub code {
+      background: var(--surface2);
+      padding: 1px 6px;
+      border-radius: 4px;
+      font-size: 12px;
+      border: 1px solid var(--border);
+    }
+
+    @media (max-width: 768px) {
+      .stat-row { grid-template-columns: 1fr; }
+      .sidebar { display: none; }
+      .main { margin-left: 0; padding: 20px 16px; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ── Navigation bar ── -->
+<nav class="nav">
+  <span class="nav-logo">APEX SDLC</span>
+  <span class="nav-label">Live Dashboard</span>
+  <span class="nav-spacer"></span>
+  <span class="nav-badge nodata" id="data-age-badge">No data loaded</span>
+</nav>
+
+<!-- ── Layout ── -->
+<div class="layout">
+
+  <!-- ── Sidebar ── -->
+  <aside class="sidebar">
+    <div class="sidebar-section">Navigation</div>
+    <a href="index.html" class="active"><span class="sidebar-icon">&#9679;</span> Dashboard</a>
+    <a href="governance.html"><span class="sidebar-icon">&#9632;</span> Governance</a>
+  </aside>
+
+  <!-- ── Main ── -->
+  <main class="main">
+
+    <div class="page-title">Live Dashboard</div>
+    <div class="page-sub" id="last-updated">Loading data&hellip;</div>
+
+    <!-- ── Fallback shown when data cannot be loaded ── -->
+    <div class="placeholder" id="placeholder" style="display:none;">
+      <div class="placeholder-icon">&#128268;</div>
+      <div class="placeholder-title">Connecting to live data&hellip;</div>
+      <div class="placeholder-sub">
+        Could not load <code>data/portal-data.json</code>. This file is generated by the
+        <code>portal-data-refresh</code> GitHub Actions workflow.<br /><br />
+        To connect live data, set the following repository secrets:<br />
+        <code>PORTAL_GITHUB_REPO</code>, <code>JIRA_BASE_URL</code>,
+        <code>JIRA_EMAIL</code>, <code>JIRA_API_TOKEN</code>, <code>JIRA_BOARD_ID</code>
+        — then trigger the workflow manually via Actions &rarr; &ldquo;Refresh Portal Data&rdquo;.
+      </div>
+    </div>
+
+    <!-- ── Dashboard content (hidden until data loads) ── -->
+    <div id="dashboard" style="display:none;">
+
+      <!-- Section 1: Stat cards -->
+      <div class="stat-row">
+
+        <div class="stat-card">
+          <div class="stat-card-label">AI-Assisted PRs</div>
+          <div class="stat-card-value" id="stat-ai-value">—</div>
+          <div class="stat-card-sub">
+            <span id="stat-ai-pct-badge" class="pct-badge">—%</span>
+            <span id="stat-ai-sub">of merged PRs this period</span>
+          </div>
+        </div>
+
+        <div class="stat-card" id="stat-sprint-card">
+          <div class="stat-card-label">Sprint Progress</div>
+          <div class="stat-card-value" id="stat-sprint-value">—</div>
+          <div class="stat-card-sub" id="stat-sprint-sub">Sprint data not connected</div>
+        </div>
+
+        <div class="stat-card">
+          <div class="stat-card-label">Data Sources</div>
+          <div class="stat-card-value" style="font-size:15px; line-height:1.8;" id="stat-sources-value">—</div>
+          <div class="stat-card-sub" id="stat-sources-sub"></div>
+        </div>
+
+      </div>
+
+      <!-- Section 2: Recent PRs -->
+      <div class="section-header">&#128196; Recent Pull Requests</div>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Title</th>
+              <th>Author</th>
+              <th>AI</th>
+              <th>Security</th>
+              <th>Status</th>
+              <th>Date</th>
+            </tr>
+          </thead>
+          <tbody id="pr-table-body">
+            <tr><td colspan="7" style="text-align:center; color: var(--text-muted); padding: 20px;">Loading&hellip;</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Section 3: Adoption bar -->
+      <div class="section-header">&#128200; AI Adoption</div>
+      <div class="adoption-card">
+        <div class="adoption-label" id="adoption-label">AI-assisted PRs this period</div>
+        <div class="adoption-bar-track">
+          <div class="adoption-bar-fill" id="adoption-bar" style="width: 0%;">
+            <span class="adoption-bar-fill-text" id="adoption-bar-text"></span>
+          </div>
+        </div>
+        <div class="adoption-summary" id="adoption-summary"></div>
+      </div>
+
+    </div><!-- /#dashboard -->
+
+  </main>
+</div>
+
+<script>
+(function () {
+  "use strict";
+
+  // ── Helpers ──────────────────────────────────────────────────────────────
+
+  function fmtDate(iso) {
+    if (!iso) return "—";
+    try {
+      const d = new Date(iso);
+      return d.toLocaleDateString("en-US", {
+        month: "short", day: "numeric", year: "numeric",
+        hour: "2-digit", minute: "2-digit", timeZone: "UTC", timeZoneName: "short"
+      });
+    } catch (_) { return iso; }
+  }
+
+  function fmtShortDate(iso) {
+    if (!iso) return "—";
+    try {
+      const d = new Date(iso);
+      return d.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric", timeZone: "UTC" });
+    } catch (_) { return iso; }
+  }
+
+  function el(id) { return document.getElementById(id); }
+
+  function esc(str) {
+    const d = document.createElement("span");
+    d.textContent = str;
+    return d.innerHTML;
+  }
+
+  // ── Age badge ────────────────────────────────────────────────────────────
+
+  function setAgeBadge(generatedAt) {
+    const badge = el("data-age-badge");
+    if (!generatedAt) {
+      badge.textContent = "No data loaded";
+      badge.className = "nav-badge nodata";
+      return;
+    }
+    const ageMs = Date.now() - new Date(generatedAt).getTime();
+    const ageH  = ageMs / 3600000;
+    const label = "Data as of " + fmtDate(generatedAt);
+    badge.textContent = label;
+    if (ageH < 3) {
+      badge.className = "nav-badge fresh";
+    } else {
+      badge.className = "nav-badge stale";
+    }
+  }
+
+  // ── Render ───────────────────────────────────────────────────────────────
+
+  function render(data) {
+    const prs      = data.prs      || {};
+    const adoption = data.adoption || {};
+    const sprint   = data.sprint   || null;
+    const source   = data.source   || {};
+
+    // Last-updated line
+    el("last-updated").textContent = data.generated_at
+      ? "Last updated: " + fmtDate(data.generated_at)
+      : "Last updated: unknown";
+
+    setAgeBadge(data.generated_at);
+
+    // ── Stat: AI PRs
+    const aiAssisted = prs.ai_assisted || 0;
+    const total      = prs.total       || 0;
+    const aiPct      = prs.ai_pct      || 0;
+    el("stat-ai-value").textContent = aiAssisted + " / " + total;
+    el("stat-ai-pct-badge").textContent = aiPct + "%";
+
+    // ── Stat: Sprint
+    if (sprint) {
+      el("stat-sprint-value").textContent = (sprint.done_sp || 0) + " / " + (sprint.committed_sp || 0) + " SP";
+      el("stat-sprint-sub").innerHTML =
+        "<span>" + esc(sprint.name || "") + "</span>" +
+        " &nbsp;|&nbsp; " +
+        "<span>" + fmtShortDate(sprint.start) + " &ndash; " + fmtShortDate(sprint.end) + "</span>";
+    } else {
+      el("stat-sprint-value").style.fontSize = "14px";
+      el("stat-sprint-value").style.color = "var(--text-muted)";
+      el("stat-sprint-value").textContent = "Sprint data not connected";
+      el("stat-sprint-sub").textContent = "Configure Jira secrets to enable";
+    }
+
+    // ── Stat: Sources
+    const ghOk   = source.github_configured;
+    const jiraOk = source.jira_configured;
+    el("stat-sources-value").innerHTML =
+      "<span class='" + (ghOk   ? "check-green" : "check-red") + "'>&#10003;</span> GitHub" +
+      "&nbsp;&nbsp;" +
+      "<span class='" + (jiraOk ? "check-green" : "check-red") + "'>" + (jiraOk ? "&#10003;" : "&#10007;") + "</span> Jira";
+    el("stat-sources-sub").textContent = source.github_repo || "No repo configured";
+
+    // ── PR table
+    const recent = prs.recent || [];
+    const tbody  = el("pr-table-body");
+    if (recent.length === 0) {
+      tbody.innerHTML =
+        '<tr><td colspan="7" style="text-align:center; color: var(--text-muted); padding:20px;">No PR data available</td></tr>';
+    } else {
+      tbody.innerHTML = recent.map(function (pr) {
+        const aiCell  = pr.ai_assisted
+          ? '<span class="badge-ai">AI</span>'
+          : '<span class="dash">&mdash;</span>';
+        const secCell = pr.security_review
+          ? '<span class="badge-sec">&#9888;</span>'
+          : '<span class="dash">&mdash;</span>';
+
+        let stateClass = "state-open";
+        let stateLabel = pr.state || "open";
+        if (stateLabel === "closed")  stateClass = "state-closed";
+        if (stateLabel === "merged")  stateClass = "state-merged";
+
+        const titleCell = pr.url
+          ? '<a href="' + esc(pr.url) + '" target="_blank" rel="noopener">' + esc(pr.title || "") + "</a>"
+          : esc(pr.title || "");
+
+        return "<tr>" +
+          '<td class="pr-num">#' + (pr.number || "") + "</td>" +
+          '<td class="pr-title">' + titleCell + "</td>" +
+          "<td>" + esc(pr.author || "") + "</td>" +
+          "<td>" + aiCell  + "</td>" +
+          "<td>" + secCell + "</td>" +
+          '<td class="' + stateClass + '">' + stateLabel + "</td>" +
+          '<td class="pr-date">' + fmtShortDate(pr.created_at) + "</td>" +
+          "</tr>";
+      }).join("");
+    }
+
+    // ── Adoption bar
+    const pct = adoption.ai_pct || 0;
+    const barW = Math.min(Math.max(pct, 0), 100);
+    el("adoption-bar").style.width = barW + "%";
+    el("adoption-bar-text").textContent = barW > 10 ? pct + "%" : "";
+    el("adoption-label").textContent =
+      pct + "% of PRs AI-assisted this period";
+    el("adoption-summary").textContent =
+      (adoption.ai_assisted_prs || 0) + " AI-assisted out of " +
+      (adoption.total_prs || 0) + " total PRs";
+
+    // Show dashboard
+    el("placeholder").style.display = "none";
+    el("dashboard").style.display   = "block";
+  }
+
+  // ── Fetch & boot ─────────────────────────────────────────────────────────
+
+  function showPlaceholder() {
+    el("placeholder").style.display = "block";
+    el("dashboard").style.display   = "none";
+    el("last-updated").textContent  = "Could not load data";
+    setAgeBadge(null);
+  }
+
+  document.addEventListener("DOMContentLoaded", function () {
+    fetch("./data/portal-data.json?_=" + Date.now())
+      .then(function (resp) {
+        if (!resp.ok) throw new Error("HTTP " + resp.status);
+        return resp.json();
+      })
+      .then(render)
+      .catch(function (err) {
+        console.warn("Portal data load failed:", err);
+        showPlaceholder();
+      });
+  });
+}());
+</script>
+</body>
+</html>

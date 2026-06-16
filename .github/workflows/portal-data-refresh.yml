@@ -1,0 +1,50 @@
+name: Refresh Portal Data
+
+on:
+  schedule:
+    - cron: "0 */2 * * *"
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+    paths:
+      - "scripts/fetch_portal_data.py"
+
+permissions:
+  contents: write
+
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install dependencies
+        run: pip install requests
+
+      - name: Fetch portal data
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_REPO: ${{ secrets.PORTAL_GITHUB_REPO }}
+          JIRA_BASE_URL: ${{ secrets.JIRA_BASE_URL }}
+          JIRA_EMAIL: ${{ secrets.JIRA_EMAIL }}
+          JIRA_API_TOKEN: ${{ secrets.JIRA_API_TOKEN }}
+          JIRA_BOARD_ID: ${{ secrets.JIRA_BOARD_ID }}
+          OUTPUT_PATH: portal-live/data/portal-data.json
+        run: python scripts/fetch_portal_data.py
+
+      - name: Commit and push updated data
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add portal-live/data/portal-data.json
+          git diff --cached --quiet && echo "no changes" || git commit -m "chore: refresh portal data [skip ci]" && git push origin HEAD
