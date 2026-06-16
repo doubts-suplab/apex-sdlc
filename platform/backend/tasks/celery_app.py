@@ -15,7 +15,9 @@ celery_app = Celery(
     "apex_platform",
     broker=_redis_url,
     backend=_redis_url,
-    include=[],  # task modules will be added here as Phase 2+ work progresses
+    include=[
+        "tasks.refresh_tasks",  # GitHub / Jira / Rally periodic refresh tasks
+    ],
 )
 
 celery_app.conf.update(
@@ -27,8 +29,12 @@ celery_app.conf.update(
     task_track_started=True,
     task_acks_late=True,
     worker_prefetch_multiplier=1,
-    # Beat schedule placeholder — tasks will be registered in future phases
-    beat_schedule={},
+    beat_schedule={
+        "refresh-all-projects": {
+            "task": "tasks.refresh_all_projects",
+            "schedule": 30 * 60,  # every 30 minutes (seconds)
+        },
+    },
 )
 
 logger.info("celery.configured", broker=_redis_url)
