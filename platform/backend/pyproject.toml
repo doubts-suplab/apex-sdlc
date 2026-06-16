@@ -1,13 +1,13 @@
 [build-system]
-requires = ["setuptools>=70.0", "wheel"]
-build-backend = "setuptools.backends.legacy:build"
+requires = ["setuptools>=68.0", "wheel"]
+build-backend = "setuptools.build_meta"
 
 [project]
 name = "apex-platform-backend"
 version = "1.0.0"
 description = "APEX SDLC Platform — Phase 1 Backend"
 readme = "README.md"
-requires-python = ">=3.12"
+requires-python = ">=3.11"
 dependencies = [
     "fastapi>=0.115.0",
     "uvicorn[standard]>=0.30.0",
@@ -41,7 +41,7 @@ include = ["app*", "tasks*"]
 
 [tool.ruff]
 line-length = 100
-target-version = "py312"
+target-version = "py311"
 
 [tool.ruff.lint]
 select = ["E", "F", "I", "UP", "B", "SIM", "ANN"]
@@ -52,7 +52,7 @@ quote-style = "double"
 indent-style = "space"
 
 [tool.mypy]
-python_version = "3.12"
+python_version = "3.11"
 strict = true
 ignore_missing_imports = true
 plugins = ["pydantic.mypy"]
