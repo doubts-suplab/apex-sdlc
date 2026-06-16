@@ -24,3 +24,4 @@ next-env.d.ts
 # Local env files (keep .env.example)
 platform/backend/.env
 platform/frontend/.env.local
+coverage.xml
