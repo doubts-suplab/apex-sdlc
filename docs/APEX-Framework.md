@@ -4,6 +4,20 @@
 
 ---
 
+> **Platform Evolution — June 2026**
+> APEX has grown beyond CLI/desktop augmentation into a full SDLC operating platform. The framework principles, governance model, and adoption strategy described in this document remain valid and are now enforced by the APEX Platform itself.
+>
+> **What's new:**
+> - **`platform/`** — FastAPI backend + Next.js 14 frontend + PostgreSQL + Redis + Celery running as cloud-native containers (AWS ECS Fargate locally via Docker Compose)
+> - **Live integrations** — GitHub, Jira, Rally, and Confluence are wired as live data sources (Celery background refresh), not just webhook triggers
+> - **Flexible LLM layer** — Agents run on Anthropic, Ollama (local), Groq, or HuggingFace — switchable via `LLM_PROVIDER` env var with no code changes
+> - **Per-phase AI agents** — autonomous agents for each SDLC phase generate artifacts, post to Jira/Confluence, review PRs, and enforce phase gates
+> - **`portal-prototype/`** — the original static portal is retained as a reference; the live portal is `platform/frontend/`
+>
+> See [`ROADMAP.md`](../ROADMAP.md) for the full 5-phase build plan and [`platform/CLAUDE.md`](../platform/CLAUDE.md) for the platform architecture.
+
+---
+
 ## Table of Contents
 
 1. [Executive Summary](#1-executive-summary)

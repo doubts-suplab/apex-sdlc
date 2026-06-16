@@ -1,0 +1,191 @@
+# APEX SDLC Platform — eeik-bootstrap Project Manifest
+# Generated for: /bootstrap → /validate-manifest → /generate-repo workflow
+# See: https://github.com/suplab/eeik-bootstrap
+
+project:
+  name: APEX SDLC Platform
+  description: >
+    Enterprise AI-powered SDLC operating system. Embeds autonomous AI agents at every
+    delivery phase (Requirements → Governance) with full audit trails, PII protection,
+    org-level oversight, and multi-project lifecycle management.
+  type: enterprise-platform
+  domain: generic
+  team: apex-platform-team
+  version: "1.0.0"
+  repository: suplab/apex-sdlc
+  primary_path: platform/
+
+backend:
+  language: python
+  version: "3.12"
+  framework: fastapi
+  framework_version: "0.115+"
+  validation: pydantic-v2
+  database: postgresql
+  database_version: "16"
+  orm: sqlalchemy-async
+  orm_version: "2.x"
+  migrations: alembic
+  task_queue: celery
+  task_queue_version: "5.x"
+  message_broker: redis
+  message_broker_version: "7"
+  logging: structlog
+  testing:
+    framework: pytest
+    async: pytest-asyncio
+    http_client: httpx
+    fixtures: factory-boy
+    mocking: pytest-mock
+    coverage_min: 80
+
+frontend:
+  framework: react
+  meta_framework: nextjs
+  nextjs_version: "14"
+  router: app-router
+  language: typescript
+  typescript_strict: true
+  state_management: tanstack-query-v5
+  styling: tailwind-css
+  component_library: shadcn-ui
+  form_validation: zod
+  form_library: react-hook-form
+  testing:
+    framework: jest
+    component: testing-library-react
+    e2e: playwright
+
+cloud:
+  provider: aws
+  iac: cdk
+  iac_language: python
+  services:
+    - ecs-fargate          # backend + frontend containers
+    - rds-aurora-postgresql # primary database (16-compatible)
+    - elasticache-redis    # Celery broker + result backend
+    - s3                   # artifact versioned storage
+    - cloudwatch           # logs, metrics, dashboards
+    - secrets-manager      # GitHub/Jira/Confluence/Anthropic credentials
+    - api-gateway          # optional: if exposing public API
+  local_dev: docker-compose
+
+architecture:
+  style: modular-monolith
+  patterns:
+    - rest-api
+    - repository-pattern
+    - dependency-injection
+    - event-driven           # Celery tasks for agent jobs
+    - audit-log              # append-only audit trail
+    - pii-guard-middleware   # runs on all agent I/O
+
+ai_capabilities:
+  type: multi-agent
+  models:
+    - claude-opus-4-8        # primary agent model (best reasoning)
+  sdk: anthropic-python
+  features:
+    - streaming              # SSE progress to frontend
+    - tool-use               # agents use GitHub/Jira/Confluence tools
+    - prompt-caching         # reduce cost on large context (CLAUDE.md templates)
+  agent_framework: custom    # BaseAgent + Celery, not LangGraph/CrewAI
+  sdlc_agents:
+    - requirements
+    - architecture
+    - development
+    - testing
+    - cicd
+    - docs
+    - governance
+
+governance:
+  level: enterprise
+  pii_guard: true
+  audit_log: true
+  arb_required: true
+  compliance:
+    - ai-usage-policy          # from governance/policies/ai-usage-policy.md
+    - mainframe-gate-policy    # from governance/policies/mainframe-gate-policy.md
+  phase_gates: true
+  policy_enforcement: automated
+
+integrations:
+  - name: github
+    type: rest-api-v3
+    features: [prs, webhooks, commits, releases, file-write]
+  - name: jira
+    type: agile-rest-v1
+    features: [sprints, epics, stories, boards, webhooks]
+  - name: confluence
+    type: rest-api-v2
+    features: [page-create, page-update, space-list]
+  - name: anthropic
+    type: sdk
+    features: [messages, streaming, tool-use]
+
+capability_packs:
+  - core
+  - python
+  - react
+  - aws
+  - ai-engineering
+  - governance
+  - delivery
+  - containers
+
+standards:
+  - fastapi.md
+  - python.md
+  - react-standard.md
+  - aws.md
+  - sql.md
+  - testing.md
+  - api-standard.md
+  - security-baseline.md
+  - ai-governance.md
+
+recommended_agents:
+  # From eeik-bootstrap agent catalogue
+  - python-developer       # FastAPI routers, services, schemas, Celery tasks
+  - dba-advisor            # SQLAlchemy models, Alembic migrations, query optimization
+  - ai-engineer            # Claude API integration, agent implementations, prompt engineering
+  - react-developer        # Next.js pages, components, TanStack Query hooks
+  - aws-architect          # ECS, RDS, ElastiCache, CDK stack design
+  - cdk-terraform-helper   # CDK Python stacks
+  - ci-engineer            # GitHub Actions pipelines for backend + frontend
+  - containerisation-helper # Dockerfiles, docker-compose
+  - code-reviewer          # PR reviews before merge
+  - security-auditor       # OWASP checks, PII guard validation
+  - devsecops-engineer     # Audit middleware, secrets management
+  - architect              # API design, ADRs, system design decisions
+  - langraph-engineer      # If orchestration moves to LangGraph (future)
+
+delivery:
+  model: single-team
+  branching: conventional-commits
+  review_gates:
+    - code-review
+    - security-scan
+    - coverage-check
+  phases:
+    - id: 1
+      name: Foundation
+      weeks: "1-3"
+      milestone: "docker compose up; /api/v1/projects returns 200; frontend loads"
+    - id: 2
+      name: Integrations
+      weeks: "4-6"
+      milestone: "Live GitHub + Jira data visible in project detail view"
+    - id: 3
+      name: Agentic Flows
+      weeks: "7-10"
+      milestone: "Requirements agent generates Gherkin stories in Jira from UI trigger"
+    - id: 4
+      name: Artifact Management
+      weeks: "11-13"
+      milestone: "All 7 agents run; artifacts stored in S3; Confluence pages created"
+    - id: 5
+      name: Gates & Governance
+      weeks: "14-16"
+      milestone: "Phase gate blocks deploy; ARB workflow completes; CDK deploys to staging"

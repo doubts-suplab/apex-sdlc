@@ -324,6 +324,19 @@ footer a { color: var(--primary); text-decoration: none; }
   <!-- MAIN -->
   <main class="main-content">
 
+    <!-- § PLATFORM EVOLUTION NOTICE -->
+    <div style="background:#1e3a5f;border-left:4px solid #3b82f6;border-radius:8px;padding:1.25rem 1.5rem;margin-bottom:2rem;color:#e2e8f0;">
+      <div style="font-size:0.75rem;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:#60a5fa;margin-bottom:0.5rem;">Platform Evolution — June 2026</div>
+      <p style="margin:0 0 0.75rem;font-size:0.95rem;line-height:1.6;">APEX has grown beyond CLI/desktop augmentation into a full SDLC operating platform. The framework principles, governance model, and adoption strategy in this document remain valid and are now enforced by the platform itself.</p>
+      <ul style="margin:0;padding-left:1.25rem;font-size:0.9rem;line-height:1.8;color:#cbd5e1;">
+        <li><strong style="color:#93c5fd;">platform/</strong> — FastAPI + Next.js 14 + PostgreSQL + Redis + Celery (Docker Compose locally, ECS Fargate in cloud)</li>
+        <li><strong style="color:#93c5fd;">Live integrations</strong> — GitHub, Jira, Rally, Confluence wired as live data sources via Celery background refresh</li>
+        <li><strong style="color:#93c5fd;">Flexible LLM layer</strong> — Agents run on Anthropic, Ollama, Groq, or HuggingFace — swap via <code style="background:#0f2744;padding:1px 5px;border-radius:3px;">LLM_PROVIDER</code> env var</li>
+        <li><strong style="color:#93c5fd;">Per-phase AI agents</strong> — autonomous agents per SDLC phase generate artifacts, post to Jira/Confluence, review PRs, enforce gates</li>
+      </ul>
+      <div style="margin-top:0.75rem;font-size:0.85rem;color:#94a3b8;">See <code style="background:#0f2744;padding:1px 5px;border-radius:3px;">ROADMAP.md</code> for the 5-phase build plan · <code style="background:#0f2744;padding:1px 5px;border-radius:3px;">platform/CLAUDE.md</code> for the platform architecture.</div>
+    </div>
+
     <!-- § 1 EXECUTIVE SUMMARY -->
     <div id="section-1" class="section-anchor">
       <div class="section-num">Section 1</div>
