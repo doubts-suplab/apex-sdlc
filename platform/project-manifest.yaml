@@ -130,6 +130,7 @@ capability_packs:
   - react
   - aws
   - ai-engineering
+  - agent-harness
   - governance
   - delivery
   - containers
