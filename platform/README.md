@@ -42,6 +42,18 @@ To run only the backend stack (no frontend build):
 docker compose up postgres redis backend
 ```
 
+## Agent runtime (agent-harness)
+
+APEX's phase agents run on the generic, enterprise-grade **agent-harness** runtime
+([`doubts-suplab/agent-harness`](https://github.com/doubts-suplab/agent-harness)) rather than a hand-rolled
+agent loop. The harness owns agent-execution governance — the typed decision envelope, a centralized
+non-disableable **confidence gate** (`confidence < 0.8 → routed to a human`), a default-deny **tool
+registry**, audit, human review, observability, and safe-failure defaults. APEX supplies the agents
+(`backend/app/agents/`) and the infrastructure adapters; it does not re-implement the gate/registry/audit.
+
+The harness is declared as a backend dependency in `backend/pyproject.toml` and activated via the eeik
+`agent-harness` capability pack. See `backend/CLAUDE.md` → *Agent Implementation Pattern*.
+
 ## eeik-bootstrap usage
 
 This project is scaffolded and extended using [eeik-bootstrap](https://github.com/your-org/eeik-bootstrap). The `project-manifest.yaml` in this directory drives code generation.
@@ -59,6 +71,6 @@ eeik agent python-developer "implement the artifact versioning service"
 eeik agent dba-advisor "review alembic migration 0003_add_artifact_versions"
 ```
 
-Capability packs active for this project: `core`, `python`, `react`, `aws`, `ai-engineering`, `governance`, `delivery`, `containers`.
+Capability packs active for this project: `core`, `python`, `react`, `aws`, `ai-engineering`, `agent-harness`, `governance`, `delivery`, `containers`.
 
 Standards files that govern all generated code: `fastapi.md`, `python.md`, `react-standard.md`, `aws.md`, `sql.md`, `testing.md`, `api-standard.md`, `security-baseline.md`, `ai-governance.md`.

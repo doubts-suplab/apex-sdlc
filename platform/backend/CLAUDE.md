@@ -129,50 +129,47 @@ backend/
 
 ## Agent Implementation Pattern
 
-Each agent is a class implementing `BaseAgent`:
+APEX does **not** hand-roll agent execution. Phase agents run on the generic **agent-harness** runtime
+([`doubts-suplab/agent-harness`](https://github.com/doubts-suplab/agent-harness)), which owns the typed
+decision envelope, the centralized non-disableable **confidence gate**, the default-deny **tool registry**,
+audit, human review, observability, and safe-failure defaults. APEX supplies the *agents* and the
+*infrastructure adapters* — it does not re-implement the gate/registry/audit. See the harness protocol at
+`agent-harness/docs/spec/harness-protocol.md`.
+
+The bridge lives in `app/agents/`:
+
+- `context.py` — apex `AgentContext` / `AgentResult` and their mapping to the harness `AgentInput` /
+  `AgentOutput` (project → tenant, actor → user).
+- `adapters.py` — apex → harness port adapters (`StructlogAudit`, `StructlogHumanReview`,
+  `StructlogObservability`, `FlagKillSwitch`). Swap these for Postgres/queue adapters in production without
+  touching agents or the harness.
+- `base.py` — `PhaseAgent`, the base every phase agent extends. It satisfies the harness `Agent` protocol
+  (`name`, `authority_level`, `capabilities`, `run`) and proposes a `Decision` — it never sets
+  `auto_enforced`; the harness gate does.
+- `compliance.py` — `ComplianceOfficerAgent` (governance phase), the first agent on the harness.
+- `runtime.py` — `build_apex_harness(...)` wires the adapters; `run_agent(harness, agent, ctx)` maps
+  context → invoke → result.
 
 ```python
-# app/agents/base.py
-from dataclasses import dataclass, field
-from decimal import Decimal
-from uuid import UUID
-from typing import Any, Literal
-
-@dataclass
-class AgentContext:
-    project_id: UUID
-    phase: str                          # "requirements" | "architecture" | etc.
-    actor_id: str                       # user ID triggering the run
-    inputs: dict[str, Any]             # phase-specific context (brief, diff, etc.)
-    prompt_library: dict[str, str]     # loaded from prompts/{phase}/system.md
-    run_id: UUID                       # pre-created agent_run record ID
-
-@dataclass
-class TokenUsage:
-    input_tokens: int
-    output_tokens: int
-
-@dataclass
-class AgentResult:
-    run_id: UUID
-    status: Literal["completed", "failed"]
-    artifacts: list[dict]              # ArtifactCreate dicts
-    token_usage: TokenUsage
-    cost_usd: Decimal
-    error: str | None = None
-
-class BaseAgent:
-    async def run(self, context: AgentContext) -> AgentResult: ...
+# app/agents/base.py (excerpt)
+class PhaseAgent(ABC):
+    name: str
+    authority_level: AuthorityLevel        # OBSERVE < SUGGEST < ALERT < RATE_LIMIT < BLOCK
+    capabilities: frozenset[DecisionAction] # {ALLOW, BLOCK, ALERT, SUGGEST, DEFER} ⊆ authority
+    def run(self, request: AgentInput, tools: ToolInvoker) -> Decision: ...   # harness Agent protocol
+    def decide(self, ctx: AgentContext, tools: ToolInvoker) -> Decision: ...  # subclass implements
 ```
 
-Agent classes run as Celery tasks dispatched by `agent_service.py`:
+Agents are dispatched as Celery tasks; the task builds the harness and calls `run_agent(...)`. The Anthropic
+provider in `integrations/llm/` satisfies the harness `LlmPort` (identical `Message`/`ToolDefinition`/
+`ToolCall`/`CompletionResult` shape), so agents reach the model through the injected port — never a raw SDK.
 
 ```python
 # tasks/agent_tasks.py
 @celery_app.task(bind=True, max_retries=3)
 def run_agent_task(self, run_id: str, agent_type: str, context_dict: dict):
-    # Reconstruct AgentContext, instantiate agent class, call agent.run()
-    # On completion: store result, emit SSE completion event
+    # Build AgentContext, build_apex_harness(...), run_agent(harness, agent, ctx)
+    # The harness enforces gate/registry/audit; persist result, emit SSE completion event
 ```
 
 ## SSE Stream Pattern

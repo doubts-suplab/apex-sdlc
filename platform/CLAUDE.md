@@ -241,19 +241,28 @@ Use the correct eeik agent for each task category. Do not use a general-purpose 
 
 ## SDLC Phase Agent Specifications
 
-Each agent is a class in `backend/app/agents/{phase}.py` implementing `BaseAgent`:
+Phase agents run on the generic **agent-harness** runtime
+([`doubts-suplab/agent-harness`](https://github.com/doubts-suplab/agent-harness)) — APEX does not
+re-implement agent execution. Each agent extends `PhaseAgent` (`backend/app/agents/base.py`), which
+satisfies the harness `Agent` protocol; the harness owns the confidence gate, tool registry, audit, human
+review, and safe-failure defaults. An agent proposes a `Decision`; the harness decides whether it may
+auto-enforce. See `backend/CLAUDE.md` → *Agent Implementation Pattern* and the harness protocol spec.
 
 ```python
-class BaseAgent:
-    async def run(self, context: AgentContext) -> AgentResult: ...
+class PhaseAgent(ABC):                       # app/agents/base.py — satisfies the harness Agent protocol
+    name: str
+    authority_level: AuthorityLevel          # static capability ceiling
+    capabilities: frozenset[DecisionAction]  # actions it may emit
+    def decide(self, ctx: AgentContext, tools: ToolInvoker) -> Decision: ...
 ```
 
 ### Agent Invocation Flow
 
 1. Portal sends `POST /api/v1/projects/{id}/phases/{phase}/agents/run` with input payload
 2. API validates inputs, runs PII guard, creates `agent_run` record (status=pending)
-3. Celery task dispatched; agent class `run()` called with `AgentContext`
-4. Agent streams Claude API response; each chunk appended to `agent_run_messages`
+3. Celery task builds the harness (`build_apex_harness`) and calls `run_agent(harness, agent, ctx)`
+4. The **harness** invokes the agent: scope check → tool-registry-enforced execution → **confidence gate**
+   sets `auto_enforced` → routes low-confidence/DEFER decisions to human review → audit + observability
 5. On completion: artifact saved → S3 upload → `artifact_versions` record created → `audit_log` entry written
 6. Frontend reads SSE endpoint `GET /api/v1/agents/{run_id}/stream` for live progress
 
