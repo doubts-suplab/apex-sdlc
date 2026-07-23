@@ -50,6 +50,13 @@ As it has matured, APEX has grown from an augmentation *plan* into a runnable *p
 
 ## 3. How a project flows through APEX
 
+APEX is **onboarding-first and spec-driven**. A project is first **onboarded** — eeik's generators scaffold
+the repo, `CLAUDE.md`, capability packs, and standards, and APEX registers it — and from there a governed,
+**spec-driven spine** runs: each SDLC phase produces an artifact ("spec") that a human approves before the
+next phase proceeds (the generalisation of a spec-driven IDE's `requirements → design → tasks` chain to the
+seven APEX phases). See [`ROADMAP.md`](ROADMAP.md#product-vision--onboarding-first-spec-driven) for the
+vision and [`docs/progress.md`](docs/progress.md) for an honest built-vs-planned status.
+
 Every SDLC phase is owned by a persona and run by an AI agent on the governed harness. The agent
 **proposes** a decision; the harness **decides** whether it may auto-enforce. The single source of truth
 for this mapping is [`docs/personas.md`](docs/personas.md) (mirrored by
