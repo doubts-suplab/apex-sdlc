@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useParams } from "next/navigation";
-import { AlertCircle, GitBranch, Trello, Calendar, Plug } from "lucide-react";
+import { AlertCircle, GitBranch, Trello, Calendar, Plug, Route } from "lucide-react";
 import { useProject } from "@/lib/queries/projects";
 import { SDLCTimeline } from "@/components/projects/SDLCTimeline";
 import { LiveMetricsBar } from "@/components/projects/LiveMetricsBar";
@@ -201,14 +201,24 @@ export default function ProjectDetailPage() {
         </div>
       </div>
 
-      {/* Phase metrics & AI insights */}
-      <div className="rounded-lg border border-dashed border-slate-300 bg-slate-50 p-8 text-center">
-        <p className="text-sm font-medium text-slate-500">
-          Phase agent runs and artifact insights
-        </p>
-        <p className="text-xs text-slate-400 mt-1">
-          Requirements analysis, architecture decisions, test coverage, and
-          more will appear here as agents run.
+      {/* Phase agent runs & the governed journey */}
+      <div className="rounded-lg border bg-white p-6 shadow-sm">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div className="flex items-center gap-2 text-slate-700">
+            <Route className="h-4 w-4" />
+            <span className="text-sm font-semibold">Phase agent runs & artifacts</span>
+          </div>
+          <Link href="/journey">
+            <Button variant="outline" size="sm" className="gap-1.5">
+              <Route className="h-4 w-4" />
+              View reference journey
+            </Button>
+          </Link>
+        </div>
+        <p className="mt-2 text-xs text-slate-500">
+          Each SDLC phase is run by an AI agent on the governed agent-harness — the confidence gate
+          decides what auto-enforces and what routes to a human. See the worked reference journey for a
+          project walking all seven phases and producing real artifacts.
         </p>
       </div>
     </div>

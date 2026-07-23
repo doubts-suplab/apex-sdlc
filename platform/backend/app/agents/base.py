@@ -13,7 +13,8 @@ from __future__ import annotations
 import asyncio
 import concurrent.futures
 from abc import ABC, abstractmethod
-from typing import Any, Awaitable, TypeVar
+from collections.abc import Awaitable
+from typing import Any, TypeVar
 
 from agent_harness import AgentInput, AuthorityLevel, Decision, DecisionAction
 from agent_harness.core.agent import ToolInvoker
@@ -43,14 +44,39 @@ class PhaseAgent(ABC):
 
     def __init__(self, llm: LlmPort) -> None:
         self._llm = llm
+        self._artifacts: list[dict[str, Any]] = []
 
     # -- harness Agent protocol -----------------------------------------
     def run(self, request: AgentInput, tools: ToolInvoker) -> Decision:
+        # A harness invocation is one run: start from an empty artifact buffer so a reused instance
+        # never leaks a previous run's artifacts. The harness owns the Decision; artifacts ride
+        # alongside on the agent (the harness ``AgentOutput`` carries only the Decision).
+        self._artifacts = []
         return self.decide(context_from_input(request), tools)
 
     @abstractmethod
     def decide(self, ctx: AgentContext, tools: ToolInvoker) -> Decision:
         """Produce a Decision for this phase. MUST NOT set ``auto_enforced`` (the harness owns it)."""
+
+    # -- artifacts ------------------------------------------------------
+    def emit_artifact(
+        self,
+        *,
+        name: str,
+        title: str,
+        kind: str,
+        content: str,
+        fmt: str = "md",
+    ) -> None:
+        """Record an artifact this phase produced. Drained by the orchestrator after the run."""
+        self._artifacts.append(
+            {"name": name, "title": title, "kind": kind, "format": fmt, "content": content}
+        )
+
+    def drain_artifacts(self) -> list[dict[str, Any]]:
+        """Return the artifacts produced by the most recent run and clear the buffer."""
+        drained, self._artifacts = self._artifacts, []
+        return drained
 
     # -- helpers --------------------------------------------------------
     def complete(self, messages: list[Message], system: str | None = None) -> str:

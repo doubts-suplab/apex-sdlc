@@ -1,0 +1,7 @@
+graph LR
+  Client[Customer app] -->|POST /refunds| API[Refund API]
+  API --> Domain[Refund domain]
+  Domain -->|eligibility| Orders[(Orders read-model)]
+  Domain --> Outbox[(Outbox)]
+  Outbox -->|async| Ledger[Ledger service]
+  Domain --> Audit[(Audit log)]

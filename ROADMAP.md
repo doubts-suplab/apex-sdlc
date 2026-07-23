@@ -6,6 +6,14 @@ APEX is an enterprise AI-powered SDLC operating system that embeds autonomous AI
 
 Unlike traditional dashboards that merely report on work, APEX actively participates in the SDLC: generating Gherkin user stories, writing ADRs, reviewing PRs, producing test plans, publishing Confluence pages, and enforcing phase gates — all with full audit trails, PII protection, and org-level oversight.
 
+> **Reference-implementation status.** All seven phase agents are implemented and run on the generic
+> [agent-harness](https://github.com/doubts-suplab/agent-harness) — APEX does not re-implement agent
+> execution, the confidence gate, the tool registry, audit, human-review routing, or safe-failure
+> defaults. The [reference journey](examples/reference-project/README.md) demonstrates a project walking
+> all seven phases **offline** (no DB/keys), producing 17 real artifacts, exposed at
+> `GET /api/v1/journey/reference` and the `/journey` frontend page. Live integrations (GitHub/Jira/
+> Confluence), DB persistence, and the AWS deployment remain the production build-out described below.
+
 ---
 
 ## Architecture Overview

@@ -5,7 +5,7 @@ from typing import Any
 from fastapi import APIRouter
 from sqlalchemy import text
 
-from app.api.v1 import integrations, organisations, projects
+from app.api.v1 import agents, integrations, journey, organisations, projects
 from app.core.config import get_settings
 from app.core.logging import get_logger
 
@@ -17,6 +17,8 @@ api_router = APIRouter(prefix="/api/v1")
 api_router.include_router(organisations.router)
 api_router.include_router(projects.router)
 api_router.include_router(integrations.router)
+api_router.include_router(journey.router)
+api_router.include_router(agents.router)
 
 
 @api_router.get(

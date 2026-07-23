@@ -212,6 +212,7 @@ footer a { color: var(--primary); text-decoration: none; }
     <a href="adoption-guide.html">Adoption Guide</a>
     <a href="apex-framework.html">Framework</a>
     <a href="apex-governance.html" class="active">Governance</a>
+    <a href="reference-journey.html">Reference Journey</a>
     <a href="../portal/src/index.html">Portal</a>
   </div>
   <div class="nav-end">
@@ -283,6 +284,40 @@ footer a { color: var(--primary); text-decoration: none; }
       <li><strong>Least privilege by default.</strong> Capabilities expand only after each gate is explicitly passed and ARB-approved.</li>
       <li><strong>Graceful degradation.</strong> If any AI service is unavailable, the SDLC pipeline continues — AI steps skip with a warning, never block delivery.</li>
     </ul>
+
+    <h3>How these principles are enforced — the agent-harness</h3>
+    <p>APEX does not re-implement agent governance. Every phase agent runs on the generic
+    <a href="https://github.com/doubts-suplab/agent-harness" target="_blank">agent-harness</a>, which owns
+    the controls below. An agent <em>proposes</em> a decision and a confidence; the <strong>harness</strong>
+    decides whether it may auto-enforce. This makes "AI generates drafts; humans approve" a property of the
+    runtime, not a convention.</p>
+
+    <div class="callout callout-purple">
+      <strong>The confidence gate &amp; authority ladder</strong>
+      Centralized in the harness core, running on every invocation, and impossible to disable. It is the only
+      place a decision's <code>auto_enforced</code> flag is set — an agent can never set it. Authority levels:
+      <code>OBSERVE &lt; SUGGEST &lt; ALERT &lt; RATE_LIMIT &lt; BLOCK</code>. SUGGEST-authority phases can
+      <em>never</em> auto-enforce (they always route to a human); ALERT/RATE_LIMIT/BLOCK auto-enforce only at
+      or above their confidence threshold (0.80 / 0.85 / 0.95). Any failure resolves to a safe, non-enforcing
+      decision. The <code>confidence_gate_bypass_total</code> counter must always be <strong>0</strong>.
+    </div>
+
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Phase</th><th>Persona</th><th>Authority</th><th>Governed outcome</th></tr></thead>
+        <tbody>
+          <tr><td>Requirements</td><td>Business Analyst</td><td>SUGGEST</td><td>Always → human review</td></tr>
+          <tr><td>Architecture</td><td>Architect</td><td>SUGGEST</td><td>Always → human review</td></tr>
+          <tr><td>Development</td><td>Developer</td><td>ALERT</td><td>Auto-enforced advisory when confident</td></tr>
+          <tr><td>Testing</td><td>QA Engineer</td><td>SUGGEST</td><td>Always → human review</td></tr>
+          <tr><td>CI/CD</td><td>Tech Lead</td><td>RATE_LIMIT</td><td>Auto-enforced release when green</td></tr>
+          <tr><td>Docs</td><td>Developer</td><td>SUGGEST</td><td>Always → human review</td></tr>
+          <tr><td>Governance</td><td>CISO</td><td>BLOCK</td><td>Auto-block only at ≥ 0.95; else human review</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p>See the <a href="reference-journey.html">reference journey</a> for a worked, runnable example of one
+    project walking all seven phases under these controls.</p>
 
     <!-- § 2 PERMITTED USES -->
     <div id="sec-permitted" class="section-anchor">
