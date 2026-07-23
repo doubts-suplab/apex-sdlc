@@ -44,7 +44,7 @@ docker compose up postgres redis backend
 
 ## Agent runtime (agent-harness)
 
-APEX's phase agents run on the generic, enterprise-grade **agent-harness** runtime
+APEX's phase agents run on **HALO** — the generic, enterprise-grade **agent-harness** runtime
 ([`doubts-suplab/agent-harness`](https://github.com/doubts-suplab/agent-harness)) rather than a hand-rolled
 agent loop. The harness owns agent-execution governance — the typed decision envelope, a centralized
 non-disableable **confidence gate** (`confidence < 0.8 → routed to a human`), a default-deny **tool
