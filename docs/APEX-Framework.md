@@ -10,11 +10,13 @@
 > **What's new:**
 > - **`platform/`** — FastAPI backend + Next.js 14 frontend + PostgreSQL + Redis + Celery running as cloud-native containers (AWS ECS Fargate locally via Docker Compose)
 > - **Live integrations** — GitHub, Jira, Rally, and Confluence are wired as live data sources (Celery background refresh), not just webhook triggers
-> - **Flexible LLM layer** — Agents run on Anthropic, Ollama (local), Groq, or HuggingFace — switchable via `LLM_PROVIDER` env var with no code changes
-> - **Per-phase AI agents** — autonomous agents for each SDLC phase generate artifacts, post to Jira/Confluence, review PRs, and enforce phase gates
+> - **Flexible LLM layer** — Agents run on Anthropic, Ollama (local), Groq, HuggingFace, or a deterministic `stub` (offline demo) — switchable via `LLM_PROVIDER` env var with no code changes
+> - **Per-phase AI agents on a governed runtime** — an agent for each of the seven SDLC phases generates artifacts, but agent *execution* is delegated to the generic [**agent-harness**](https://github.com/doubts-suplab/agent-harness): APEX does not re-implement the confidence gate, the tool registry, audit, human-review routing, or safe-failure defaults. Agents *propose*; the harness *governs*.
+> - **All seven personas served** — Developer, BA, QA, PM, Tech Lead, Architect, and CISO each own or consume a phase, with a dedicated agent, prompt set, and artifacts. See [`docs/personas.md`](personas.md).
+> - **A runnable reference journey** — [`examples/reference-project/`](../examples/reference-project/README.md) walks one project through all seven phases offline, producing 17 real artifacts, as a worked demonstration of the framework.
 > - **`portal-prototype/`** — the original static portal is retained as a reference; the live portal is `platform/frontend/`
 >
-> See [`ROADMAP.md`](../ROADMAP.md) for the full 5-phase build plan and [`platform/CLAUDE.md`](../platform/CLAUDE.md) for the platform architecture.
+> See [`ROADMAP.md`](../ROADMAP.md) for the full 5-phase build plan, [`docs/personas.md`](personas.md) for the persona catalog, and [`platform/CLAUDE.md`](../platform/CLAUDE.md) for the platform architecture.
 
 ---
 

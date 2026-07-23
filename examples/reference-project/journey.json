@@ -1,0 +1,282 @@
+{
+  "project": {
+    "name": "Customer Refunds Service",
+    "slug": "refund-service",
+    "description": "A Spring Boot microservice that lets customers self-serve refunds on eligible orders.",
+    "stack": "Spring Boot 3.x / Java 21 / PostgreSQL",
+    "feature_name": "Customer Refunds",
+    "version": "v1.0.0"
+  },
+  "phases": [
+    {
+      "phase": "requirements",
+      "label": "Requirements",
+      "persona": "ba",
+      "stakeholders": [
+        "ba",
+        "pm",
+        "architect"
+      ],
+      "agent_name": "requirements-analyst",
+      "authority": "SUGGEST",
+      "action": "SUGGEST",
+      "confidence": 0.86,
+      "auto_enforced": false,
+      "outcome": "human-review",
+      "rationale": "Scope is clear enough to draft stories; four gaps remain for the BA to resolve.",
+      "eeik_agent": "business-analyst",
+      "summary": "BA turns the brief into Gherkin stories + a gap analysis; a human approves.",
+      "artifacts": [
+        {
+          "name": "user-stories.md",
+          "title": "Customer Refunds \u2014 User Stories (Gherkin)",
+          "kind": "gherkin",
+          "format": "md",
+          "content": "# Customer Refunds \u2014 User Stories\n\n> Drafted by the Requirements Analyst agent from the project brief. Status: **[AI-Draft]** \u2014 awaiting BA approval (harness routed to human review).\n\n```gherkin\nFeature: Customer Refunds\n  As a customer\n  I want to request a refund for an eligible order\n  So that I am reimbursed without contacting support\n\n  Scenario: Eligible order is refunded\n    Given an order that was delivered within the refund window\n    And the order has not already been refunded\n    When the customer requests a refund\n    Then a refund is initiated for the order total\n    And the customer is notified the refund is in progress\n\n  Scenario: Refund window has expired\n    Given an order delivered outside the refund window\n    When the customer requests a refund\n    Then the request is rejected with reason \"window_expired\"\n\n  Scenario: Order already refunded\n    Given an order that has already been fully refunded\n    When the customer requests a refund\n    Then the request is rejected with reason \"already_refunded\"\n```\n\n## Acceptance criteria\n- Refund eligibility is evaluated server-side; the client never asserts eligibility.\n- Every refund decision is auditable (who, when, amount, reason).\n- Customer PII is never written to logs (governance-gated downstream).\n"
+        },
+        {
+          "name": "gap-analysis.md",
+          "title": "Customer Refunds \u2014 Requirements Gap Analysis",
+          "kind": "analysis",
+          "format": "md",
+          "content": "# Customer Refunds \u2014 Requirements Gap Analysis\n\nBrief analysed:\n\n> Let customers request a refund on a delivered order without contacting support. Refunds must be eligibility-checked server-side, auditable, idempotent, and must never leak customer PII.\n\n| Area | Covered by brief | Gap flagged for the BA |\n|---|---|---|\n| Happy-path refund | Yes | \u2014 |\n| Refund window rules | Partially | Exact window length not specified |\n| Partial refunds | No | Is a partial refund in scope for v1? |\n| Idempotency | No | Define behaviour on duplicate refund requests |\n| Downstream ledger | No | Which system of record posts the credit? |\n\n**Recommendation:** resolve the four gaps above before the Architecture phase.\n"
+        }
+      ]
+    },
+    {
+      "phase": "architecture",
+      "label": "Architecture",
+      "persona": "architect",
+      "stakeholders": [
+        "architect",
+        "lead",
+        "developer"
+      ],
+      "agent_name": "solution-architect",
+      "authority": "SUGGEST",
+      "action": "SUGGEST",
+      "confidence": 0.84,
+      "auto_enforced": false,
+      "outcome": "human-review",
+      "rationale": "A standalone hexagonal service with idempotent refunds and an outbox to the ledger is the sound choice.",
+      "eeik_agent": "architect",
+      "summary": "Architect proposes an ADR + component diagram; a human signs it off.",
+      "artifacts": [
+        {
+          "name": "ADR-0001-refund-service.md",
+          "title": "ADR-0001 \u2014 Customer Refunds bounded context",
+          "kind": "adr",
+          "format": "md",
+          "content": "# ADR-0001 \u2014 Customer Refunds bounded context\n\nStatus: **Proposed** (awaiting architect sign-off \u2014 harness routed to human review)\n\n## Context\nCustomer Refunds must evaluate refund eligibility server-side, initiate a credit, and remain auditable. It integrates with the orders read-model and a downstream ledger.\n\n## Decision\n- Implement as a standalone Spring Boot service (Spring Boot 3.x / Java 21 / PostgreSQL) with a hexagonal layering (domain / application / infrastructure / web).\n- Own a `refunds` bounded context; read order state via an anti-corruption port, never a cross-context DB join.\n- Enforce idempotency with a client-supplied `refund_request_id` unique key.\n- Post the credit to the ledger through an outbox + async publisher (no dual-write).\n\n## Consequences\n- (+) Clear ownership, auditable decisions, no distributed transaction.\n- (\u2212) Eventual consistency between refund initiation and ledger posting; surfaced to the customer as \"in progress\".\n"
+        },
+        {
+          "name": "component-diagram.mmd",
+          "title": "Customer Refunds \u2014 Component Diagram",
+          "kind": "mermaid",
+          "format": "mermaid",
+          "content": "graph LR\n  Client[Customer app] -->|POST /refunds| API[Refund API]\n  API --> Domain[Refund domain]\n  Domain -->|eligibility| Orders[(Orders read-model)]\n  Domain --> Outbox[(Outbox)]\n  Outbox -->|async| Ledger[Ledger service]\n  Domain --> Audit[(Audit log)]\n"
+        },
+        {
+          "name": "tech-debt.md",
+          "title": "Customer Refunds \u2014 Tech-Debt Register",
+          "kind": "analysis",
+          "format": "md",
+          "content": "# Tech-Debt Register\n\n| Item | Priority | Target sprint |\n|---|---|---|\n| Outbox publisher lacks dead-letter handling | High | Next |\n| Orders read-model polled, not event-driven | Medium | +2 |\n"
+        }
+      ]
+    },
+    {
+      "phase": "development",
+      "label": "Development",
+      "persona": "developer",
+      "stakeholders": [
+        "developer",
+        "lead"
+      ],
+      "agent_name": "pr-reviewer",
+      "authority": "ALERT",
+      "action": "ALERT",
+      "confidence": 0.88,
+      "auto_enforced": true,
+      "outcome": "auto-enforced",
+      "rationale": "The change works but has a SQL-injection risk and PII in logs \u2014 an advisory review is warranted.",
+      "eeik_agent": "code-reviewer",
+      "summary": "PR reviewer flags issues (advisory ALERT); a human still merges.",
+      "artifacts": [
+        {
+          "name": "pr-review.md",
+          "title": "Customer Refunds \u2014 PR Review",
+          "kind": "review",
+          "format": "md",
+          "content": "# Customer Refunds \u2014 PR Review\n\n> Advisory review by the PR Reviewer agent (harness authority: ALERT). Auto-enforced advisory posting when confident; a human still merges.\n\n- **[MAJOR]** RefundService.initiate() builds SQL by string concatenation \u2014 use a parameterised query.\n- **[MAJOR]** Customer email is logged at INFO in RefundController \u2014 PII must not be logged.\n- **[MAJOR]** No test covers the 'already_refunded' rejection path.\n"
+        },
+        {
+          "name": "quality-report.md",
+          "title": "Customer Refunds \u2014 Code Quality Report",
+          "kind": "report",
+          "format": "md",
+          "content": "# Code Quality Report\n\n- Findings: **3**\n- Golden-rule checks: parameterised-queries **FAIL**, no-PII-in-logs **FAIL**, test-coverage **WARN**\n- Risk areas: refund initiation path, logging in the web layer\n"
+        }
+      ]
+    },
+    {
+      "phase": "testing",
+      "label": "Testing",
+      "persona": "qa",
+      "stakeholders": [
+        "qa",
+        "developer"
+      ],
+      "agent_name": "qa-analyst",
+      "authority": "SUGGEST",
+      "action": "SUGGEST",
+      "confidence": 0.85,
+      "auto_enforced": false,
+      "outcome": "human-review",
+      "rationale": "The plan covers the happy path and all rejection branches; add the missing idempotency test.",
+      "eeik_agent": "tester",
+      "summary": "QA drafts a test plan + BDD cases + coverage gaps; a human approves.",
+      "artifacts": [
+        {
+          "name": "test-plan.md",
+          "title": "Customer Refunds \u2014 Test Plan",
+          "kind": "test-plan",
+          "format": "md",
+          "content": "# Customer Refunds \u2014 Test Plan\n\nStatus: **[AI-Draft]** \u2014 awaiting QA sign-off (harness routed to human review).\n\n| Aspect | Approach |\n|---|---|\n| Scope | Refund eligibility, initiation, idempotency, rejection paths |\n| Levels | Unit (domain), slice (web), integration (Testcontainers Postgres) |\n| Entry | Stories approved, ADR signed off |\n| Exit | 80% line / 70% branch, all rejection paths covered |\n| Environments | Ephemeral Testcontainers; no production data |\n"
+        },
+        {
+          "name": "test-cases.md",
+          "title": "Customer Refunds \u2014 Test Cases (BDD)",
+          "kind": "test-cases",
+          "format": "md",
+          "content": "# Customer Refunds \u2014 Test Cases (mapped to stories)\n\n| ID | Story | Given \u2192 When \u2192 Then | Type |\n|---|---|---|---|\n| TC-1 | Eligible refund | delivered in window \u2192 request \u2192 refund initiated | integration |\n| TC-2 | Window expired | delivered out of window \u2192 request \u2192 rejected(window_expired) | unit |\n| TC-3 | Already refunded | refunded order \u2192 request \u2192 rejected(already_refunded) | unit |\n| TC-4 | Idempotency | same refund_request_id twice \u2192 one refund | integration |\n"
+        },
+        {
+          "name": "coverage-gaps.md",
+          "title": "Customer Refunds \u2014 Coverage Gap Analysis",
+          "kind": "analysis",
+          "format": "md",
+          "content": "# Coverage Gap Analysis\n\n- Uncovered: `already_refunded` rejection branch (flagged by PR review too).\n- Uncovered: outbox publisher failure/retry path.\n- Suggested: add TC-3 (unit) and an outbox retry integration test.\n"
+        }
+      ]
+    },
+    {
+      "phase": "cicd",
+      "label": "CI/CD",
+      "persona": "lead",
+      "stakeholders": [
+        "lead",
+        "developer"
+      ],
+      "agent_name": "release-engineer",
+      "authority": "RATE_LIMIT",
+      "action": "ALLOW",
+      "confidence": 0.88,
+      "auto_enforced": true,
+      "outcome": "auto-enforced",
+      "rationale": "Checks are green and the rollback is safe; the release can proceed.",
+      "eeik_agent": "ci-engineer",
+      "summary": "Release engineer assembles release artifacts; auto-approves when checks are green.",
+      "artifacts": [
+        {
+          "name": "release-notes.md",
+          "title": "Customer Refunds \u2014 Release Notes v1.0.0",
+          "kind": "release-notes",
+          "format": "md",
+          "content": "# Customer Refunds \u2014 Release Notes (v1.0.0)\n\n## Features\n- Customer-initiated refunds for eligible orders.\n\n## Fixes\n- Reject refunds outside the window and on already-refunded orders.\n\n## Notes\n- Idempotent via `refund_request_id`. Ledger posting is asynchronous.\n"
+        },
+        {
+          "name": "deployment-checklist.md",
+          "title": "Customer Refunds \u2014 Deployment Checklist",
+          "kind": "checklist",
+          "format": "md",
+          "content": "# Deployment Checklist\n\n1. Run DB migration `V1__refunds.sql` (additive, no downtime).\n2. Deploy service (blue/green); verify `/health` green.\n3. Smoke test: eligible refund + rejection paths.\n4. Confirm outbox publisher draining to the ledger.\n"
+        },
+        {
+          "name": "rollback-plan.md",
+          "title": "Customer Refunds \u2014 Rollback Plan",
+          "kind": "runbook",
+          "format": "md",
+          "content": "# Rollback Plan (v1.0.0)\n\n- Repoint the router to the previous colour (no data loss; migration is additive).\n- Refunds are idempotent, so in-flight retries are safe after rollback.\n- If the ledger already posted, no compensating action is required.\n"
+        }
+      ]
+    },
+    {
+      "phase": "docs",
+      "label": "Docs",
+      "persona": "developer",
+      "stakeholders": [
+        "developer",
+        "ba"
+      ],
+      "agent_name": "technical-writer",
+      "authority": "SUGGEST",
+      "action": "SUGGEST",
+      "confidence": 0.83,
+      "auto_enforced": false,
+      "outcome": "human-review",
+      "rationale": "The API reference and onboarding guide are ready for a human to publish.",
+      "eeik_agent": "technical-writer",
+      "summary": "Technical writer drafts API + onboarding docs; a human publishes.",
+      "artifacts": [
+        {
+          "name": "api-reference.md",
+          "title": "Customer Refunds \u2014 API Reference",
+          "kind": "api-doc",
+          "format": "md",
+          "content": "# Customer Refunds \u2014 API Reference\n\n## POST /api/v1/refunds\nInitiate a refund for an eligible order.\n\n**Request**\n```json\n{ \"order_id\": \"ord_123\", \"refund_request_id\": \"rrq_abc\" }\n```\n\n**Responses**\n- `202 Accepted` \u2014 refund initiated (asynchronous ledger posting).\n- `409 Conflict` \u2014 `already_refunded`.\n- `422 Unprocessable` \u2014 `window_expired`.\n\nAll responses use RFC 7807 Problem Details on error.\n"
+        },
+        {
+          "name": "onboarding-guide.md",
+          "title": "Customer Refunds \u2014 Onboarding Guide",
+          "kind": "guide",
+          "format": "md",
+          "content": "# Customer Refunds \u2014 Onboarding Guide\n\n1. `docker compose up` (Postgres + service).\n2. Run migrations; seed a delivered order.\n3. `POST /api/v1/refunds` with an eligible `order_id`.\n4. Observe the outbox draining to the ledger and the audit entry written.\n"
+        }
+      ]
+    },
+    {
+      "phase": "governance",
+      "label": "Governance",
+      "persona": "ciso",
+      "stakeholders": [
+        "ciso",
+        "lead",
+        "architect"
+      ],
+      "agent_name": "compliance-officer",
+      "authority": "BLOCK",
+      "action": "ALERT",
+      "confidence": 0.6,
+      "auto_enforced": false,
+      "outcome": "human-review",
+      "rationale": "Two golden-rule breaches at moderate risk \u2014 material but not certain; a human should decide.",
+      "eeik_agent": "security-auditor",
+      "summary": "Compliance officer assesses risk; a confident material breach can auto-block.",
+      "artifacts": [
+        {
+          "name": "governance-report.md",
+          "title": "Customer Refunds \u2014 Governance & Audit Report",
+          "kind": "report",
+          "format": "md",
+          "content": "# Customer Refunds \u2014 Governance & Audit Report\n\n- Policy violations: **2**\n- Composite risk score: **0.60**\n- Confidence gate: BLOCK auto-enforces only at \u2265 0.95; below that a human decides.\n- Every phase decision in this project was recorded in the append-only audit log.\n"
+        },
+        {
+          "name": "risk-register.md",
+          "title": "Customer Refunds \u2014 Risk Register",
+          "kind": "analysis",
+          "format": "md",
+          "content": "# Risk Register\n\n| Risk | Likelihood | Impact | Mitigation |\n|---|---|---|---|\n| PII in logs (flagged in PR review) | Medium | High | Redact in web layer; PII guard |\n| SQL injection (flagged in PR review) | Low | Critical | Parameterised queries only |\n| Ledger posting lag | Medium | Medium | Outbox + retry; surface \"in progress\" |\n"
+        }
+      ]
+    }
+  ],
+  "stats": {
+    "phase_count": 7,
+    "auto_enforced_count": 2,
+    "human_review_count": 5,
+    "artifact_count": 17,
+    "audit_entries": 7,
+    "confidence_gate_bypass_total": 0
+  }
+}

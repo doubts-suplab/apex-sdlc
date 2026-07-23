@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>APEX — Reference Journey</title>
+<style>
+:root{
+  --primary:#6B4FBB; --primary-dark:#4A3280; --primary-deep:#2D1B69; --primary-light:#EDE9F7;
+  --green:#2D7D46; --green-light:#E8F5E9; --amber:#C05621; --amber-light:#FFF3E0;
+  --blue:#1565C0; --blue-light:#E3F2FD; --bg:#F8F7FC; --surface:#FFFFFF; --border:#E5E0F5;
+  --text:#1A1033; --text-muted:#6B7280; --text-soft:#9CA3AF; --nav-h:60px;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','Inter',sans-serif;background:var(--bg);color:var(--text);font-size:15px;line-height:1.6}
+a{color:var(--primary);text-decoration:none}
+a:hover{text-decoration:underline}
+nav{position:sticky;top:0;z-index:100;height:var(--nav-h);background:rgba(255,255,255,.92);backdrop-filter:blur(16px);border-bottom:1px solid var(--border);display:flex;align-items:center;padding:0 40px;gap:0}
+.nav-brand{display:flex;align-items:center;gap:10px;text-decoration:none;margin-right:40px;flex-shrink:0}
+.nav-logo{width:34px;height:34px;background:var(--primary);border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:900;color:#fff;letter-spacing:-.5px}
+.nav-name{font-weight:800;color:var(--text);font-size:17px}
+.nav-links{display:flex;gap:2px;flex:1}
+.nav-links a{color:var(--text-muted);text-decoration:none;font-size:14px;font-weight:600;padding:8px 14px;border-radius:8px}
+.nav-links a:hover{color:var(--primary);background:var(--primary-light)}
+.nav-links a.active{color:var(--primary);background:var(--primary-light);font-weight:700}
+.wrap{max-width:1000px;margin:0 auto;padding:48px 40px}
+.eyebrow{color:var(--primary);font-weight:700;font-size:13px;letter-spacing:.5px;text-transform:uppercase}
+h1{font-size:38px;font-weight:800;letter-spacing:-1px;margin:8px 0 12px}
+.lede{font-size:18px;color:var(--text-muted);max-width:760px}
+.card{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:24px;margin:16px 0;box-shadow:0 1px 2px rgba(45,27,105,.04)}
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px;margin:28px 0}
+.stat{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:16px 18px}
+.stat .n{font-size:28px;font-weight:800;color:var(--primary-dark)}
+.stat .l{font-size:12px;text-transform:uppercase;letter-spacing:.4px;color:var(--text-soft)}
+.callout{background:var(--primary-light);border:1px solid var(--primary-mid,#C4B5FD);border-radius:12px;padding:18px 22px;margin:24px 0;color:var(--primary-deep)}
+.ladder{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:13px;background:var(--primary-deep);color:#EDE9F7;border-radius:12px;padding:18px 22px;overflow-x:auto;white-space:pre;margin:20px 0}
+.phase{display:flex;gap:18px;align-items:flex-start;background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:22px;margin:14px 0}
+.step{flex-shrink:0;width:36px;height:36px;border-radius:50%;background:var(--primary-deep);color:#fff;font-weight:800;display:flex;align-items:center;justify-content:center}
+.phase h3{font-size:18px;margin-bottom:2px}
+.badges{display:flex;flex-wrap:wrap;gap:8px;margin:10px 0}
+.b{display:inline-flex;align-items:center;gap:5px;font-size:12px;font-weight:600;padding:3px 10px;border-radius:999px;border:1px solid var(--border);color:var(--text-muted);background:#fff}
+.b.persona{background:var(--primary-light);border-color:transparent;color:var(--primary-dark)}
+.b.enforced{background:var(--green-light);border-color:#Bfe3C8;color:var(--green)}
+.b.review{background:var(--amber-light);border-color:#F3D6B3;color:var(--amber)}
+.b.mono{font-family:ui-monospace,SFMono-Regular,Menlo,monospace}
+.rationale{border-left:3px solid var(--border);padding-left:12px;color:var(--text-muted);font-style:italic;margin-top:8px}
+.arts{margin-top:12px;display:flex;flex-wrap:wrap;gap:8px}
+.art{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:12px;background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:4px 9px;color:var(--text-muted)}
+table{width:100%;border-collapse:collapse;margin:16px 0;font-size:14px}
+th,td{text-align:left;padding:9px 12px;border-bottom:1px solid var(--border)}
+th{color:var(--text-soft);font-size:12px;text-transform:uppercase;letter-spacing:.4px}
+code{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;background:var(--primary-light);padding:1px 6px;border-radius:5px;font-size:13px}
+footer{border-top:1px solid var(--border);margin-top:48px;padding:28px 40px;color:var(--text-soft);font-size:13px;text-align:center}
+@media(max-width:640px){.wrap{padding:32px 20px}h1{font-size:30px}}
+</style>
+</head>
+<body>
+
+<nav>
+  <a class="nav-brand" href="index.html">
+    <div class="nav-logo">AX</div>
+    <span class="nav-name">APEX</span>
+  </a>
+  <div class="nav-links">
+    <a href="index.html">Home</a>
+    <a href="adoption-guide.html">Adoption Guide</a>
+    <a href="apex-framework.html">Framework</a>
+    <a href="apex-governance.html">Governance</a>
+    <a href="reference-journey.html" class="active">Reference Journey</a>
+  </div>
+</nav>
+
+<div class="wrap">
+  <div class="eyebrow">Worked Example</div>
+  <h1>The APEX Reference Journey</h1>
+  <p class="lede">One project — a <strong>Customer Refunds Service</strong> — walking all seven SDLC phases
+  and seven personas. Every artifact is generated by the governed
+  <a href="https://github.com/doubts-suplab/agent-harness" target="_blank">agent-harness</a>, offline, from a
+  one-paragraph brief. The agent <em>proposes</em> a decision; the harness <em>decides</em> what may
+  auto-enforce.</p>
+
+  <div class="stats">
+    <div class="stat"><div class="n">7</div><div class="l">Phases</div></div>
+    <div class="stat"><div class="n">7</div><div class="l">Personas</div></div>
+    <div class="stat"><div class="n">17</div><div class="l">Artifacts</div></div>
+    <div class="stat"><div class="n">2</div><div class="l">Auto-enforced</div></div>
+    <div class="stat"><div class="n">5</div><div class="l">Human review</div></div>
+    <div class="stat"><div class="n">0</div><div class="l">Gate bypasses</div></div>
+  </div>
+
+  <div class="callout">
+    <strong>The founding principle is enforced, not asserted.</strong> The four <b>SUGGEST</b>-authority
+    phases can never auto-enforce (harness gate rule G-5), so they always route to a human — "AI generates
+    drafts; humans approve" is a property of the authority ladder, not a coding convention.
+  </div>
+
+  <div class="ladder">OBSERVE  &lt;  SUGGEST  &lt;  ALERT  &lt;  RATE_LIMIT  &lt;  BLOCK
+                │          │           │            │
+   never auto-enforce      └──── auto-enforce only when confidence ≥ threshold ────┘
+   (humans approve)            ALERT 0.80   RATE_LIMIT 0.85   BLOCK 0.95</div>
+
+  <h2 style="margin-top:36px">The seven phases</h2>
+
+  <!-- 1 -->
+  <div class="phase">
+    <div class="step">1</div>
+    <div>
+      <h3>Requirements <span class="b persona">Business Analyst</span></h3>
+      <div>BA turns the brief into Gherkin stories + a gap analysis; a human approves.</div>
+      <div class="badges">
+        <span class="b mono">RequirementsAgent</span><span class="b">authority: SUGGEST</span>
+        <span class="b">decision: SUGGEST</span><span class="b">confidence: 0.86</span>
+        <span class="b review">Human review</span>
+      </div>
+      <div class="rationale">Scope is clear enough to draft stories; four gaps remain for the BA to resolve.</div>
+      <div class="arts"><span class="art">user-stories.md</span><span class="art">gap-analysis.md</span></div>
+    </div>
+  </div>
+
+  <!-- 2 -->
+  <div class="phase">
+    <div class="step">2</div>
+    <div>
+      <h3>Architecture <span class="b persona">Architect</span></h3>
+      <div>Architect proposes an ADR + component diagram; a human signs it off.</div>
+      <div class="badges">
+        <span class="b mono">ArchitectureAgent</span><span class="b">authority: SUGGEST</span>
+        <span class="b">decision: SUGGEST</span><span class="b">confidence: 0.84</span>
+        <span class="b review">Human review</span>
+      </div>
+      <div class="rationale">A standalone hexagonal service with idempotent refunds and an outbox to the ledger is the sound choice.</div>
+      <div class="arts"><span class="art">ADR-0001-refund-service.md</span><span class="art">component-diagram.mmd</span><span class="art">tech-debt.md</span></div>
+    </div>
+  </div>
+
+  <!-- 3 -->
+  <div class="phase">
+    <div class="step">3</div>
+    <div>
+      <h3>Development <span class="b persona">Developer</span></h3>
+      <div>PR reviewer flags issues (SQL-injection risk, PII in logs); the advisory is auto-posted, a human still merges.</div>
+      <div class="badges">
+        <span class="b mono">PRReviewerAgent</span><span class="b">authority: ALERT</span>
+        <span class="b">decision: ALERT</span><span class="b">confidence: 0.88</span>
+        <span class="b enforced">Auto-enforced</span>
+      </div>
+      <div class="rationale">The change works but has a SQL-injection risk and PII in logs — an advisory review is warranted.</div>
+      <div class="arts"><span class="art">pr-review.md</span><span class="art">quality-report.md</span></div>
+    </div>
+  </div>
+
+  <!-- 4 -->
+  <div class="phase">
+    <div class="step">4</div>
+    <div>
+      <h3>Testing <span class="b persona">QA Engineer</span></h3>
+      <div>QA drafts a test plan + BDD cases + coverage gaps; a human approves.</div>
+      <div class="badges">
+        <span class="b mono">QAAnalystAgent</span><span class="b">authority: SUGGEST</span>
+        <span class="b">decision: SUGGEST</span><span class="b">confidence: 0.85</span>
+        <span class="b review">Human review</span>
+      </div>
+      <div class="rationale">The plan covers the happy path and all rejection branches; add the missing idempotency test.</div>
+      <div class="arts"><span class="art">test-plan.md</span><span class="art">test-cases.md</span><span class="art">coverage-gaps.md</span></div>
+    </div>
+  </div>
+
+  <!-- 5 -->
+  <div class="phase">
+    <div class="step">5</div>
+    <div>
+      <h3>CI/CD <span class="b persona">Tech Lead</span></h3>
+      <div>Release engineer assembles release notes + checklist + rollback; auto-approves when checks are green.</div>
+      <div class="badges">
+        <span class="b mono">ReleaseEngineerAgent</span><span class="b">authority: RATE_LIMIT</span>
+        <span class="b">decision: ALLOW</span><span class="b">confidence: 0.88</span>
+        <span class="b enforced">Auto-enforced</span>
+      </div>
+      <div class="rationale">Checks are green and the rollback is safe; the release can proceed.</div>
+      <div class="arts"><span class="art">release-notes.md</span><span class="art">deployment-checklist.md</span><span class="art">rollback-plan.md</span></div>
+    </div>
+  </div>
+
+  <!-- 6 -->
+  <div class="phase">
+    <div class="step">6</div>
+    <div>
+      <h3>Docs <span class="b persona">Developer / Tech Writer</span></h3>
+      <div>Technical writer drafts API + onboarding docs; a human publishes.</div>
+      <div class="badges">
+        <span class="b mono">TechWriterAgent</span><span class="b">authority: SUGGEST</span>
+        <span class="b">decision: SUGGEST</span><span class="b">confidence: 0.83</span>
+        <span class="b review">Human review</span>
+      </div>
+      <div class="rationale">The API reference and onboarding guide are ready for a human to publish.</div>
+      <div class="arts"><span class="art">api-reference.md</span><span class="art">onboarding-guide.md</span></div>
+    </div>
+  </div>
+
+  <!-- 7 -->
+  <div class="phase">
+    <div class="step">7</div>
+    <div>
+      <h3>Governance <span class="b persona">CISO</span></h3>
+      <div>Compliance officer weighs the two golden-rule breaches at moderate risk; BLOCK only auto-enforces at ≥ 0.95, so it routes to a human.</div>
+      <div class="badges">
+        <span class="b mono">ComplianceOfficerAgent</span><span class="b">authority: BLOCK</span>
+        <span class="b">decision: ALERT</span><span class="b">confidence: 0.60</span>
+        <span class="b review">Human review</span>
+      </div>
+      <div class="rationale">Two golden-rule breaches at moderate risk — material but not certain; a human should decide.</div>
+      <div class="arts"><span class="art">governance-report.md</span><span class="art">risk-register.md</span></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>Regenerate it yourself</h2>
+    <p>The whole journey runs offline — no database, no API keys.</p>
+    <div class="ladder">cd platform/backend
+python -m venv .venv &amp;&amp; . .venv/bin/activate &amp;&amp; pip install -e .
+LLM_PROVIDER=stub python -m app.demo.reference_journey   # writes examples/reference-project/artifacts/**</div>
+    <p>Or serve it: <code>GET /api/v1/journey/reference</code> (add <code>?persona=ciso</code> to filter),
+    and see it in the frontend at <code>/journey</code>. Full narrative:
+    <a href="../examples/reference-project/README.md">examples/reference-project/README.md</a> ·
+    persona catalog: <a href="personas.md">docs/personas.md</a>.</p>
+  </div>
+</div>
+
+<footer>
+  APEX SDLC · Reference journey generated by the governed
+  <a href="https://github.com/doubts-suplab/agent-harness" target="_blank">agent-harness</a> ·
+  <a href="index.html">Home</a> · <a href="apex-governance.html">Governance</a>
+</footer>
+
+</body>
+</html>

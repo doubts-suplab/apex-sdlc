@@ -39,6 +39,11 @@ def build_apex_harness(
 
 
 def run_agent(harness: Harness, agent: PhaseAgent, ctx: AgentContext) -> AgentResult:
-    """Invoke a phase agent through the harness and return an apex AgentResult."""
+    """Invoke a phase agent through the harness and return an apex AgentResult.
+
+    Governance (gate, registry, audit, human review, safe-failure) is enforced by ``harness.invoke``.
+    Artifacts the agent produced during the run ride alongside the harness ``AgentOutput`` (which
+    carries only the Decision) and are drained here into the apex result.
+    """
     output = harness.invoke(agent, to_agent_input(ctx))
-    return to_agent_result(output, ctx)
+    return to_agent_result(output, ctx, artifacts=agent.drain_artifacts())

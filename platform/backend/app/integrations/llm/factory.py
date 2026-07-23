@@ -18,7 +18,12 @@ def get_llm_provider() -> LLMProvider:
     settings = get_settings()
     provider = settings.LLM_PROVIDER.lower()
 
-    if provider == "anthropic":
+    if provider == "stub":
+        # Offline, deterministic provider — no API key. Powers the reference journey + demo.
+        from app.integrations.llm.stub_provider import StubLLMProvider
+
+        return StubLLMProvider(model=settings.LLM_MODEL or "stub-1")
+    elif provider == "anthropic":
         from app.integrations.llm.anthropic_provider import AnthropicProvider
 
         return AnthropicProvider(
@@ -49,7 +54,7 @@ def get_llm_provider() -> LLMProvider:
     else:
         raise ValueError(
             f"Unknown LLM provider: {provider!r}. "
-            "Choose: anthropic | ollama | groq | huggingface"
+            "Choose: stub | anthropic | ollama | groq | huggingface"
         )
 
 
