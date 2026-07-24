@@ -243,6 +243,14 @@ spec-driven spine enforceable**: the phase gate engine is what turns "each phase
 gates the next" from a convention (today: the harness routes SUGGEST specs to human review) into a hard
 transition rule — a phase cannot advance until its spec is approved and its gate criteria pass.
 
+> **Status:** 🚧 the **phase-gate engine is built** (offline): `app/gates/` evaluates each phase (required
+> artifacts present + spec approved + no gate bypass), `GET /api/v1/journey/reference/gates` and
+> `POST …/gate/evaluate` expose it, `python -m app.demo.gate_report` +
+> [`examples/reference-project/gate-report.md`](examples/reference-project/gate-report.md) demonstrate the
+> spine blocking at Requirements until specs are approved, and the `/journey` page shows gate badges with an
+> approve toggle. Still pending: DB persistence of evaluations, a real approval store, and the rest of this
+> phase (ARB workflow, mainframe gate, CISO view, CDK). See [`docs/progress.md`](docs/progress.md).
+
 **Deliverables:**
 - Phase gate engine: configurable criteria per gate (required artifacts, min test coverage, approved reviewers, policy checks), enforcing the spec-driven spine's phase-to-phase transitions
 - Gate evaluation API: `POST /api/v1/projects/{id}/phases/{phase}/gate/evaluate` → pass/fail + reason

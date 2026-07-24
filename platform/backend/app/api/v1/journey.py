@@ -14,6 +14,7 @@ from fastapi import APIRouter, HTTPException
 
 from app.agents.catalog import PERSONAS, phases_for_persona
 from app.agents.orchestrator import run_reference_journey
+from app.gates.engine import evaluate_journey
 from app.integrations.llm.factory import get_llm_provider
 
 router = APIRouter(prefix="/journey", tags=["journey"])
@@ -44,6 +45,18 @@ async def get_reference_journey(persona: str | None = None) -> dict[str, Any]:
         wanted = {s.phase for s in phases_for_persona(persona)}
         data = {**data, "phases": [p for p in data["phases"] if p["phase"] in wanted], "persona": persona}
     return data
+
+
+@router.get("/reference/gates", summary="Evaluate the spine's phase gates across the reference journey")
+async def get_reference_gates(approved: str | None = None) -> dict[str, Any]:
+    """Evaluate every phase gate for the reference journey.
+
+    ``approved`` is a comma-separated list of phases whose spec a human has approved (human-review phases
+    stay ``pending`` until approved). The response's ``blocking_phase`` is where the spine halts.
+    """
+    approvals = {p.strip() for p in approved.split(",")} if approved else set()
+    journey = run_reference_journey(get_llm_provider())
+    return {"project": journey.project, "approved": sorted(approvals), **evaluate_journey(journey, approvals)}
 
 
 @router.get("/reference/artifacts/{phase}", summary="Artifacts produced in one phase")

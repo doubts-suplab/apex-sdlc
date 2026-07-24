@@ -55,3 +55,26 @@ export const JourneySchema = z.object({
   persona: z.string().optional(),
 });
 export type Journey = z.infer<typeof JourneySchema>;
+
+// mirrors backend app/gates/engine.py (GateResult) + app/api/v1/journey.py reference-gates response
+export const GateCheckSchema = z.object({
+  name: z.string(),
+  passed: z.boolean(),
+  detail: z.string(),
+});
+
+export const GateResultSchema = z.object({
+  phase: z.string(),
+  status: z.enum(["passed", "pending", "failed"]),
+  checks: z.array(GateCheckSchema),
+  reason: z.string(),
+});
+export type GateResult = z.infer<typeof GateResultSchema>;
+
+export const ReferenceGatesSchema = z.object({
+  approved: z.array(z.string()),
+  gates: z.array(GateResultSchema),
+  blocking_phase: z.string().nullable(),
+  all_passed: z.boolean(),
+});
+export type ReferenceGates = z.infer<typeof ReferenceGatesSchema>;

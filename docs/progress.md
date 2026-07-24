@@ -8,6 +8,23 @@ Legend: ✅ done · 🚧 partial · ❌ not started
 
 ---
 
+## Increment 4 — Phase-gate engine (ROADMAP Phase 5) 🚧
+
+The spec-driven spine is now **enforceable**: a phase can't advance until its gate passes.
+
+- ✅ Pure, offline gate engine (`app/gates/`): `evaluate_gate` (a phase passes when its catalog-required
+  artifacts are present, its spec is approved — auto-enforced decisions count; human-review specs need
+  explicit approval — and the run had no confidence-gate bypass) and `evaluate_journey` (evaluates the whole
+  spine, returning the first `blocking_phase`).
+- ✅ API: `POST /api/v1/projects/{id}/phases/{phase}/gate/evaluate` and
+  `GET /api/v1/journey/reference/gates?approved=<csv>`. Demo: `python -m app.demo.gate_report` →
+  `examples/reference-project/gate-report.md`. 7 self-contained tests (35 total green).
+- ✅ Frontend: gate badge per phase on `/journey` + an "Approve spec" toggle that unblocks the spine live.
+- 🚧 Shows the spine blocking at **Requirements** with no approvals; clears once the human-review specs are
+  approved.
+- ❌ **Not yet:** DB persistence of gate evaluations (the `phase_gates` model is the target), a real
+  approval/identity store, and the rest of Phase 5 (ARB workflow, mainframe-gate policy, CISO view, CDK).
+
 ## Increment 3 — Onboarding front door (eeik bridge, Phase 0) 🚧
 
 The eeik→APEX bridge exists as a deterministic, offline transform.
@@ -69,7 +86,7 @@ The running shell exists; most of the data model and cross-cutting middleware do
 | **Dev repo bootstrap** — scaffold the actual service (eeik `repository-generator`) | Phase 0 / 3 | ❌ |
 | **Architect target-architecture** — reason over requirements + existing system → target-state ADR/C4 | Phase 4 | ❌ (templated ADR only today) |
 | **Artifact persistence** — `artifacts`/`artifact_versions` in DB + S3 + versioning | Phase 4 | ❌ |
-| **Phase-gate engine** — enforce the spec-driven spine's phase transitions | Phase 5 | ❌ |
+| **Phase-gate engine** — enforce the spec-driven spine's phase transitions | Phase 5 | 🚧 pure engine + API + UI built offline; DB persistence + approval store pending |
 | **Governance persistence** — audit_log, pii_events, policy_violations tables + CISO view + ARB | Phase 5 | ❌ |
 | **Auth & RBAC** — JWT, persona-scoped access | Phase 5 | ❌ |
 | **AWS deploy** — CDK (ECS Fargate, RDS Aurora, ElastiCache, S3) | Phase 5 | ❌ |
