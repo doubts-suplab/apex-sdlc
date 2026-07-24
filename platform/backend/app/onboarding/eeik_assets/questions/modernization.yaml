@@ -1,0 +1,13 @@
+question_id: modernization
+
+question: Is modernization involved?
+
+required: true
+
+options:
+  - none
+  - ibmi
+  - rpg
+  - cobol
+  - mainframe
+  - mixed

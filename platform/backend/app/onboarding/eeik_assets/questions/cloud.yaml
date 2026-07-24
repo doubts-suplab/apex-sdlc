@@ -1,0 +1,11 @@
+question_id: cloud
+
+question: Select cloud platform
+
+required: true
+
+options:
+  - aws
+  - azure
+  - gcp
+  - hybrid

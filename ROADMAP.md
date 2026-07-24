@@ -155,8 +155,12 @@ and hand it to the SDLC. This is the entry point the Product Vision describes, a
 **Exit gate:** onboarding a new project produces a scaffolded repo with `CLAUDE.md` + packs and a registered
 APEX project sitting at the Requirements phase, ready for the SDLC to run.
 
-> **Status:** not started. eeik owns the generators; APEX owns the registry — the bridge between them is the
-> gap. See [`docs/progress.md`](docs/progress.md).
+> **Status:** 🚧 the deterministic bridge is built — onboarding resolves capability packs from an eeik
+> manifest, generates the scaffold (`CLAUDE.md` + plan), and registers the project at the Requirements
+> phase (`app/onboarding/`, `/api/v1/onboarding`, the `/onboard` wizard, and
+> [`examples/onboarded-project/`](examples/onboarded-project/README.md), all offline). Still pending: full
+> compilable repo-tree emission + actually creating a GitHub repo (the LLM-driven `repository-generator`),
+> and DB persistence of the registration. See [`docs/progress.md`](docs/progress.md).
 
 ---
 

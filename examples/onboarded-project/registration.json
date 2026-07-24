@@ -1,0 +1,8 @@
+{
+  "name": "payment-gateway",
+  "slug": "payment-gateway",
+  "description": "API gateway handling payment initiation, routing, and settlement",
+  "project_type": "spring-boot",
+  "current_phase": "requirements",
+  "status": "active"
+}

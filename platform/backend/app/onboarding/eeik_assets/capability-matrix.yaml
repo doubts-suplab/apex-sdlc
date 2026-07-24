@@ -1,0 +1,249 @@
+# EEIK Capability Matrix
+# Maps project manifest fields → capability packs
+# Version: 1.0
+#
+# Resolution rules:
+#   1. Collect all packs from every matching manifest field
+#   2. Deduplicate
+#   3. Resolve dependencies (see dependencies.yaml within each pack)
+#   4. Output ordered list: core packs first, then domain packs, then optional packs
+#
+# Pack availability:
+#   ✅ built   = content exists in capability-packs/
+#   🔧 stub    = structure exists, content pending
+#   📋 planned = on roadmap, not yet created
+
+backend:
+  java:
+    packs:
+      - architecture-pack    # ✅ built
+      - java-pack            # ✅ built
+  python:
+    packs:
+      - architecture-pack    # ✅ built
+      - python-pack          # 📋 planned
+  mixed:
+    packs:
+      - architecture-pack    # ✅ built
+      - java-pack            # ✅ built
+      - python-pack          # 📋 planned
+
+frontend:
+  react:
+    packs:
+      - react-pack           # 📋 planned
+  angular:
+    packs:
+      - angular-pack         # 📋 planned
+  none:
+    packs: []
+
+cloud:
+  aws:
+    packs:
+      - aws-pack             # ✅ built
+  azure:
+    packs:
+      - azure-pack           # 📋 planned
+  gcp:
+    packs:
+      - gcp-pack             # 📋 planned
+  hybrid:
+    packs:
+      - aws-pack             # ✅ built (primary)
+
+architecture:
+  monolith:
+    packs:
+      - architecture-pack    # ✅ built
+  modular-monolith:
+    packs:
+      - architecture-pack    # ✅ built
+  microservices:
+    packs:
+      - architecture-pack    # ✅ built
+  event-driven:
+    packs:
+      - architecture-pack    # ✅ built
+  serverless:
+    packs:
+      - architecture-pack    # ✅ built
+      - aws-pack             # ✅ built
+  agentic:
+    packs:
+      - architecture-pack    # ✅ built
+      - ai-engineering-pack  # ✅ built
+      - agent-harness-pack   # ✅ built
+
+ai:
+  rag:
+    packs:
+      - ai-engineering-pack  # ✅ built
+  single-agent:
+    packs:
+      - ai-engineering-pack  # ✅ built
+      - agent-harness-pack   # ✅ built
+  multi-agent:
+    packs:
+      - ai-engineering-pack  # ✅ built
+      - agent-harness-pack   # ✅ built
+  enterprise-agent-platform:
+    packs:
+      - ai-engineering-pack  # ✅ built
+      - agent-harness-pack   # ✅ built
+  none:
+    packs: []
+
+governance:
+  basic:
+    packs:
+      - governance-pack      # ✅ built
+    profile: basic
+    reviews: []
+  standard:
+    packs:
+      - governance-pack      # ✅ built
+    profile: standard
+    reviews:
+      - architecture-review
+      - security-review
+  regulated:
+    packs:
+      - governance-pack      # ✅ built
+    profile: regulated
+    reviews:
+      - architecture-review
+      - security-review
+      - production-readiness-review
+      - compliance-review
+  enterprise:
+    packs:
+      - governance-pack      # ✅ built
+    profile: enterprise
+    reviews:
+      - architecture-review
+      - security-review
+      - arb-gate
+      - production-readiness-review
+      - compliance-review
+
+domain:
+  insurance:
+    packs:
+      - insurance-pack       # 📋 planned Phase 7
+    compliance_hints:
+      - gdpr
+      - solvency-ii
+  banking:
+    packs:
+      - banking-pack         # 📋 planned Phase 7
+    compliance_hints:
+      - pci-dss
+      - gdpr
+      - basel-iii
+  healthcare:
+    packs:
+      - healthcare-pack      # 📋 planned Phase 7
+    compliance_hints:
+      - hipaa
+      - gdpr
+  retail:
+    packs:
+      - retail-pack          # 📋 planned Phase 7
+    compliance_hints:
+      - gdpr
+  generic:
+    packs: []
+
+modernization:
+  ibmi:
+    packs:
+      - modernization-pack   # 🔧 stub
+    agents:
+      - ibmi-modernization-expert
+      - modernization-expert
+  rpg:
+    packs:
+      - modernization-pack   # 🔧 stub
+    agents:
+      - ibmi-modernization-expert
+      - modernization-expert
+  cobol:
+    packs:
+      - modernization-pack   # 🔧 stub
+    agents:
+      - modernization-expert
+  mainframe:
+    packs:
+      - modernization-pack   # 🔧 stub
+    agents:
+      - modernization-expert
+  oracle-forms:
+    packs:
+      - modernization-pack   # 🔧 stub
+    agents:
+      - modernization-expert
+  mixed:
+    packs:
+      - modernization-pack   # 🔧 stub
+    agents:
+      - modernization-expert
+      - ibmi-modernization-expert
+  none:
+    packs: []
+    agents: []
+
+# ─────────────────────────────────────────────
+# Derived pack selections by project_type
+# These add packs BEFORE domain/tech resolution
+# ─────────────────────────────────────────────
+project_type:
+  greenfield:
+    extra_packs: []
+  modernization:
+    extra_packs:
+      - modernization-pack   # 🔧 stub
+  poc:
+    extra_packs: []
+    governance_override: basic
+  mvp:
+    extra_packs: []
+  enterprise-platform:
+    extra_packs:
+      - governance-pack      # ✅ built
+    governance_override: enterprise
+  agent-platform:
+    extra_packs:
+      - ai-engineering-pack  # ✅ built
+      - governance-pack      # ✅ built
+      - agent-harness-pack   # ✅ built
+
+# ─────────────────────────────────────────────
+# AI governance auto-trigger rules
+# If any condition matches → governance_required = true
+# ─────────────────────────────────────────────
+ai_governance_triggers:
+  - domain: [insurance, banking, healthcare]
+  - governance_profile: [regulated, enterprise]
+  - ai_pattern: [multi-agent, enterprise-agent-platform]
+
+# ─────────────────────────────────────────────
+# Pack resolution order (lower = resolved first)
+# ─────────────────────────────────────────────
+resolution_order:
+  1: architecture-pack
+  2: java-pack
+  3: python-pack
+  4: aws-pack
+  5: azure-pack
+  6: gcp-pack
+  7: ai-engineering-pack
+  8: agent-harness-pack
+  9: governance-pack
+  10: react-pack
+  11: angular-pack
+  12: modernization-pack
+  13: insurance-pack
+  14: banking-pack
+  15: healthcare-pack
+  16: retail-pack

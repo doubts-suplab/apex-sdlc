@@ -1,0 +1,11 @@
+question_id: backend
+
+question: Select backend technology
+
+required: true
+
+options:
+  - java21
+  - java25
+  - python
+  - mixed

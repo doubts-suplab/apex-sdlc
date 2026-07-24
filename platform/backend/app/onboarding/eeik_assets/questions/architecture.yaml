@@ -1,0 +1,13 @@
+question_id: architecture
+
+question: Select architecture style
+
+required: true
+
+options:
+  - monolith
+  - modular-monolith
+  - microservices
+  - event-driven
+  - serverless
+  - agentic

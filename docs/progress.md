@@ -8,6 +8,21 @@ Legend: ✅ done · 🚧 partial · ❌ not started
 
 ---
 
+## Increment 3 — Onboarding front door (eeik bridge, Phase 0) 🚧
+
+The eeik→APEX bridge exists as a deterministic, offline transform.
+
+- ✅ Onboarding core (`app/onboarding/`): a Pydantic `ProjectManifest` mirroring the eeik schema, a
+  `capability_resolver` that reads the vendored `capability-matrix.yaml`, a deterministic `scaffold`
+  generator (project `CLAUDE.md` + normalized manifest + scaffold plan), and a `service.onboard()` that
+  registers the project at the **Requirements** phase.
+- ✅ Vendored eeik onboarding data under `app/onboarding/eeik_assets/` (manifest schema, question sets,
+  capability matrix, examples) with `PROVENANCE.md`.
+- ✅ API (`/api/v1/onboarding/{questions,preview,}`), offline demo (`python -m app.demo.onboard_project` →
+  `examples/onboarded-project/`), 8 self-contained tests, and a real frontend wizard (`/onboard`).
+- ❌ **Not yet:** full compilable repo-tree emission + actually creating a GitHub repo (the LLM-driven eeik
+  `repository-generator` path); persisting the onboarded project to the DB registry.
+
 ## Increment 2 — Harness-governed phase agents + reference journey ✅
 
 The whole SDLC runs on the [agent-harness](https://github.com/doubts-suplab/agent-harness) (HALO), offline.
@@ -47,7 +62,7 @@ The running shell exists; most of the data model and cross-cutting middleware do
 
 | Capability | ROADMAP phase | Status |
 |---|---|---|
-| **Onboarding via eeik** — scaffold repo + `CLAUDE.md` + packs, register, enter the spine | [Phase 0](../ROADMAP.md#phase-0--onboarding-the-eeik-front-door) | ❌ eeik→APEX bridge not wired |
+| **Onboarding via eeik** — resolve packs + scaffold (`CLAUDE.md` + plan), enter the spine | [Phase 0](../ROADMAP.md#phase-0--onboarding-the-eeik-front-door) | 🚧 deterministic bridge built; full repo-tree emission + GitHub repo + DB persistence pending |
 | **Real LLM generation** — replace templated artifacts with model-generated specs from real input | Phase 3–4 | ❌ headline gap |
 | **Live integrations** — GitHub/Jira/Confluence live data + background refresh | Phase 2 | 🚧 clients exist, not wired to refresh/agents |
 | **Agent write-back** — create Jira epics/stories, post GitHub PR reviews, publish Confluence | Phase 3 | ❌ agents don't call integrations |
