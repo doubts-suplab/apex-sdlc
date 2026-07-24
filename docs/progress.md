@@ -8,6 +8,29 @@ Legend: ✅ done · 🚧 partial · ❌ not started
 
 ---
 
+## Increment 7 — PII guard on agent I/O (ROADMAP Phase 5, golden-rule gap) 🚧
+
+The backend golden rule "PII guard on all agent I/O" is now **enforced in code**, not just a root script.
+
+- ✅ A regex PII guard lives in the platform: `app/middleware/pii_guard/` (`patterns.py` + a regex-only
+  `PiiGuard`). It's **offline and dependency-free** — the root copy's AWS Comprehend layer is intentionally
+  left out so the guard stays deterministic and testable; a Comprehend adapter can slot in behind the same
+  interface later.
+- ✅ Wired into `PhaseAgent.complete()` (`app/agents/base.py`): **outgoing** prompts + system are
+  **scrubbed** (PII never reaches the model); **incoming** completions are **scanned and logged** for the
+  audit trail but returned intact (redacting model output would corrupt a legitimately generated artifact —
+  the outbound boundary is the data-protection one).
+- ✅ Fixed a latent bug absorbed from the root guard: overlapping matches (e.g. `SSN` vs `SORT_CODE`) no
+  longer produce garbled double-redaction — the most-specific pattern claims a span first.
+- ✅ 7 tests (`tests/middleware/test_pii_guard.py`): detect/redact email·SSN·card, clean-text passthrough,
+  disabled passthrough, and a capturing-LLM test proving `complete()` scrubs outgoing PII and preserves
+  incoming content. **84 total green.** `examples/` byte-identical (the offline stub carries no PII).
+- ❌ **Not yet:** persisting `pii_events` rows (the model/table is still pending — findings are logged, not
+  stored), the Comprehend NLP layer (names/addresses), and the **physical** retirement of the root
+  `governance/pii-guard/` copy + `automation/jira-bridge` — that path move is the dedicated
+  [Phase 6 consolidation](../ROADMAP.md#phase-6--repo-consolidation--hardening-weeks-1718) increment
+  (moving it now would churn imports mid-stream).
+
 ## Increment 6 — DB persistence (ROADMAP Phase 4) 🚧
 
 A governed journey's outputs are now **stored, queryable state** instead of in-memory/ephemeral.
@@ -22,8 +45,10 @@ A governed journey's outputs are now **stored, queryable state** instead of in-m
   the previously-erroring 16 `tests/api` tests now pass. 5 new persistence tests (75 total green) verify a
   reference journey persists 17 artifacts / 7 runs / 7 gates and reads back.
 - ❌ **Not yet:** an Alembic baseline (the repo has **no** migrations — schema is via `metadata.create_all`;
-  a full initial migration is a follow-on), artifact-version lineage (single `version` column), S3 storage,
-  and auth/RBAC on the new endpoints.
+  a full initial migration is a follow-on), S3 storage, and auth/RBAC on the new endpoints.
+- ✅ **Artifact version lineage:** an `ArtifactVersion` table + idempotent upsert — re-persisting unchanged
+  content is a no-op; a content change bumps the artifact version and snapshots the prior content
+  (`GET /projects/{id}/artifacts/{artifact_id}/versions`).
 
 ## Increment 5 — Real LLM generation path (ROADMAP Phase 3–4) 🚧
 
@@ -98,8 +123,9 @@ The running shell exists; most of the data model and cross-cutting middleware do
 - ✅ Frontend shell: org home (project grid), project detail (SDLC timeline), integrations pages.
 - 🚧 ORM models cover `organisation`, `project`, `integration`, `phase`, **`artifact`, `agent_run`** —
   still **missing** `team`, `member`, `artifact_version`, `audit_log`, `pii_event`, `policy_violation`.
-- ❌ No Alembic migrations yet (`versions/` empty; schema via `metadata.create_all`). ❌ No PII-guard or
-  audit middleware (only correlation). ❌ No auth/JWT/RBAC.
+- ❌ No Alembic migrations yet (`versions/` empty; schema via `metadata.create_all`). 🚧 PII-guard
+  middleware now scrubs/scans agent LLM I/O (Increment 7); ❌ audit middleware (only correlation) and
+  ❌ auth/JWT/RBAC remain.
 
 ## Increment 0 — Framework & platform spec ✅
 
@@ -118,8 +144,9 @@ The running shell exists; most of the data model and cross-cutting middleware do
 | **Agent write-back** — create Jira epics/stories, post GitHub PR reviews, publish Confluence | Phase 3 | ❌ agents don't call integrations |
 | **Dev repo bootstrap** — scaffold the actual service (eeik `repository-generator`) | Phase 0 / 3 | ❌ |
 | **Architect target-architecture** — reason over requirements + existing system → target-state ADR/C4 | Phase 4 | ❌ (templated ADR only today) |
-| **Artifact persistence** — artifacts + agent runs + gates in DB | Phase 4 | 🚧 DB persistence built (SQLite-verified); S3 + version lineage + Alembic baseline pending |
+| **Artifact persistence** — artifacts + agent runs + gates in DB, with version lineage | Phase 4 | 🚧 DB persistence + version lineage built (SQLite-verified); S3 + Alembic baseline pending |
 | **Phase-gate engine** — enforce the spec-driven spine's phase transitions | Phase 5 | 🚧 pure engine + API + UI built offline; DB persistence + approval store pending |
+| **PII guard on agent I/O** — regex scrub outgoing / scan+log incoming on every LLM call | Phase 5 | 🚧 middleware built + wired (Increment 7); `pii_events` persistence + Comprehend NLP layer pending |
 | **Governance persistence** — audit_log, pii_events, policy_violations tables + CISO view + ARB | Phase 5 | ❌ |
 | **Auth & RBAC** — JWT, persona-scoped access | Phase 5 | ❌ |
 | **AWS deploy** — CDK (ECS Fargate, RDS Aurora, ElastiCache, S3) | Phase 5 | ❌ |

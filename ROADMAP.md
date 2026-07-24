@@ -233,7 +233,8 @@ Versioned artifact storage, Confluence publishing, per-phase gallery.
 > stores a journey's runs/artifacts/gates and reads them back, and `POST /projects/{id}/journey/persist` +
 > read endpoints; onboarding persists a `Project`. Verified offline via aiosqlite (the dormant DB test suite
 > was revived by making the schema SQLite-portable). Still pending: S3 storage, Confluence publish, artifact
-> **version lineage**, and an Alembic baseline (the repo currently has no migrations). See
+> and an Alembic baseline (the repo currently has no migrations). Artifact **version lineage** is now built
+> (`ArtifactVersion` + idempotent upsert). See
 > [`docs/progress.md`](docs/progress.md).
 
 **Deliverables:**
@@ -276,6 +277,39 @@ transition rule — a phase cannot advance until its spec is approved and its ga
 - Load testing (Locust): agent endpoints under concurrent load
 
 **Exit gate:** Phase gate blocks a deployment without required artifacts; ARB workflow completes end-to-end; CDK stack deploys to staging.
+
+---
+
+### Phase 6 — Repo Consolidation & Hardening (Weeks 17–18)
+
+Execute the [File Inventory](#file-inventory) consolidation: the repo grew from a framework-of-files
+(prompt library, CLAUDE.md templates, Lambda automation scripts, a static portal) into the `platform/`
+application, leaving both eras side by side at the root. This phase folds the legacy layer into `platform/`
+and removes what's superseded, so the root has one clear structure.
+
+**Deliverables:**
+- **✅ Functional piece done (Increment 7):** a regex `PiiGuard` now lives in
+  `platform/backend/app/middleware/pii_guard/` and is wired to agent LLM I/O (scrub outgoing / scan+log
+  incoming) in `PhaseAgent.complete()`. **Remaining:** physically retire the root `governance/pii-guard/`
+  copy once its last consumer (`automation/jira-bridge`) is ported — a golden-rule gap now closed in code,
+  with only the path move left as cosmetic cleanup.
+- **Retire `automation/`** (`jira-bridge`, `confluence-writer`) once its webhook logic is ported into
+  `platform/backend/app/integrations/{jira,confluence}/` (the clients already live there).
+- **Delete `scripts/fetch_portal_data.py`** (tied to the superseded static portal; logic belongs in
+  `services/`).
+- **Decide the intent of in-limbo assets:** wire `claude-templates/` into the Architecture agent (or label
+  it reference content), and give the human-facing `prompts/` library a clear home (it is referenced by the
+  adoption guide but not loaded at runtime).
+- **Relocate `portal-prototype/`** under `docs/legacy/` (intentionally retained as a reference, but off the
+  root).
+- **Keep** `governance/policies/` as the policy source enforced by the gate engine.
+
+> Sequence the *functional* piece (pii-guard absorption) separately from the *cosmetic* moves (delete/relocate
+> legacy dirs), and run it as a dedicated increment once feature PRs are merged — a big-bang path move mid-stream
+> churns imports and collides with open PRs.
+
+**Exit gate:** the root contains only `platform/`, `docs/`, `examples/`, `prompts/`, `governance/policies/`,
+plus the standard repo files; PII guard runs on agent I/O; no dead scripts.
 
 ---
 

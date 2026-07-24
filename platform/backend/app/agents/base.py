@@ -20,9 +20,15 @@ from agent_harness import AgentInput, AuthorityLevel, Decision, DecisionAction
 from agent_harness.core.agent import ToolInvoker
 from agent_harness.ports.llm import LlmPort, Message
 
+from app.middleware.pii_guard import PiiGuard
+
 from .context import AgentContext, context_from_input
 
 T = TypeVar("T")
+
+# Golden rule (backend CLAUDE.md #9): all LLM I/O passes through the PII guard. One shared, stateless
+# regex guard is enough — it holds no per-request state.
+_PII_GUARD = PiiGuard()
 
 # A generated artifact body must clear this length to be used; below it the agent falls back to its
 # deterministic template. Set well above the offline stub provider's one-line replies (≤ ~110 chars) and
@@ -86,9 +92,23 @@ class PhaseAgent(ABC):
 
     # -- helpers --------------------------------------------------------
     def complete(self, messages: list[Message], system: str | None = None) -> str:
-        """Synchronously obtain a completion via the injected LLM port."""
-        result: Any = _run_sync(self._llm.complete(messages, system=system))
-        return result.content
+        """Synchronously obtain a completion via the injected LLM port, PII-guarded on both sides.
+
+        **Outgoing:** every message body (and the system prompt) is scrubbed — PII never reaches the
+        model. **Incoming:** the completion is scanned and any findings are logged for the audit trail,
+        but the text is returned intact (redacting the model's output would corrupt a legitimately
+        generated artifact; the primary data-protection boundary is the outbound one).
+        """
+        safe_messages = [
+            Message(role=m.role, content=_PII_GUARD.scrub(m.content)) for m in messages
+        ]
+        safe_system = _PII_GUARD.scrub(system) if system else system
+        result: Any = _run_sync(self._llm.complete(safe_messages, system=safe_system))
+        content: str = result.content
+        findings = _PII_GUARD.scan(content)
+        if findings:
+            _PII_GUARD.log_findings(findings, source=f"agent:{getattr(self, 'name', 'unknown')}")
+        return content
 
     def generate(self, *, prompt: str, fallback: str, system: str | None = None) -> str:
         """Generate an artifact body via the LLM port, falling back to a deterministic template.

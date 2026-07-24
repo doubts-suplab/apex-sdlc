@@ -73,6 +73,23 @@ async def list_artifacts(project_id: uuid.UUID, db: DbSession, svc: Svc) -> dict
     }
 
 
+@router.get(
+    "/{project_id}/artifacts/{artifact_id}/versions",
+    summary="Version lineage for a stored artifact",
+)
+async def list_versions(
+    project_id: uuid.UUID, artifact_id: uuid.UUID, db: DbSession, svc: Svc
+) -> dict[str, Any]:
+    await _require_project(db, project_id)
+    versions = await svc.list_artifact_versions(artifact_id)
+    return {
+        "total": len(versions),
+        "items": [
+            {"version": v.version, "content_sha256": v.content_sha256} for v in versions
+        ],
+    }
+
+
 @router.get("/{project_id}/agent-runs", summary="Stored agent runs for a project")
 async def list_agent_runs(project_id: uuid.UUID, db: DbSession, svc: Svc) -> dict[str, Any]:
     await _require_project(db, project_id)
