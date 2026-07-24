@@ -8,6 +8,23 @@ Legend: ✅ done · 🚧 partial · ❌ not started
 
 ---
 
+## Increment 6 — DB persistence (ROADMAP Phase 4) 🚧
+
+A governed journey's outputs are now **stored, queryable state** instead of in-memory/ephemeral.
+
+- ✅ New models `Artifact` (content + SHA-256 + version) and `AgentRun`; gates persist via the existing
+  `Phase` + `PhaseGate` models. `PersistenceService.persist_journey()` stores every phase's run, artifacts,
+  and gate; `list_artifacts` / `list_agent_runs` / `gate_matrix` read them back.
+- ✅ API: `POST /projects/{id}/journey/persist` + `GET /projects/{id}/{artifacts,agent-runs,gate-status}`.
+  Onboarding now **persists a Project** when an `organisation_id` is supplied.
+- ✅ **Revived the dormant DB test suite:** made `ProjectIntegration.config` portable
+  (`JSON().with_variant(JSONB, "postgresql")`) so the schema compiles on SQLite, and added `aiosqlite` —
+  the previously-erroring 16 `tests/api` tests now pass. 5 new persistence tests (75 total green) verify a
+  reference journey persists 17 artifacts / 7 runs / 7 gates and reads back.
+- ❌ **Not yet:** an Alembic baseline (the repo has **no** migrations — schema is via `metadata.create_all`;
+  a full initial migration is a follow-on), artifact-version lineage (single `version` column), S3 storage,
+  and auth/RBAC on the new endpoints.
+
 ## Increment 5 — Real LLM generation path (ROADMAP Phase 3–4) 🚧
 
 The phase agents now **generate their artifact bodies through the LLM port** instead of hard-coding them.
@@ -79,10 +96,10 @@ The running shell exists; most of the data model and cross-cutting middleware do
 - ✅ FastAPI app, correlation-ID middleware, health, structlog; org/project/integration registry API.
 - ✅ Multi-provider LLM layer (`anthropic`, `ollama`, `groq`, `huggingface`, `stub`).
 - ✅ Frontend shell: org home (project grid), project detail (SDLC timeline), integrations pages.
-- 🚧 ORM models cover `organisation`, `project`, `integration`, `phase` only — **missing** `team`, `member`,
-  `artifact`, `artifact_version`, `agent_run`, `audit_log`, `pii_event`, `policy_violation`.
-- ❌ No Alembic migrations yet (`versions/` empty). ❌ No PII-guard or audit middleware (only correlation).
-  ❌ No auth/JWT/RBAC.
+- 🚧 ORM models cover `organisation`, `project`, `integration`, `phase`, **`artifact`, `agent_run`** —
+  still **missing** `team`, `member`, `artifact_version`, `audit_log`, `pii_event`, `policy_violation`.
+- ❌ No Alembic migrations yet (`versions/` empty; schema via `metadata.create_all`). ❌ No PII-guard or
+  audit middleware (only correlation). ❌ No auth/JWT/RBAC.
 
 ## Increment 0 — Framework & platform spec ✅
 
@@ -101,7 +118,7 @@ The running shell exists; most of the data model and cross-cutting middleware do
 | **Agent write-back** — create Jira epics/stories, post GitHub PR reviews, publish Confluence | Phase 3 | ❌ agents don't call integrations |
 | **Dev repo bootstrap** — scaffold the actual service (eeik `repository-generator`) | Phase 0 / 3 | ❌ |
 | **Architect target-architecture** — reason over requirements + existing system → target-state ADR/C4 | Phase 4 | ❌ (templated ADR only today) |
-| **Artifact persistence** — `artifacts`/`artifact_versions` in DB + S3 + versioning | Phase 4 | ❌ |
+| **Artifact persistence** — artifacts + agent runs + gates in DB | Phase 4 | 🚧 DB persistence built (SQLite-verified); S3 + version lineage + Alembic baseline pending |
 | **Phase-gate engine** — enforce the spec-driven spine's phase transitions | Phase 5 | 🚧 pure engine + API + UI built offline; DB persistence + approval store pending |
 | **Governance persistence** — audit_log, pii_events, policy_violations tables + CISO view + ARB | Phase 5 | ❌ |
 | **Auth & RBAC** — JWT, persona-scoped access | Phase 5 | ❌ |

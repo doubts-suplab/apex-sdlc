@@ -1,0 +1,100 @@
+"""Persistence API — persist a project's governed journey and read the stored state back.
+
+``POST /projects/{id}/journey/persist`` runs the reference journey for a project and stores its agent
+runs, artifacts, and phase gates; the ``GET`` endpoints read them. Requires a database (production path).
+"""
+
+from __future__ import annotations
+
+import uuid
+from typing import Annotated, Any
+
+from fastapi import APIRouter, Depends, HTTPException, Query
+
+from app.agents.orchestrator import run_reference_journey
+from app.db.session import DbSession
+from app.integrations.llm.factory import get_llm_provider
+from app.services.persistence_service import PersistenceService
+from app.services.project_service import ProjectService
+
+router = APIRouter(prefix="/projects", tags=["persistence"])
+
+
+def _svc(db: DbSession) -> PersistenceService:
+    return PersistenceService(db)
+
+
+Svc = Annotated[PersistenceService, Depends(_svc)]
+
+
+async def _require_project(db: DbSession, project_id: uuid.UUID) -> None:
+    if await ProjectService(db).get_by_id(project_id) is None:
+        raise HTTPException(
+            status_code=404,
+            detail={
+                "type": "https://apex.example.com/problems/project-not-found",
+                "title": "Project Not Found",
+                "status": 404,
+                "detail": f"No project with id={project_id} exists.",
+            },
+        )
+
+
+@router.post("/{project_id}/journey/persist", summary="Run + persist the reference journey for a project")
+async def persist_journey(
+    project_id: uuid.UUID,
+    db: DbSession,
+    svc: Svc,
+    approved: Annotated[str | None, Query()] = None,
+) -> dict[str, Any]:
+    await _require_project(db, project_id)
+    approvals = {p.strip() for p in approved.split(",")} if approved else set()
+    journey = run_reference_journey(get_llm_provider())
+    return await svc.persist_journey(project_id, journey, approvals)
+
+
+@router.get("/{project_id}/artifacts", summary="Stored artifacts for a project")
+async def list_artifacts(project_id: uuid.UUID, db: DbSession, svc: Svc) -> dict[str, Any]:
+    await _require_project(db, project_id)
+    items = await svc.list_artifacts(project_id)
+    return {
+        "total": len(items),
+        "items": [
+            {
+                "id": str(a.id),
+                "phase": a.phase,
+                "name": a.name,
+                "kind": a.kind,
+                "version": a.version,
+                "content_sha256": a.content_sha256,
+            }
+            for a in items
+        ],
+    }
+
+
+@router.get("/{project_id}/agent-runs", summary="Stored agent runs for a project")
+async def list_agent_runs(project_id: uuid.UUID, db: DbSession, svc: Svc) -> dict[str, Any]:
+    await _require_project(db, project_id)
+    items = await svc.list_agent_runs(project_id)
+    return {
+        "total": len(items),
+        "items": [
+            {
+                "id": str(r.id),
+                "phase": r.phase,
+                "agent_name": r.agent_name,
+                "action": r.action,
+                "confidence": r.confidence,
+                "auto_enforced": r.auto_enforced,
+                "outcome": r.outcome,
+            }
+            for r in items
+        ],
+    }
+
+
+@router.get("/{project_id}/gate-status", summary="Stored phase-gate statuses for a project")
+async def gate_status(project_id: uuid.UUID, db: DbSession, svc: Svc) -> dict[str, Any]:
+    await _require_project(db, project_id)
+    return {"gates": await svc.gate_matrix(project_id)}
