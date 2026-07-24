@@ -14,6 +14,7 @@ from agent_harness.ports.llm import Message
 
 from .base import PhaseAgent
 from .context import AgentContext
+from .prompts import REQUIREMENTS_SYSTEM
 
 
 class RequirementsAgent(PhaseAgent):
@@ -33,25 +34,45 @@ class RequirementsAgent(PhaseAgent):
             )
 
         feature = str(ctx.inputs.get("feature_name", "Feature"))
-        stories = self._stories(feature, brief)
-        gaps = self._gaps(feature, brief)
         self.emit_artifact(
             name="user-stories.md",
             title=f"{feature} — User Stories (Gherkin)",
             kind="gherkin",
-            content=stories,
+            content=self.generate(
+                prompt=self._stories_prompt(feature, brief),
+                system=REQUIREMENTS_SYSTEM,
+                fallback=self._stories(feature, brief),
+            ),
         )
         self.emit_artifact(
             name="gap-analysis.md",
             title=f"{feature} — Requirements Gap Analysis",
             kind="analysis",
-            content=gaps,
+            content=self.generate(
+                prompt=self._gaps_prompt(feature, brief),
+                system=REQUIREMENTS_SYSTEM,
+                fallback=self._gaps(feature, brief),
+            ),
         )
         rationale = self._rationale(feature, brief)
         # SUGGEST at high confidence: the harness still routes it to a human (SUGGEST never enforces).
         return Decision(DecisionAction.SUGGEST, confidence=0.86, rationale=rationale)
 
-    # -- artifact builders ----------------------------------------------
+    # -- generation prompts (used with a real provider; offline falls back to the templates below) --
+    def _stories_prompt(self, feature: str, brief: str) -> str:
+        return (
+            f"Write Gherkin user stories for the feature '{feature}'. Brief:\n{brief}\n\n"
+            "Cover the happy path and the main rejection paths. Add an '## Acceptance criteria' section. "
+            "Mark the document status as [AI-Draft] awaiting BA approval."
+        )
+
+    def _gaps_prompt(self, feature: str, brief: str) -> str:
+        return (
+            f"Analyse the brief for '{feature}' and produce a requirements gap analysis as a Markdown table "
+            f"(Area | Covered | Gap flagged for the BA), then a one-line recommendation. Brief:\n{brief}"
+        )
+
+    # -- artifact builders (deterministic fallbacks) --------------------
     def _stories(self, feature: str, brief: str) -> str:
         return (
             f"# {feature} — User Stories\n\n"

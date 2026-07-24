@@ -12,6 +12,7 @@ from agent_harness.ports.llm import Message
 
 from .base import PhaseAgent
 from .context import AgentContext
+from .prompts import TESTING_SYSTEM
 
 
 class QAAnalystAgent(PhaseAgent):
@@ -27,23 +28,52 @@ class QAAnalystAgent(PhaseAgent):
             name="test-plan.md",
             title=f"{feature} — Test Plan",
             kind="test-plan",
-            content=self._plan(feature),
+            content=self.generate(
+                prompt=self._plan_prompt(feature),
+                system=TESTING_SYSTEM,
+                fallback=self._plan(feature),
+            ),
         )
         self.emit_artifact(
             name="test-cases.md",
             title=f"{feature} — Test Cases (BDD)",
             kind="test-cases",
-            content=self._cases(feature),
+            content=self.generate(
+                prompt=self._cases_prompt(feature),
+                system=TESTING_SYSTEM,
+                fallback=self._cases(feature),
+            ),
         )
         self.emit_artifact(
             name="coverage-gaps.md",
             title=f"{feature} — Coverage Gap Analysis",
             kind="analysis",
-            content=self._coverage(),
+            content=self.generate(
+                prompt=self._coverage_prompt(feature),
+                system=TESTING_SYSTEM,
+                fallback=self._coverage(),
+            ),
         )
         return Decision(DecisionAction.SUGGEST, confidence=0.85, rationale=self._rationale(feature))
 
-    # -- artifact builders ----------------------------------------------
+    # -- generation prompts (real provider; offline uses the fallbacks below) --
+    def _plan_prompt(self, feature: str) -> str:
+        return (
+            f"Write a test plan for '{feature}' as a Markdown table (Aspect | Approach) covering scope, "
+            "levels (unit/slice/integration with Testcontainers), entry/exit criteria, and environments. "
+            "Mark status [AI-Draft] awaiting QA sign-off."
+        )
+
+    def _cases_prompt(self, feature: str) -> str:
+        return (
+            f"Write BDD test cases for '{feature}' as a Markdown table (ID | Story | Given→When→Then | Type) "
+            "covering the happy path, rejection paths, and idempotency."
+        )
+
+    def _coverage_prompt(self, feature: str) -> str:
+        return f"Write a short coverage-gap analysis for '{feature}': uncovered branches + suggested tests."
+
+    # -- artifact builders (deterministic fallbacks) --------------------
     def _plan(self, feature: str) -> str:
         return (
             f"# {feature} — Test Plan\n\n"

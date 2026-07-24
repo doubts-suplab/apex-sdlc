@@ -12,6 +12,7 @@ from agent_harness.ports.llm import Message
 
 from .base import PhaseAgent
 from .context import AgentContext
+from .prompts import DOCS_SYSTEM
 
 
 class TechWriterAgent(PhaseAgent):
@@ -27,17 +28,38 @@ class TechWriterAgent(PhaseAgent):
             name="api-reference.md",
             title=f"{feature} — API Reference",
             kind="api-doc",
-            content=self._api(feature),
+            content=self.generate(
+                prompt=self._api_prompt(feature),
+                system=DOCS_SYSTEM,
+                fallback=self._api(feature),
+            ),
         )
         self.emit_artifact(
             name="onboarding-guide.md",
             title=f"{feature} — Onboarding Guide",
             kind="guide",
-            content=self._onboarding(feature),
+            content=self.generate(
+                prompt=self._onboarding_prompt(feature),
+                system=DOCS_SYSTEM,
+                fallback=self._onboarding(feature),
+            ),
         )
         return Decision(DecisionAction.SUGGEST, confidence=0.83, rationale=self._rationale(feature))
 
-    # -- artifact builders ----------------------------------------------
+    # -- generation prompts (real provider; offline uses the fallbacks below) --
+    def _api_prompt(self, feature: str) -> str:
+        return (
+            f"Write an API reference for '{feature}' documenting POST /api/v1/refunds (request, 202/409/422 "
+            "responses, RFC 7807 problem details on error) in Markdown."
+        )
+
+    def _onboarding_prompt(self, feature: str) -> str:
+        return (
+            f"Write a short onboarding guide for '{feature}': docker compose up, run migrations, seed an "
+            "order, call the refund endpoint, observe the outbox + audit entry."
+        )
+
+    # -- artifact builders (deterministic fallbacks) --------------------
     def _api(self, feature: str) -> str:
         return (
             f"# {feature} — API Reference\n\n"

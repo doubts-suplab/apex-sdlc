@@ -13,6 +13,7 @@ from agent_harness.ports.llm import Message
 
 from .base import PhaseAgent
 from .context import AgentContext
+from .prompts import DEVELOPMENT_SYSTEM
 
 
 class PRReviewerAgent(PhaseAgent):
@@ -29,13 +30,21 @@ class PRReviewerAgent(PhaseAgent):
             name="pr-review.md",
             title=f"{feature} — PR Review",
             kind="review",
-            content=self._review(feature, findings),
+            content=self.generate(
+                prompt=self._review_prompt(feature, findings),
+                system=DEVELOPMENT_SYSTEM,
+                fallback=self._review(feature, findings),
+            ),
         )
         self.emit_artifact(
             name="quality-report.md",
             title=f"{feature} — Code Quality Report",
             kind="report",
-            content=self._quality(findings),
+            content=self.generate(
+                prompt=self._quality_prompt(findings),
+                system=DEVELOPMENT_SYSTEM,
+                fallback=self._quality(findings),
+            ),
         )
         if not findings:
             return Decision(
@@ -54,6 +63,19 @@ class PRReviewerAgent(PhaseAgent):
             "Customer email is logged at INFO in RefundController — PII must not be logged.",
             "No test covers the 'already_refunded' rejection path.",
         ]
+
+    def _review_prompt(self, feature: str, findings: list[str]) -> str:
+        joined = "\n".join(f"- {f}" for f in findings) or "- (no findings supplied)"
+        return (
+            f"Write an advisory PR review for '{feature}'. Findings to incorporate:\n{joined}\n\n"
+            "Use [MAJOR]/[MINOR] severity labels and note a human still merges."
+        )
+
+    def _quality_prompt(self, findings: list[str]) -> str:
+        return (
+            f"Write a concise code-quality report given {len(findings)} findings; include golden-rule check "
+            "results (parameterised-queries, no-PII-in-logs, test-coverage) and the top risk areas."
+        )
 
     def _review(self, feature: str, findings: list[str]) -> str:
         if not findings:

@@ -13,6 +13,7 @@ from agent_harness.ports.llm import Message
 
 from .base import PhaseAgent
 from .context import AgentContext
+from .prompts import ARCHITECTURE_SYSTEM
 
 
 class ArchitectureAgent(PhaseAgent):
@@ -29,24 +30,57 @@ class ArchitectureAgent(PhaseAgent):
             name="ADR-0001-refund-service.md",
             title=f"ADR-0001 — {feature} bounded context",
             kind="adr",
-            content=self._adr(feature, stack),
+            content=self.generate(
+                prompt=self._adr_prompt(feature, stack),
+                system=ARCHITECTURE_SYSTEM,
+                fallback=self._adr(feature, stack),
+            ),
         )
         self.emit_artifact(
             name="component-diagram.mmd",
             title=f"{feature} — Component Diagram",
             kind="mermaid",
-            content=self._diagram(feature),
+            content=self.generate(
+                prompt=self._diagram_prompt(feature),
+                system=ARCHITECTURE_SYSTEM,
+                fallback=self._diagram(feature),
+            ),
             fmt="mermaid",
         )
         self.emit_artifact(
             name="tech-debt.md",
             title=f"{feature} — Tech-Debt Register",
             kind="analysis",
-            content=self._tech_debt(),
+            content=self.generate(
+                prompt=self._tech_debt_prompt(feature),
+                system=ARCHITECTURE_SYSTEM,
+                fallback=self._tech_debt(),
+            ),
         )
         return Decision(DecisionAction.SUGGEST, confidence=0.84, rationale=self._rationale(feature, stack))
 
-    # -- artifact builders ----------------------------------------------
+    # -- generation prompts (real provider; offline uses the fallbacks below) --
+    def _adr_prompt(self, feature: str, stack: str) -> str:
+        return (
+            f"Write a MADR-style ADR for the '{feature}' bounded context on {stack}. Sections: Context, "
+            "Decision, Consequences (+/−), Alternatives considered. Status: Proposed. Enforce hexagonal "
+            "layering, idempotency, and no cross-context DB joins."
+        )
+
+    def _diagram_prompt(self, feature: str) -> str:
+        return (
+            f"Produce a valid Mermaid `graph LR` component diagram for the '{feature}' service showing the "
+            "API, domain, an anti-corruption port to the orders read-model, an outbox, the ledger, and the "
+            "audit log. Output only the Mermaid source (no code fence)."
+        )
+
+    def _tech_debt_prompt(self, feature: str) -> str:
+        return (
+            f"Produce a tech-debt register for '{feature}' as a Markdown table (Item | Priority | Target "
+            "sprint) with 2–3 realistic items."
+        )
+
+    # -- artifact builders (deterministic fallbacks) --------------------
     def _adr(self, feature: str, stack: str) -> str:
         return (
             f"# ADR-0001 — {feature} bounded context\n\n"

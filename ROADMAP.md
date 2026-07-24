@@ -205,6 +205,12 @@ Live data from GitHub, Jira, and Confluence per registered project.
 
 First AI agents running end-to-end: Requirements Analyst and PR Reviewer.
 
+> **Status:** 🚧 all seven agents now **generate their artifact bodies through the LLM port**
+> (`PhaseAgent.generate()` + per-phase prompts in `app/agents/prompts.py`), with a deterministic fallback so
+> the offline demo stays reproducible; wiring a real provider (`LLM_PROVIDER=anthropic`) yields real
+> input-driven artifacts. Still pending in this phase: write-back to Jira/GitHub/Confluence, `agent_runs`
+> persistence, SSE streaming, and quality-eval of generated output. See [`docs/progress.md`](docs/progress.md).
+
 **Deliverables:**
 - Agent orchestrator: `AgentContext` + `AgentResult` dataclasses, Celery task wrapper, SSE progress stream endpoint (`/api/v1/agents/{run_id}/stream`)
 - `agent_runs` + `agent_run_messages` tables with full message history

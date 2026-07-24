@@ -8,6 +8,22 @@ Legend: ✅ done · 🚧 partial · ❌ not started
 
 ---
 
+## Increment 5 — Real LLM generation path (ROADMAP Phase 3–4) 🚧
+
+The phase agents now **generate their artifact bodies through the LLM port** instead of hard-coding them.
+
+- ✅ `PhaseAgent.generate(prompt, fallback, system)` (`base.py`): a substantive completion is used verbatim;
+  a short reply or any LLM failure falls back to the deterministic template. All seven agents route every
+  artifact through it, with per-phase system prompts in `app/agents/prompts.py` and input-specific prompt
+  builders in each agent.
+- ✅ 3 tests (`tests/agents/test_generation.py`) prove a substantive completion reaches the artifact and a
+  short reply falls back; 38 total green.
+- ✅ **Offline is byte-identical.** With the `stub` provider the fallback templates are used, so the
+  committed reference journey / gate report don't churn.
+- 🚧 **Provider-gated:** real, input-driven artifacts require a configured provider
+  (`LLM_PROVIDER=anthropic` + key). That path is wired and tested via a generative stub; **eval of real
+  output quality** (and streaming into artifacts) is the follow-on.
+
 ## Increment 4 — Phase-gate engine (ROADMAP Phase 5) 🚧
 
 The spec-driven spine is now **enforceable**: a phase can't advance until its gate passes.
@@ -80,7 +96,7 @@ The running shell exists; most of the data model and cross-cutting middleware do
 | Capability | ROADMAP phase | Status |
 |---|---|---|
 | **Onboarding via eeik** — resolve packs + scaffold (`CLAUDE.md` + plan), enter the spine | [Phase 0](../ROADMAP.md#phase-0--onboarding-the-eeik-front-door) | 🚧 deterministic bridge built; full repo-tree emission + GitHub repo + DB persistence pending |
-| **Real LLM generation** — replace templated artifacts with model-generated specs from real input | Phase 3–4 | ❌ headline gap |
+| **Real LLM generation** — model-generated specs from real input | Phase 3–4 | 🚧 path wired via `PhaseAgent.generate()` + prompts; real output needs a configured provider; quality-eval is the follow-on |
 | **Live integrations** — GitHub/Jira/Confluence live data + background refresh | Phase 2 | 🚧 clients exist, not wired to refresh/agents |
 | **Agent write-back** — create Jira epics/stories, post GitHub PR reviews, publish Confluence | Phase 3 | ❌ agents don't call integrations |
 | **Dev repo bootstrap** — scaffold the actual service (eeik `repository-generator`) | Phase 0 / 3 | ❌ |
