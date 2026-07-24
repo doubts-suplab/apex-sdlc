@@ -7,14 +7,18 @@ register at the Requirements phase (a DB-backed build persists it via project_se
 
 from __future__ import annotations
 
-from typing import Any
+import uuid
+from typing import Annotated, Any
 
-from fastapi import APIRouter
+from fastapi import APIRouter, Query
 
+from app.db.session import DbSession
 from app.onboarding.manifest import ProjectManifest
 from app.onboarding.questions import load_questions
 from app.onboarding.service import onboard as onboard_project
 from app.onboarding.service import registration_payload
+from app.schemas.project import ProjectCreate
+from app.services.project_service import ProjectService
 
 router = APIRouter(prefix="/onboarding", tags=["onboarding"])
 
@@ -32,7 +36,31 @@ async def preview(manifest: ProjectManifest) -> dict[str, Any]:
 
 
 @router.post("/", summary="Onboard a project — scaffold + registry hand-off")
-async def onboard(manifest: ProjectManifest) -> dict[str, Any]:
-    """Onboard: validate + scaffold, and return the project record to register at the Requirements phase."""
+async def onboard(
+    manifest: ProjectManifest,
+    db: DbSession,
+    organisation_id: Annotated[uuid.UUID | None, Query()] = None,
+) -> dict[str, Any]:
+    """Onboard: validate + scaffold, and return the registry hand-off.
+
+    When ``organisation_id`` is supplied, the onboarded project is **persisted** as a Project row at the
+    Requirements phase and its id is returned; otherwise the flow is offline/DB-free.
+    """
     result = onboard_project(manifest)
-    return {**result.to_dict(), "registration": registration_payload(result)}
+    reg = registration_payload(result)
+    body: dict[str, Any] = {**result.to_dict(), "registration": reg}
+    if organisation_id is not None:
+        project = await ProjectService(db).create(
+            ProjectCreate(
+                organisation_id=organisation_id,
+                name=reg["name"],
+                slug=reg["slug"],
+                description=reg["description"],
+                project_type=reg["project_type"],
+                current_phase=reg["current_phase"],
+                status=reg["status"],
+            )
+        )
+        await db.commit()
+        body["project_id"] = str(project.id)
+    return body

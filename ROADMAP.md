@@ -229,6 +229,13 @@ First AI agents running end-to-end: Requirements Analyst and PR Reviewer.
 
 Versioned artifact storage, Confluence publishing, per-phase gallery.
 
+> **Status:** 🚧 **DB persistence is built** — `Artifact` + `AgentRun` models, a `PersistenceService` that
+> stores a journey's runs/artifacts/gates and reads them back, and `POST /projects/{id}/journey/persist` +
+> read endpoints; onboarding persists a `Project`. Verified offline via aiosqlite (the dormant DB test suite
+> was revived by making the schema SQLite-portable). Still pending: S3 storage, Confluence publish, artifact
+> **version lineage**, and an Alembic baseline (the repo currently has no migrations). See
+> [`docs/progress.md`](docs/progress.md).
+
 **Deliverables:**
 - `artifacts` + `artifact_versions` tables — content hash, S3 key, version lineage
 - S3 client wrapper: upload artifact, generate pre-signed URL, lifecycle tagging

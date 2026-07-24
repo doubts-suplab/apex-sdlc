@@ -3,9 +3,12 @@ from __future__ import annotations
 import uuid
 from datetime import datetime
 
-from sqlalchemy import Boolean, DateTime, ForeignKey, String, UniqueConstraint
+from sqlalchemy import JSON, Boolean, DateTime, ForeignKey, String, UniqueConstraint
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import Mapped, mapped_column, relationship
+
+# JSONB on PostgreSQL (production); generic JSON elsewhere (e.g. SQLite in tests) so the schema compiles.
+_JSON = JSON().with_variant(JSONB, "postgresql")
 
 from app.db.base import Base, TimestampMixin
 
@@ -44,7 +47,7 @@ class ProjectIntegration(Base, TimestampMixin):
     )
     # Integration-specific config — e.g. {"repo": "org/repo"} or {"board_id": "42"}
     config: Mapped[dict] = mapped_column(
-        JSONB,
+        _JSON,
         nullable=False,
         default=dict,
     )
