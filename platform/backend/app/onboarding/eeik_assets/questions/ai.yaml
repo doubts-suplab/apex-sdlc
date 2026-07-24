@@ -1,0 +1,12 @@
+question_id: ai
+
+question: Select AI capability level
+
+required: true
+
+options:
+  - none
+  - rag
+  - single-agent
+  - multi-agent
+  - enterprise-agent-platform

@@ -1,0 +1,10 @@
+question_id: frontend
+
+question: Select frontend technology
+
+required: true
+
+options:
+  - react
+  - angular
+  - none

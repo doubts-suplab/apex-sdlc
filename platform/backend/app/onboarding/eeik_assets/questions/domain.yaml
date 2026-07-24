@@ -1,0 +1,12 @@
+question_id: domain
+
+question: What business domain does the project belong to?
+
+required: true
+
+options:
+  - insurance
+  - banking
+  - healthcare
+  - retail
+  - generic

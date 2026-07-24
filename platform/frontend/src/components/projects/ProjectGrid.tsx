@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useProjects } from "@/lib/queries/projects";
 import { ProjectCard } from "@/components/projects/ProjectCard";
 import { EmptyState } from "@/components/projects/EmptyState";
@@ -37,10 +38,12 @@ export function ProjectGrid() {
             AI-powered SDLC for your organisation
           </p>
         </div>
-        <Button disabled variant="default" className="gap-2">
-          <Plus className="h-4 w-4" />
-          Onboard Project
-        </Button>
+        <Link href="/onboard">
+          <Button variant="default" className="gap-2">
+            <Plus className="h-4 w-4" />
+            Onboard Project
+          </Button>
+        </Link>
       </div>
 
       {isError && (

@@ -1,0 +1,15 @@
+question_id: project_type
+
+question: What type of project are you building?
+
+required: true
+
+options:
+  - greenfield
+  - modernization
+  - poc
+  - mvp
+  - enterprise-platform
+  - agent-platform
+
+default: greenfield

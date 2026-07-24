@@ -1,0 +1,10 @@
+question_id: delivery
+
+question: Delivery model
+
+required: true
+
+options:
+  - single-team
+  - multi-team
+  - enterprise-program

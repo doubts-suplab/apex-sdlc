@@ -22,6 +22,8 @@ dependencies = [
     "anthropic>=0.30.0",
     "python-multipart>=0.0.9",
     "python-dotenv>=1.0.0",
+    # Onboarding reads vendored eeik manifests / capability matrix / question sets (YAML).
+    "pyyaml>=6.0",
     # Generic agent runtime — apex runs its phase agents on the harness rather than hand-rolling
     # agent execution. See app/agents/ and github.com/doubts-suplab/agent-harness.
     "agent-harness @ git+https://github.com/doubts-suplab/agent-harness@claude/agent-harness-architecture-y33wmy",
@@ -36,6 +38,7 @@ dev = [
     "ruff>=0.5.0",
     "mypy>=1.10.0",
     "types-python-dateutil",
+    "types-pyyaml",
 ]
 
 [tool.setuptools.packages.find]

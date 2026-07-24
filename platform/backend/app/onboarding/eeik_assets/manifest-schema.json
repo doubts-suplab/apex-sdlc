@@ -1,0 +1,422 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://github.com/eeik/bootstrap/schemas/manifest-schema.json",
+  "title": "EEIK Project Manifest",
+  "description": "Canonical source of truth for EEIK project generation. All generators, capability resolvers, governance engines, and agent factories consume this manifest.",
+  "version": "1.0",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "project",
+    "technology",
+    "architecture",
+    "cloud",
+    "governance",
+    "delivery"
+  ],
+  "additionalProperties": false,
+  "properties": {
+
+    "schema_version": {
+      "type": "string",
+      "description": "Manifest schema version. Follows Major.Minor format.",
+      "pattern": "^\\d+\\.\\d+$",
+      "examples": ["1.0", "1.1", "2.0"]
+    },
+
+    "project": {
+      "type": "object",
+      "description": "Core project identity.",
+      "required": ["name", "domain", "project_type"],
+      "additionalProperties": false,
+      "properties": {
+        "name": {
+          "type": "string",
+          "description": "Unique project identifier. Use kebab-case.",
+          "pattern": "^[a-z0-9-]+$",
+          "examples": ["claims-modernization", "payment-gateway", "risk-intelligence-platform"]
+        },
+        "description": {
+          "type": "string",
+          "description": "One-sentence description of what the project does."
+        },
+        "owner": {
+          "type": "string",
+          "description": "Owning team or squad name."
+        },
+        "domain": {
+          "type": "string",
+          "description": "Business domain this project belongs to.",
+          "enum": ["insurance", "banking", "healthcare", "retail", "generic"],
+          "examples": ["insurance"]
+        },
+        "project_type": {
+          "type": "string",
+          "description": "Nature of the project — determines which capability packs and governance profiles apply.",
+          "enum": [
+            "greenfield",
+            "modernization",
+            "poc",
+            "mvp",
+            "enterprise-platform",
+            "agent-platform"
+          ]
+        }
+      }
+    },
+
+    "technology": {
+      "type": "object",
+      "description": "Technology stack selection.",
+      "required": ["backend"],
+      "additionalProperties": false,
+      "properties": {
+        "backend": {
+          "type": "object",
+          "description": "Backend language, version, and framework.",
+          "required": ["language"],
+          "additionalProperties": false,
+          "properties": {
+            "language": {
+              "type": "string",
+              "enum": ["java", "python", "mixed"],
+              "description": "Primary backend language."
+            },
+            "version": {
+              "type": "number",
+              "description": "Language version. E.g. 21 for Java 21, 3.12 for Python 3.12.",
+              "examples": [21, 25, 3.12]
+            },
+            "framework": {
+              "type": "string",
+              "description": "Primary framework.",
+              "examples": ["spring-boot", "quarkus", "fastapi", "django"]
+            }
+          }
+        },
+        "frontend": {
+          "type": "object",
+          "description": "Frontend framework. Omit or set to none if the project has no frontend.",
+          "additionalProperties": false,
+          "properties": {
+            "framework": {
+              "type": "string",
+              "enum": ["react", "angular", "none"],
+              "default": "none"
+            }
+          }
+        },
+        "database": {
+          "type": "object",
+          "description": "Primary database engine and migration tooling.",
+          "additionalProperties": false,
+          "properties": {
+            "type": {
+              "type": "string",
+              "enum": ["postgresql", "mysql", "aurora-postgresql", "aurora-mysql", "dynamodb", "db2", "oracle", "mixed"],
+              "description": "Database engine."
+            },
+            "migration_tool": {
+              "type": "string",
+              "enum": ["flyway", "liquibase", "none"],
+              "description": "Schema migration tool.",
+              "default": "flyway"
+            },
+            "orm": {
+              "type": "string",
+              "enum": ["spring-data-jpa", "spring-data-jdbc", "jdbctemplate", "sqlalchemy", "none"],
+              "description": "ORM or data access layer."
+            }
+          }
+        },
+        "messaging": {
+          "type": "object",
+          "description": "Asynchronous messaging configuration.",
+          "additionalProperties": false,
+          "properties": {
+            "broker": {
+              "type": "string",
+              "enum": ["sqs", "sns", "eventbridge", "kafka", "kinesis", "none"]
+            },
+            "pattern": {
+              "type": "string",
+              "enum": ["event-driven", "command-driven", "pub-sub", "streaming", "none"]
+            }
+          }
+        }
+      }
+    },
+
+    "architecture": {
+      "type": "object",
+      "description": "Architectural style and design decisions.",
+      "required": ["style"],
+      "additionalProperties": false,
+      "properties": {
+        "style": {
+          "type": "string",
+          "description": "Primary architectural style.",
+          "enum": [
+            "monolith",
+            "modular-monolith",
+            "microservices",
+            "event-driven",
+            "serverless",
+            "agentic"
+          ]
+        },
+        "patterns": {
+          "type": "array",
+          "description": "Additional architectural patterns in use.",
+          "items": {
+            "type": "string",
+            "enum": ["ddd", "cqrs", "saga", "outbox", "api-gateway", "bff", "strangler-fig"]
+          }
+        },
+        "api_style": {
+          "type": "string",
+          "enum": ["rest", "graphql", "grpc", "event", "mixed"],
+          "description": "Primary API style exposed by services.",
+          "default": "rest"
+        }
+      }
+    },
+
+    "cloud": {
+      "type": "object",
+      "description": "Cloud platform and infrastructure-as-code tooling.",
+      "required": ["provider"],
+      "additionalProperties": false,
+      "properties": {
+        "provider": {
+          "type": "string",
+          "enum": ["aws", "azure", "gcp", "hybrid"],
+          "description": "Primary cloud provider."
+        },
+        "infra_as_code": {
+          "type": "string",
+          "enum": ["cdk", "terraform", "both", "none"],
+          "description": "Infrastructure-as-code tooling.",
+          "default": "cdk"
+        },
+        "regions": {
+          "type": "array",
+          "description": "Target deployment regions.",
+          "items": { "type": "string" },
+          "examples": [["eu-west-1"], ["us-east-1", "eu-west-1"]]
+        },
+        "multi_account": {
+          "type": "boolean",
+          "description": "Whether the project uses separate AWS accounts per environment.",
+          "default": true
+        }
+      }
+    },
+
+    "ai": {
+      "type": "object",
+      "description": "AI and agentic capabilities. Omit this section if no AI is required.",
+      "additionalProperties": false,
+      "properties": {
+        "enabled": {
+          "type": "boolean",
+          "default": false
+        },
+        "pattern": {
+          "type": "string",
+          "enum": ["rag", "single-agent", "multi-agent", "enterprise-agent-platform", "none"],
+          "description": "AI architecture pattern."
+        },
+        "framework": {
+          "type": "string",
+          "enum": ["langgraph", "crewai", "autogen", "mcp", "bedrock-agents", "none"],
+          "description": "Primary AI/agent framework."
+        },
+        "foundation_model": {
+          "type": "string",
+          "enum": ["claude", "gpt-4", "llama", "titan", "mixed"],
+          "description": "Primary foundation model provider."
+        },
+        "governance_required": {
+          "type": "boolean",
+          "description": "Whether AI governance review is required. Auto-set to true for regulated domains.",
+          "default": false
+        },
+        "memory_pattern": {
+          "type": "string",
+          "enum": ["in-session", "persistent-db", "vector-store", "none"],
+          "description": "Agent memory architecture."
+        }
+      }
+    },
+
+    "governance": {
+      "type": "object",
+      "description": "Governance profile — determines which reviews, controls, and approvals apply.",
+      "required": ["profile"],
+      "additionalProperties": false,
+      "properties": {
+        "profile": {
+          "type": "string",
+          "enum": ["basic", "standard", "regulated", "enterprise"],
+          "description": "Governance level. Regulated applies to insurance, banking, healthcare. Enterprise adds ARB gates and formal sign-off."
+        },
+        "reviews_required": {
+          "type": "array",
+          "description": "Mandatory review types. Auto-populated from profile and domain.",
+          "items": {
+            "type": "string",
+            "enum": [
+              "architecture-review",
+              "security-review",
+              "ai-governance-review",
+              "production-readiness-review",
+              "arb-gate",
+              "compliance-review"
+            ]
+          }
+        },
+        "compliance_frameworks": {
+          "type": "array",
+          "description": "Applicable compliance frameworks.",
+          "items": {
+            "type": "string",
+            "enum": ["gdpr", "pci-dss", "hipaa", "iso27001", "soc2", "eu-ai-act", "none"]
+          }
+        }
+      }
+    },
+
+    "delivery": {
+      "type": "object",
+      "description": "Delivery model and team structure.",
+      "required": ["model"],
+      "additionalProperties": false,
+      "properties": {
+        "model": {
+          "type": "string",
+          "enum": ["single-team", "multi-team", "enterprise-program"],
+          "description": "Delivery team structure."
+        },
+        "methodology": {
+          "type": "string",
+          "enum": ["agile", "kanban", "scaled-agile"],
+          "default": "agile"
+        },
+        "sprint_length_weeks": {
+          "type": "number",
+          "enum": [1, 2, 3, 4],
+          "default": 2
+        },
+        "cicd_platform": {
+          "type": "string",
+          "enum": ["github-actions", "jenkins", "gitlab-ci", "azure-devops", "none"],
+          "default": "github-actions"
+        }
+      }
+    },
+
+    "modernization": {
+      "type": "object",
+      "description": "Legacy modernization details. Omit if greenfield.",
+      "additionalProperties": false,
+      "properties": {
+        "enabled": {
+          "type": "boolean",
+          "default": false
+        },
+        "source_platform": {
+          "type": "string",
+          "enum": ["ibmi", "rpg", "cobol", "mainframe", "oracle-forms", "vb6", "mixed", "none"],
+          "description": "Legacy platform being replaced or modernized."
+        },
+        "strategy": {
+          "type": "string",
+          "enum": ["strangler-fig", "rewrite", "lift-and-shift", "encapsulate", "hybrid"],
+          "description": "Modernization strategy."
+        },
+        "wave_approach": {
+          "type": "boolean",
+          "description": "Whether migration is phased into waves.",
+          "default": true
+        }
+      }
+    },
+
+    "observability": {
+      "type": "object",
+      "description": "Observability and monitoring configuration.",
+      "additionalProperties": false,
+      "properties": {
+        "enabled": {
+          "type": "boolean",
+          "default": true
+        },
+        "logging": {
+          "type": "string",
+          "enum": ["cloudwatch", "elk", "splunk", "datadog", "none"],
+          "default": "cloudwatch"
+        },
+        "tracing": {
+          "type": "string",
+          "enum": ["x-ray", "jaeger", "zipkin", "datadog", "none"],
+          "default": "x-ray"
+        },
+        "metrics": {
+          "type": "string",
+          "enum": ["cloudwatch", "prometheus", "datadog", "none"],
+          "default": "cloudwatch"
+        },
+        "slo_required": {
+          "type": "boolean",
+          "description": "Whether formal SLI/SLO definitions are required.",
+          "default": false
+        }
+      }
+    }
+  },
+
+  "if": {
+    "properties": {
+      "project": {
+        "properties": {
+          "domain": { "enum": ["insurance", "banking", "healthcare"] }
+        }
+      }
+    }
+  },
+  "then": {
+    "properties": {
+      "governance": {
+        "properties": {
+          "profile": { "enum": ["regulated", "enterprise"] }
+        }
+      }
+    }
+  },
+
+  "examples": [
+    {
+      "schema_version": "1.0",
+      "project": {
+        "name": "claims-modernization",
+        "description": "Insurance claims platform modernization from IBM i",
+        "owner": "claims-platform-team",
+        "domain": "insurance",
+        "project_type": "modernization"
+      },
+      "technology": {
+        "backend": { "language": "java", "version": 21, "framework": "spring-boot" },
+        "frontend": { "framework": "react" },
+        "database": { "type": "aurora-postgresql", "migration_tool": "flyway", "orm": "spring-data-jpa" }
+      },
+      "architecture": { "style": "microservices", "patterns": ["ddd", "outbox"], "api_style": "rest" },
+      "cloud": { "provider": "aws", "infra_as_code": "cdk", "regions": ["eu-west-1"], "multi_account": true },
+      "ai": { "enabled": true, "pattern": "multi-agent", "framework": "langgraph", "governance_required": true },
+      "governance": { "profile": "regulated", "reviews_required": ["architecture-review", "security-review", "ai-governance-review"], "compliance_frameworks": ["gdpr"] },
+      "delivery": { "model": "enterprise-program", "methodology": "agile", "sprint_length_weeks": 2, "cicd_platform": "github-actions" },
+      "modernization": { "enabled": true, "source_platform": "ibmi", "strategy": "strangler-fig", "wave_approach": true },
+      "observability": { "enabled": true, "logging": "cloudwatch", "tracing": "x-ray", "metrics": "cloudwatch", "slo_required": true }
+    }
+  ]
+}
