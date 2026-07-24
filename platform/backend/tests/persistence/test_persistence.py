@@ -65,6 +65,40 @@ async def test_content_hash_is_stable(db_session: AsyncSession):
     assert stories.content_sha256 == hashlib.sha256(stories.content.encode()).hexdigest()
 
 
+# -- version lineage ----------------------------------------------------------------------------
+async def test_re_persist_same_content_is_idempotent(db_session: AsyncSession):
+    project = await _make_project(db_session)
+    svc = PersistenceService(db_session)
+
+    first = await svc.persist_journey(project.id, run_reference_journey(StubLLMProvider()))
+    assert first["new_versions"] == 17
+    # Re-persisting the identical (deterministic) journey creates no new artifact versions.
+    second = await svc.persist_journey(project.id, run_reference_journey(StubLLMProvider()))
+    assert second["new_versions"] == 0
+    assert len(await svc.list_artifacts(project.id)) == 17  # still one Artifact per doc, not duplicated
+
+
+async def test_changed_content_bumps_version(db_session: AsyncSession):
+    project = await _make_project(db_session)
+    svc = PersistenceService(db_session)
+    await svc.persist_journey(project.id, run_reference_journey(StubLLMProvider()))
+
+    # Re-run and mutate one artifact's content, then persist again.
+    journey = run_reference_journey(StubLLMProvider())
+    journey.phases[0].artifacts[0]["content"] = "# Revised\n\n" + ("changed body. " * 20)
+    await svc.persist_journey(project.id, journey)
+
+    target = next(
+        a
+        for a in await svc.list_artifacts(project.id)
+        if a.name == journey.phases[0].artifacts[0]["name"]
+    )
+    assert target.version == 2
+    versions = await svc.list_artifact_versions(target.id)
+    assert [v.version for v in versions] == [1, 2]
+    assert versions[0].content_sha256 != versions[1].content_sha256
+
+
 # -- API layer ----------------------------------------------------------------------------------
 async def test_persist_and_read_via_api(client: AsyncClient, db_session: AsyncSession):
     project = await _make_project(db_session)

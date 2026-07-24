@@ -22,8 +22,10 @@ A governed journey's outputs are now **stored, queryable state** instead of in-m
   the previously-erroring 16 `tests/api` tests now pass. 5 new persistence tests (75 total green) verify a
   reference journey persists 17 artifacts / 7 runs / 7 gates and reads back.
 - ❌ **Not yet:** an Alembic baseline (the repo has **no** migrations — schema is via `metadata.create_all`;
-  a full initial migration is a follow-on), artifact-version lineage (single `version` column), S3 storage,
-  and auth/RBAC on the new endpoints.
+  a full initial migration is a follow-on), S3 storage, and auth/RBAC on the new endpoints.
+- ✅ **Artifact version lineage:** an `ArtifactVersion` table + idempotent upsert — re-persisting unchanged
+  content is a no-op; a content change bumps the artifact version and snapshots the prior content
+  (`GET /projects/{id}/artifacts/{artifact_id}/versions`).
 
 ## Increment 5 — Real LLM generation path (ROADMAP Phase 3–4) 🚧
 
@@ -118,7 +120,7 @@ The running shell exists; most of the data model and cross-cutting middleware do
 | **Agent write-back** — create Jira epics/stories, post GitHub PR reviews, publish Confluence | Phase 3 | ❌ agents don't call integrations |
 | **Dev repo bootstrap** — scaffold the actual service (eeik `repository-generator`) | Phase 0 / 3 | ❌ |
 | **Architect target-architecture** — reason over requirements + existing system → target-state ADR/C4 | Phase 4 | ❌ (templated ADR only today) |
-| **Artifact persistence** — artifacts + agent runs + gates in DB | Phase 4 | 🚧 DB persistence built (SQLite-verified); S3 + version lineage + Alembic baseline pending |
+| **Artifact persistence** — artifacts + agent runs + gates in DB, with version lineage | Phase 4 | 🚧 DB persistence + version lineage built (SQLite-verified); S3 + Alembic baseline pending |
 | **Phase-gate engine** — enforce the spec-driven spine's phase transitions | Phase 5 | 🚧 pure engine + API + UI built offline; DB persistence + approval store pending |
 | **Governance persistence** — audit_log, pii_events, policy_violations tables + CISO view + ARB | Phase 5 | ❌ |
 | **Auth & RBAC** — JWT, persona-scoped access | Phase 5 | ❌ |
