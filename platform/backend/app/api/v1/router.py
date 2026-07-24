@@ -7,6 +7,7 @@ from sqlalchemy import text
 
 from app.api.v1 import (
     agents,
+    auth,
     gates,
     integrations,
     journey,
@@ -23,6 +24,7 @@ logger = get_logger(__name__)
 api_router = APIRouter(prefix="/api/v1")
 
 # Include sub-routers
+api_router.include_router(auth.router)
 api_router.include_router(organisations.router)
 api_router.include_router(projects.router)
 api_router.include_router(integrations.router)

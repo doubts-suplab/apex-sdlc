@@ -8,6 +8,27 @@ Legend: ✅ done · 🚧 partial · ❌ not started
 
 ---
 
+## Increment 8 — Auth & persona RBAC (ROADMAP Phase 5) 🚧
+
+The platform now has an **identity + authorization** primitive: a bearer token carries a persona, and
+persona-scoped RBAC guards a sensitive write.
+
+- ✅ `app/core/security.py`: HS256 JWT issue/verify built on the **standard library** (`hmac`/`hashlib`) —
+  no `pyjwt`/`python-jose`/`cryptography` dependency, so auth works in the offline test env and stays
+  deterministic. Claims: `sub`, `persona` (one of the catalog's seven), optional `org_id`, `iat`/`exp`;
+  constant-time signature check; expiry enforced. An RS256 signer can slot behind the same interface later.
+- ✅ `POST /api/v1/auth/token` mints a token for a subject+persona (an honest **dev/identity-broker login** —
+  no credential store yet); `GET /api/v1/auth/me` echoes the principal. `require_persona(...)` is a reusable
+  FastAPI RBAC dependency returning RFC-7807 401/403.
+- ✅ **Applied to the human-approval write:** `POST /projects/{id}/journey/persist` (which runs + approves a
+  governed journey) now requires an **approver persona** (`lead`/`ba`/`architect`/`ciso`) — anonymous → 401,
+  wrong persona → 403. Read endpoints stay open pending global enforcement.
+- ✅ 11 tests (`tests/api/test_auth.py`): token round-trip, tampered/expired/malformed rejection, unknown
+  persona rejected, token endpoint + `/me`, and the persist write's 401/403/200 RBAC matrix. **95 total
+  green;** `examples/` byte-identical.
+- ❌ **Not yet:** a real credential/user store (password/OIDC), **global** auth middleware on every route
+  (only the persist write is guarded today), persona↔`Member` mapping, and token refresh.
+
 ## Increment 7 — PII guard on agent I/O (ROADMAP Phase 5, golden-rule gap) 🚧
 
 The backend golden rule "PII guard on all agent I/O" is now **enforced in code**, not just a root script.
@@ -124,8 +145,8 @@ The running shell exists; most of the data model and cross-cutting middleware do
 - 🚧 ORM models cover `organisation`, `project`, `integration`, `phase`, **`artifact`, `agent_run`** —
   still **missing** `team`, `member`, `artifact_version`, `audit_log`, `pii_event`, `policy_violation`.
 - ❌ No Alembic migrations yet (`versions/` empty; schema via `metadata.create_all`). 🚧 PII-guard
-  middleware now scrubs/scans agent LLM I/O (Increment 7); ❌ audit middleware (only correlation) and
-  ❌ auth/JWT/RBAC remain.
+  middleware now scrubs/scans agent LLM I/O (Increment 7); 🚧 JWT + persona RBAC guards the persist write
+  (Increment 8); ❌ audit middleware (only correlation) and global auth enforcement remain.
 
 ## Increment 0 — Framework & platform spec ✅
 
@@ -148,7 +169,7 @@ The running shell exists; most of the data model and cross-cutting middleware do
 | **Phase-gate engine** — enforce the spec-driven spine's phase transitions | Phase 5 | 🚧 pure engine + API + UI built offline; DB persistence + approval store pending |
 | **PII guard on agent I/O** — regex scrub outgoing / scan+log incoming on every LLM call | Phase 5 | 🚧 middleware built + wired (Increment 7); `pii_events` persistence + Comprehend NLP layer pending |
 | **Governance persistence** — audit_log, pii_events, policy_violations tables + CISO view + ARB | Phase 5 | ❌ |
-| **Auth & RBAC** — JWT, persona-scoped access | Phase 5 | ❌ |
+| **Auth & RBAC** — JWT, persona-scoped access | Phase 5 | 🚧 HS256 JWT + `require_persona` built (Increment 8), guarding the journey-persist write; global middleware + credential store + refresh pending |
 | **AWS deploy** — CDK (ECS Fargate, RDS Aurora, ElastiCache, S3) | Phase 5 | ❌ |
 
 **One-line status:** the framework is *demonstrable and governed end-to-end offline*, but the substance —
