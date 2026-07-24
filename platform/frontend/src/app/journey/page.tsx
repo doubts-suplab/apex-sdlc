@@ -1,11 +1,19 @@
 "use client";
 
 import { useState } from "react";
-import { AlertCircle, ArrowRight, ShieldCheck, UserCheck } from "lucide-react";
-import { useReferenceJourney } from "@/lib/queries/journey";
+import {
+  AlertCircle,
+  ArrowRight,
+  CheckCircle2,
+  Clock,
+  Lock,
+  ShieldCheck,
+  UserCheck,
+} from "lucide-react";
+import { useReferenceJourney, useReferenceGates } from "@/lib/queries/journey";
 import { usePersona } from "@/lib/persona";
 import { PERSONA_LABELS, PHASE_LABELS, Persona, PhaseType } from "@/types/project";
-import { JourneyPhase } from "@/types/journey";
+import { GateResult, JourneyPhase } from "@/types/journey";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -50,17 +58,39 @@ function StatTile({ label, value }: { label: string; value: number | string }) {
   );
 }
 
+function GateBadge({ status }: { status: GateResult["status"] }) {
+  const map = {
+    passed: { cls: "border-green-200 bg-green-50 text-green-700", icon: CheckCircle2, label: "Gate passed" },
+    pending: { cls: "border-amber-200 bg-amber-50 text-amber-700", icon: Clock, label: "Gate pending" },
+    failed: { cls: "border-red-200 bg-red-50 text-red-700", icon: Lock, label: "Gate failed" },
+  }[status];
+  const Icon = map.icon;
+  return (
+    <Badge variant="outline" className={cn("gap-1 text-xs font-medium", map.cls)}>
+      <Icon className="h-3 w-3" />
+      {map.label}
+    </Badge>
+  );
+}
+
 function PhaseCard({
   phase,
   index,
   persona,
+  gate,
+  approved,
+  onToggleApprove,
 }: {
   phase: JourneyPhase;
   index: number;
   persona: Persona;
+  gate?: GateResult;
+  approved: boolean;
+  onToggleApprove: () => void;
 }) {
   const relevant = isRelevant(phase, persona);
   const owns = phase.persona === persona;
+  const canApprove = gate?.status === "pending" && phase.outcome === "human-review";
   return (
     <div
       className={cn(
@@ -84,7 +114,25 @@ function PhaseCard({
             {owns ? "Your step" : "You contribute"}
           </Badge>
         )}
-        <span className="ml-auto font-mono text-xs text-slate-400">{phase.agent_name}</span>
+        <div className="ml-auto flex items-center gap-2">
+          {gate && <GateBadge status={gate.status} />}
+          {canApprove && (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={onToggleApprove}
+              className={cn("h-7 text-xs", approved && "border-green-300 bg-green-50 text-green-700")}
+            >
+              {approved ? "Approved ✓" : "Approve spec"}
+            </Button>
+          )}
+          {approved && !canApprove && (
+            <Button variant="outline" size="sm" onClick={onToggleApprove} className="h-7 text-xs">
+              Un-approve
+            </Button>
+          )}
+          <span className="font-mono text-xs text-slate-400">{phase.agent_name}</span>
+        </div>
       </div>
 
       <p className="mt-3 text-sm text-slate-600">{phase.summary}</p>
@@ -142,6 +190,12 @@ export default function JourneyPage() {
   const { persona, mounted } = usePersona();
   const { data, isLoading, isError, error } = useReferenceJourney();
   const [onlyMine, setOnlyMine] = useState(false);
+  const [approved, setApproved] = useState<string[]>([]);
+  const gatesQuery = useReferenceGates(approved);
+
+  const gateByPhase = new Map((gatesQuery.data?.gates ?? []).map((g) => [g.phase, g]));
+  const toggleApprove = (ph: string) =>
+    setApproved((prev) => (prev.includes(ph) ? prev.filter((p) => p !== ph) : [...prev, ph]));
 
   if (isLoading || !mounted) {
     return (
@@ -215,6 +269,36 @@ export default function JourneyPage() {
         </Button>
       </div>
 
+      {/* Spine gate status */}
+      {gatesQuery.data && (
+        <div
+          className={cn(
+            "flex flex-wrap items-center justify-between gap-3 rounded-lg border px-4 py-3",
+            gatesQuery.data.all_passed
+              ? "border-green-200 bg-green-50 text-green-800"
+              : "border-amber-200 bg-amber-50 text-amber-800"
+          )}
+        >
+          <p className="text-sm">
+            {gatesQuery.data.all_passed ? (
+              <>
+                <strong>Spine clear</strong> — every phase gate passed. The project can flow end to end.
+              </>
+            ) : (
+              <>
+                <strong>Spine blocked at {phaseLabel(gatesQuery.data.blocking_phase ?? "")}</strong> — a
+                phase can&apos;t advance until its spec is approved. Approve the pending specs below.
+              </>
+            )}
+          </p>
+          {approved.length > 0 && (
+            <Button variant="outline" size="sm" onClick={() => setApproved([])} className="bg-white">
+              Reset approvals
+            </Button>
+          )}
+        </div>
+      )}
+
       {/* Phase walk */}
       <div className="space-y-4">
         {visiblePhases.map((phase) => (
@@ -223,6 +307,9 @@ export default function JourneyPage() {
             phase={phase}
             index={data.phases.findIndex((p) => p.phase === phase.phase)}
             persona={persona}
+            gate={gateByPhase.get(phase.phase)}
+            approved={approved.includes(phase.phase)}
+            onToggleApprove={() => toggleApprove(phase.phase)}
           />
         ))}
       </div>
