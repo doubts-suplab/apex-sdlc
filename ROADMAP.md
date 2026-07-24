@@ -288,9 +288,11 @@ application, leaving both eras side by side at the root. This phase folds the le
 and removes what's superseded, so the root has one clear structure.
 
 **Deliverables:**
-- **Absorb `governance/pii-guard/` into `platform/backend/app/middleware/pii_guard/`** and wire it to all
-  agent I/O — this is a golden-rule gap (PII redaction currently exists only as root scripts; `platform/`
-  has no PII middleware). *Functional, not just cleanup.*
+- **✅ Functional piece done (Increment 7):** a regex `PiiGuard` now lives in
+  `platform/backend/app/middleware/pii_guard/` and is wired to agent LLM I/O (scrub outgoing / scan+log
+  incoming) in `PhaseAgent.complete()`. **Remaining:** physically retire the root `governance/pii-guard/`
+  copy once its last consumer (`automation/jira-bridge`) is ported — a golden-rule gap now closed in code,
+  with only the path move left as cosmetic cleanup.
 - **Retire `automation/`** (`jira-bridge`, `confluence-writer`) once its webhook logic is ported into
   `platform/backend/app/integrations/{jira,confluence}/` (the clients already live there).
 - **Delete `scripts/fetch_portal_data.py`** (tied to the superseded static portal; logic belongs in
