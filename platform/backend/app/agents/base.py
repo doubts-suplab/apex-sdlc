@@ -24,6 +24,12 @@ from .context import AgentContext, context_from_input
 
 T = TypeVar("T")
 
+# A generated artifact body must clear this length to be used; below it the agent falls back to its
+# deterministic template. Set well above the offline stub provider's one-line replies (≤ ~110 chars) and
+# well below a real multi-section artifact (300+ chars), so the offline demo stays byte-reproducible while
+# a real provider's output is used.
+_MIN_GENERATED_LEN = 200
+
 
 def _run_sync(coro: Awaitable[T]) -> T:
     """Run an async coroutine to completion from sync code, inside or outside a running loop."""
@@ -83,3 +89,16 @@ class PhaseAgent(ABC):
         """Synchronously obtain a completion via the injected LLM port."""
         result: Any = _run_sync(self._llm.complete(messages, system=system))
         return result.content
+
+    def generate(self, *, prompt: str, fallback: str, system: str | None = None) -> str:
+        """Generate an artifact body via the LLM port, falling back to a deterministic template.
+
+        A substantive completion (from a real provider) is used verbatim; a short reply — the offline
+        ``stub`` provider returns a one-liner — or any LLM failure resolves to ``fallback``. This is what
+        keeps the offline reference journey deterministic while a configured provider yields real output.
+        """
+        try:
+            out = self.complete([Message(role="user", content=prompt)], system=system).strip()
+        except Exception:  # LLM failure is never fatal — the harness applies safe defaults around us
+            return fallback
+        return out if len(out) >= _MIN_GENERATED_LEN else fallback

@@ -13,6 +13,7 @@ from agent_harness.ports.llm import Message
 
 from .base import PhaseAgent
 from .context import AgentContext
+from .prompts import CICD_SYSTEM
 
 
 class ReleaseEngineerAgent(PhaseAgent):
@@ -30,19 +31,31 @@ class ReleaseEngineerAgent(PhaseAgent):
             name="release-notes.md",
             title=f"{feature} — Release Notes {version}",
             kind="release-notes",
-            content=self._notes(feature, version),
+            content=self.generate(
+                prompt=self._notes_prompt(feature, version),
+                system=CICD_SYSTEM,
+                fallback=self._notes(feature, version),
+            ),
         )
         self.emit_artifact(
             name="deployment-checklist.md",
             title=f"{feature} — Deployment Checklist",
             kind="checklist",
-            content=self._checklist(),
+            content=self.generate(
+                prompt=self._checklist_prompt(feature),
+                system=CICD_SYSTEM,
+                fallback=self._checklist(),
+            ),
         )
         self.emit_artifact(
             name="rollback-plan.md",
             title=f"{feature} — Rollback Plan",
             kind="runbook",
-            content=self._rollback(version),
+            content=self.generate(
+                prompt=self._rollback_prompt(feature, version),
+                system=CICD_SYSTEM,
+                fallback=self._rollback(version),
+            ),
         )
         if not checks_green:
             return Decision(
@@ -52,7 +65,26 @@ class ReleaseEngineerAgent(PhaseAgent):
             )
         return Decision(DecisionAction.ALLOW, confidence=0.88, rationale=self._rationale(feature, version))
 
-    # -- artifact builders ----------------------------------------------
+    # -- generation prompts (real provider; offline uses the fallbacks below) --
+    def _notes_prompt(self, feature: str, version: str) -> str:
+        return (
+            f"Write release notes for '{feature}' {version} in Markdown with Features / Fixes / Notes "
+            "sections. Note idempotency and asynchronous ledger posting."
+        )
+
+    def _checklist_prompt(self, feature: str) -> str:
+        return (
+            f"Write an ordered deployment checklist for '{feature}': DB migration, blue/green deploy, health "
+            "check, smoke tests, and outbox verification."
+        )
+
+    def _rollback_prompt(self, feature: str, version: str) -> str:
+        return (
+            f"Write a rollback plan for '{feature}' {version}: repoint router to previous colour, note "
+            "idempotent retries are safe, and any compensating action for the ledger."
+        )
+
+    # -- artifact builders (deterministic fallbacks) --------------------
     def _notes(self, feature: str, version: str) -> str:
         return (
             f"# {feature} — Release Notes ({version})\n\n"
