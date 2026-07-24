@@ -12,12 +12,19 @@ from httpx import AsyncClient
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.agents.orchestrator import run_reference_journey
+from app.core.security import create_access_token
 from app.integrations.llm.stub_provider import StubLLMProvider
 from app.models.organisation import Organisation
 from app.models.project import Project
 from app.services.persistence_service import PersistenceService
 
 pytestmark = pytest.mark.asyncio
+
+
+def _approver_auth() -> dict[str, str]:
+    """Bearer header for an approver persona — journey/persist is a gated write."""
+    token = create_access_token(subject="lead-user", persona="lead")
+    return {"Authorization": f"Bearer {token}"}
 
 
 async def _make_project(db: AsyncSession) -> Project:
@@ -104,7 +111,7 @@ async def test_persist_and_read_via_api(client: AsyncClient, db_session: AsyncSe
     project = await _make_project(db_session)
     pid = str(project.id)
 
-    persisted = await client.post(f"/api/v1/projects/{pid}/journey/persist")
+    persisted = await client.post(f"/api/v1/projects/{pid}/journey/persist", headers=_approver_auth())
     assert persisted.status_code == 200
     assert persisted.json()["artifacts"] == 17
 
@@ -120,7 +127,7 @@ async def test_persist_and_read_via_api(client: AsyncClient, db_session: AsyncSe
 
 async def test_persist_unknown_project_404(client: AsyncClient):
     missing = "00000000-0000-0000-0000-000000000000"
-    r = await client.post(f"/api/v1/projects/{missing}/journey/persist")
+    r = await client.post(f"/api/v1/projects/{missing}/journey/persist", headers=_approver_auth())
     assert r.status_code == 404
 
 

@@ -12,12 +12,17 @@ from typing import Annotated, Any
 from fastapi import APIRouter, Depends, HTTPException, Query
 
 from app.agents.orchestrator import run_reference_journey
+from app.core.security import Principal, require_persona
 from app.db.session import DbSession
 from app.integrations.llm.factory import get_llm_provider
 from app.services.persistence_service import PersistenceService
 from app.services.project_service import ProjectService
 
 router = APIRouter(prefix="/projects", tags=["persistence"])
+
+# Personas allowed to run + approve a journey (a spec-approval / gate action). Read endpoints stay
+# open for now; global auth enforcement on every route is the follow-on (see docs/progress.md).
+_APPROVER_PERSONAS = ("lead", "ba", "architect", "ciso")
 
 
 def _svc(db: DbSession) -> PersistenceService:
@@ -45,6 +50,7 @@ async def persist_journey(
     project_id: uuid.UUID,
     db: DbSession,
     svc: Svc,
+    principal: Annotated[Principal, Depends(require_persona(*_APPROVER_PERSONAS))],
     approved: Annotated[str | None, Query()] = None,
 ) -> dict[str, Any]:
     await _require_project(db, project_id)
