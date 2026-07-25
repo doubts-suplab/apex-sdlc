@@ -116,8 +116,15 @@ The eeik→APEX bridge exists as a deterministic, offline transform.
   capability matrix, examples) with `PROVENANCE.md`.
 - ✅ API (`/api/v1/onboarding/{questions,preview,}`), offline demo (`python -m app.demo.onboard_project` →
   `examples/onboarded-project/`), 8 self-contained tests, and a real frontend wizard (`/onboard`).
+- ✅ **Consumes the real eeik engine (eeik v1.4).** `app/onboarding/eeik_engine.py` — an `EeikEngine` with
+  two backends: **SDK** (`import eeik`, in-process) and **MCP** (spawns `eeik mcp`). `service.onboard_with_eeik()`
+  validates the manifest against eeik's *canonical* schema and records eeik's authoritative pack resolution,
+  falling back to the vendored path when eeik is absent. Demo `python -m app.demo.eeik_engine_demo` (sdk + mcp);
+  6 tests (skip if eeik not installed). Consuming the live engine surfaced that the vendored `PROVENANCE`
+  schema path was stale and that the Pydantic model can emit schema-invalid fields (both noted).
 - ❌ **Not yet:** full compilable repo-tree emission + actually creating a GitHub repo (the LLM-driven eeik
-  `repository-generator` path); persisting the onboarded project to the DB registry.
+  `repository-generator` path); persisting the onboarded project to the DB registry; reconciling
+  `app/onboarding/manifest.py` (Pydantic) with eeik's canonical schema so `model_dump` always validates.
 
 ## Increment 2 — Harness-governed phase agents + reference journey ✅
 

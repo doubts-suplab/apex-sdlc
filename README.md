@@ -57,6 +57,13 @@ next phase proceeds (the generalisation of a spec-driven IDE's `requirements →
 seven APEX phases). See [`ROADMAP.md`](ROADMAP.md#product-vision--onboarding-first-spec-driven) for the
 vision and [`docs/progress.md`](docs/progress.md) for an honest built-vs-planned status.
 
+Onboarding **consumes the real eeik engine** when it is installed: manifest validation (eeik's canonical
+schema) and capability-pack resolution run through eeik itself — in-process via the **SDK** (`import eeik`)
+or over **MCP** (`eeik mcp`) — instead of APEX's vendored copy. It falls back to the vendored offline path
+when eeik is absent, so APEX still onboards standalone. See
+[`app/onboarding/eeik_engine.py`](platform/backend/app/onboarding/eeik_engine.py) and
+`python -m app.demo.eeik_engine_demo`.
+
 Every SDLC phase is owned by a persona and run by an AI agent on the governed harness. The agent
 **proposes** a decision; the harness **decides** whether it may auto-enforce. The single source of truth
 for this mapping is [`docs/personas.md`](docs/personas.md) (mirrored by
