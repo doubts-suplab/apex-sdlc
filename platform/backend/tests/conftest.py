@@ -14,6 +14,21 @@ os.environ.setdefault("DATABASE_URL", "sqlite+aiosqlite:///:memory:")
 os.environ.setdefault("REDIS_URL", "redis://localhost:6379/0")
 os.environ.setdefault("SECRET_KEY", "test-secret-key-for-tests-only")
 
+# Hermetic tests: clear any ambient integration credentials so tool-adapter resolution stays fully
+# offline and no test can accidentally reach a live system (the CI/session env may carry a real
+# GITHUB_TOKEN). Live adapters are exercised against an in-process mock transport instead.
+for _cred in (
+    "GITHUB_TOKEN",
+    "JIRA_BASE_URL",
+    "JIRA_API_TOKEN",
+    "CONFLUENCE_BASE_URL",
+    "CONFLUENCE_TOKEN",
+    "SLACK_BOT_TOKEN",
+    "JENKINS_BASE_URL",
+    "JENKINS_API_TOKEN",
+):
+    os.environ[_cred] = ""
+
 from app.db.base import Base  # noqa: E402
 from app.db.session import get_db  # noqa: E402
 from app.main import create_app  # noqa: E402

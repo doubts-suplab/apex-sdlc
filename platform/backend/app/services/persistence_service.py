@@ -14,6 +14,7 @@ from typing import Any
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.agents.catalog import PHASE_CATALOG
 from app.agents.orchestrator import JourneyResult
 from app.core.logging import get_logger
 from app.gates.engine import evaluate_journey
@@ -59,6 +60,12 @@ class PersistenceService:
                     outcome=jp.outcome,
                     rationale=jp.rationale,
                     status="completed",
+                    input_tokens=jp.input_tokens,
+                    output_tokens=jp.output_tokens,
+                    cost_usd=jp.cost_usd,
+                    duration_ms=jp.duration_ms,
+                    model=jp.model,
+                    provider=jp.provider,
                 )
             )
             n_runs += 1
@@ -184,3 +191,48 @@ class PersistenceService:
             .where(Phase.project_id == project_id)
         )
         return [{"phase": phase_type, "status": status} for phase_type, status in result.all()]
+
+    async def cost_latency_by_persona(self, project_id: uuid.UUID) -> dict[str, Any]:
+        """Aggregate stored agent-run metering by owning persona (the per-persona cost dashboard).
+
+        Each phase maps to its primary persona via the catalog; runs are grouped and summed. Explicit
+        columns only (no ``SELECT *``); aggregation is in Python so the persona mapping stays in one place.
+        """
+        result = await self._db.execute(
+            select(
+                AgentRun.phase,
+                AgentRun.input_tokens,
+                AgentRun.output_tokens,
+                AgentRun.cost_usd,
+                AgentRun.duration_ms,
+            ).where(AgentRun.project_id == project_id)
+        )
+        persona_for = {s.phase: s.primary_persona for s in PHASE_CATALOG}
+        by_persona: dict[str, dict[str, Any]] = {}
+        totals = {"input_tokens": 0, "output_tokens": 0, "cost_usd": 0.0, "runs": 0, "duration_ms": 0.0}
+        for phase, in_tok, out_tok, cost, duration in result.all():
+            persona = persona_for.get(phase, "unknown")
+            bucket = by_persona.setdefault(
+                persona,
+                {"persona": persona, "runs": 0, "input_tokens": 0, "output_tokens": 0,
+                 "cost_usd": 0.0, "duration_ms": 0.0},
+            )
+            bucket["runs"] += 1
+            bucket["input_tokens"] += in_tok
+            bucket["output_tokens"] += out_tok
+            bucket["cost_usd"] += cost
+            bucket["duration_ms"] += duration
+            totals["runs"] += 1
+            totals["input_tokens"] += in_tok
+            totals["output_tokens"] += out_tok
+            totals["cost_usd"] += cost
+            totals["duration_ms"] += duration
+
+        personas = []
+        for bucket in sorted(by_persona.values(), key=lambda b: b["persona"]):
+            runs = bucket["runs"] or 1
+            bucket["cost_usd"] = round(bucket["cost_usd"], 6)
+            bucket["avg_latency_ms"] = round(bucket["duration_ms"] / runs, 3)
+            personas.append(bucket)
+        totals["cost_usd"] = round(totals["cost_usd"], 6)
+        return {"personas": personas, "totals": totals}

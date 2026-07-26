@@ -111,6 +111,11 @@ async def list_agent_runs(project_id: uuid.UUID, db: DbSession, svc: Svc) -> dic
                 "confidence": r.confidence,
                 "auto_enforced": r.auto_enforced,
                 "outcome": r.outcome,
+                "input_tokens": r.input_tokens,
+                "output_tokens": r.output_tokens,
+                "cost_usd": r.cost_usd,
+                "duration_ms": r.duration_ms,
+                "model": r.model,
             }
             for r in items
         ],
@@ -121,3 +126,12 @@ async def list_agent_runs(project_id: uuid.UUID, db: DbSession, svc: Svc) -> dic
 async def gate_status(project_id: uuid.UUID, db: DbSession, svc: Svc) -> dict[str, Any]:
     await _require_project(db, project_id)
     return {"gates": await svc.gate_matrix(project_id)}
+
+
+@router.get(
+    "/{project_id}/metrics/cost-latency",
+    summary="Cost / token / latency dashboard, aggregated per persona",
+)
+async def cost_latency(project_id: uuid.UUID, db: DbSession, svc: Svc) -> dict[str, Any]:
+    await _require_project(db, project_id)
+    return await svc.cost_latency_by_persona(project_id)

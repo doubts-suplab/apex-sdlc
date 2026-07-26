@@ -46,6 +46,26 @@ class Settings(BaseSettings):
     # GitHub
     # ------------------------------------------------------------------
     GITHUB_TOKEN: str = Field(default="", description="GitHub personal access token")
+    GITHUB_API_BASE: str = Field(
+        default="https://api.github.com",
+        description="GitHub API base URL (override to point at a mock/GHE server)",
+    )
+
+    # ------------------------------------------------------------------
+    # Slack
+    # ------------------------------------------------------------------
+    SLACK_BASE_URL: str = Field(
+        default="https://slack.com/api",
+        description="Slack API base URL (override to point at a mock server)",
+    )
+    SLACK_BOT_TOKEN: str = Field(default="", description="Slack bot token (xoxb-…)")
+
+    # ------------------------------------------------------------------
+    # Jenkins
+    # ------------------------------------------------------------------
+    JENKINS_BASE_URL: str = Field(default="", description="Jenkins base URL")
+    JENKINS_USER: str = Field(default="", description="Jenkins user for basic auth")
+    JENKINS_API_TOKEN: str = Field(default="", description="Jenkins API token")
 
     # ------------------------------------------------------------------
     # Jira

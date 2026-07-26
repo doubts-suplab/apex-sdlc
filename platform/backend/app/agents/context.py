@@ -40,6 +40,9 @@ class AgentResult:
     decision: Decision
     artifacts: list[dict[str, Any]] = field(default_factory=list)
     token_usage: TokenUsage = field(default_factory=TokenUsage)
+    duration_ms: float = 0.0
+    model: str = ""
+    provider: str = ""
     error: str | None = None
 
 
@@ -76,6 +79,9 @@ def to_agent_result(
     status: str = "completed",
     artifacts: list[dict[str, Any]] | None = None,
     token_usage: TokenUsage | None = None,
+    duration_ms: float = 0.0,
+    model: str = "",
+    provider: str = "",
     error: str | None = None,
 ) -> AgentResult:
     """Map a harness AgentOutput back to an apex AgentResult (spec §2.2)."""
@@ -85,5 +91,8 @@ def to_agent_result(
         decision=output.decision,
         artifacts=artifacts or [],
         token_usage=token_usage or TokenUsage(),
+        duration_ms=duration_ms,
+        model=model,
+        provider=provider,
         error=error,
     )

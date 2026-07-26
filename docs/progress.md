@@ -8,6 +8,51 @@ Legend: ✅ done · 🚧 partial · ❌ not started
 
 ---
 
+## Increment 11 — Cost / token / latency metering, per-persona dashboard 🚧
+
+Every agent run is now **metered**, and the platform aggregates cost, tokens, and latency **per persona**.
+
+- ✅ **Per-run capture:** `PhaseAgent.complete()` accumulates input/output tokens and captures the
+  model/provider across a run; `run_agent` times the harness invocation. Flows into `AgentResult` →
+  `JourneyPhase` → the persisted `AgentRun` (new columns: `input_tokens`, `output_tokens`, `cost_usd`,
+  `duration_ms`, `model`, `provider`).
+- ✅ **Pricing (`app/agents/pricing.py`):** USD-per-1M-token table by model; unknown/`stub` models cost
+  `$0`, so the offline journey meters deterministically at zero while a real provider yields real figures.
+- ✅ **Determinism preserved:** metering rides in-memory on `JourneyPhase` but `JourneyResult.to_dict()`
+  serializes only the stable subset — `journey.json` and all `examples/` stay **byte-identical**
+  (`duration_ms` is wall-clock and never leaks in).
+- ✅ **Dashboard:** `PersistenceService.cost_latency_by_persona()` maps each phase to its owning persona
+  (catalog) and sums runs/tokens/cost + average latency; `GET /projects/{id}/metrics/cost-latency`
+  serves it, and `GET …/agent-runs` now returns per-run metering.
+- ✅ 7 tests (`tests/agents/test_metering.py` + persistence): pricing math, per-run capture, journey
+  metering, the serialization-exclusion guard, and per-persona aggregation (developer owns 2 phases →
+  2 runs). **124 total green.**
+- ❌ **Not yet:** real per-run pricing eval (needs a live provider), a frontend dashboard view, and time-
+  series/rollup storage.
+
+## Increment 10 — Live, config-driven tool adapters (credentialed swap-in) 🚧
+
+The DevOps tools can now run **against real systems**, selected per tool by configured credentials — the
+offline set stays the default and the fallback.
+
+- ✅ **Live adapters (`app/agents/tools/live_adapters.py`):** GitHub PR, Jira issue, Confluence page,
+  Slack message, Jenkins build — each wraps an async integration client, bridges to the harness's sync
+  tool call, and normalises to the same result shape as the offline adapter (drop-in).
+- ✅ **Every endpoint is config/env-driven:** base URLs and tokens come from `Settings`
+  (`GITHUB_API_BASE`, `SLACK_BASE_URL`/`SLACK_BOT_TOKEN`, `JENKINS_BASE_URL`/`JENKINS_USER`/
+  `JENKINS_API_TOKEN`, plus the existing Jira/Confluence config), so a tool can point at the real API, a
+  **mock server**, or a self-hosted instance with no code change. New `SlackClient` + `JenkinsClient`;
+  `GitHubClient` gained a configurable `base_url` + `create_pull_request`.
+- ✅ **`resolve_adapters(settings)`** picks live-vs-offline **per tool**: a system with credentials runs
+  live, everything else stays offline — so a partially-configured env still runs end-to-end. The
+  `POST /devops/flow` API uses it; the demo/tests stay fully offline and deterministic.
+- ✅ 3 tests (`tests/devops/test_live_adapters.py`): offline fallback with no creds, a single tool
+  flipping to live when configured, and a **live GitHub PR driven against an in-process mock transport**
+  proving the configurable base URL is honoured (no real network). Test env is now **hermetic** —
+  conftest clears ambient integration creds so no test reaches a live system. **112 total green.**
+- ❌ **Not yet:** webhook receivers for inbound events, retry/backoff + rate-limit handling in the live
+  adapters, and persisting each tool call to an audit table.
+
 ## Increment 9 — Governed DevOps tools: NL intent → multi-tool flow under the harness gate 🚧
 
 The platform can now take a **natural-language DevOps request** and drive **multiple external tools**

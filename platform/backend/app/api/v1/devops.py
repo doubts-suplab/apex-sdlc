@@ -13,6 +13,7 @@ from typing import Annotated, Any
 from fastapi import APIRouter, Depends
 from pydantic import BaseModel, ConfigDict, Field
 
+from app.agents.tools.live_adapters import resolve_adapters
 from app.core.security import Principal, require_persona
 from app.devops import run_devops_flow
 from app.integrations.llm.factory import get_llm_provider
@@ -39,11 +40,13 @@ async def run_flow(
     body: DevOpsFlowRequest,
     principal: Annotated[Principal, Depends(require_persona(*_APPROVER_PERSONAS))],
 ) -> dict[str, Any]:
+    # Live per tool where credentials are configured, offline otherwise (see resolve_adapters).
     result = run_devops_flow(
         llm=get_llm_provider(),
         intent=body.intent,
         context=body.context,
         actor_id=principal.subject,
+        adapters=resolve_adapters(),
     )
     decision = result.decision
     return {

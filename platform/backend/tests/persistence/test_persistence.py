@@ -125,6 +125,35 @@ async def test_persist_and_read_via_api(client: AsyncClient, db_session: AsyncSe
     assert len(gates.json()["gates"]) == 7
 
 
+async def test_cost_latency_dashboard_aggregates_by_persona(db_session: AsyncSession):
+    project = await _make_project(db_session)
+    journey = run_reference_journey(StubLLMProvider())
+    svc = PersistenceService(db_session)
+    await svc.persist_journey(project.id, journey)
+
+    dash = await svc.cost_latency_by_persona(project.id)
+    # 7 phases map to 6 distinct primary personas (developer owns two phases).
+    personas = {p["persona"] for p in dash["personas"]}
+    assert {"ba", "architect", "developer", "qa", "lead", "ciso"} <= personas
+    developer = next(p for p in dash["personas"] if p["persona"] == "developer")
+    assert developer["runs"] == 2  # development + docs
+    assert developer["input_tokens"] > 0
+    assert "avg_latency_ms" in developer
+    assert dash["totals"]["runs"] == 7
+    assert dash["totals"]["cost_usd"] == 0.0  # stub is free
+
+
+async def test_cost_latency_via_api(client: AsyncClient, db_session: AsyncSession):
+    project = await _make_project(db_session)
+    pid = str(project.id)
+    await client.post(f"/api/v1/projects/{pid}/journey/persist", headers=_approver_auth())
+    resp = await client.get(f"/api/v1/projects/{pid}/metrics/cost-latency")
+    assert resp.status_code == 200
+    body = resp.json()
+    assert body["totals"]["runs"] == 7
+    assert any(p["persona"] == "ciso" for p in body["personas"])
+
+
 async def test_persist_unknown_project_404(client: AsyncClient):
     missing = "00000000-0000-0000-0000-000000000000"
     r = await client.post(f"/api/v1/projects/{missing}/journey/persist", headers=_approver_auth())
