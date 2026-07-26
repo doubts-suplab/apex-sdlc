@@ -208,8 +208,13 @@ First AI agents running end-to-end: Requirements Analyst and PR Reviewer.
 > **Status:** 🚧 all seven agents now **generate their artifact bodies through the LLM port**
 > (`PhaseAgent.generate()` + per-phase prompts in `app/agents/prompts.py`), with a deterministic fallback so
 > the offline demo stays reproducible; wiring a real provider (`LLM_PROVIDER=anthropic`) yields real
-> input-driven artifacts. Still pending in this phase: write-back to Jira/GitHub/Confluence, `agent_runs`
-> persistence, SSE streaming, and quality-eval of generated output. See [`docs/progress.md`](docs/progress.md).
+> input-driven artifacts. **Agent write-back is now governed:** a default-deny harness tool registry +
+> the **NL-intent → multi-tool DevOps flow** (`POST /api/v1/devops/flow`) drives GitHub/Jira/Confluence/
+> Slack/Jenkins under the confidence gate (Increment 9), and **live, config/env-driven adapters** swap in
+> per tool when credentials are set — offline deterministic otherwise (Increment 10). **PII guard** now
+> scrubs/scans all agent LLM I/O (Increment 7). Still pending: an LLM planner (vs the keyword planner),
+> webhook receivers, SSE streaming, and quality-eval of generated output. See
+> [`docs/progress.md`](docs/progress.md).
 
 **Deliverables:**
 - Agent orchestrator: `AgentContext` + `AgentResult` dataclasses, Celery task wrapper, SSE progress stream endpoint (`/api/v1/agents/{run_id}/stream`)
@@ -234,7 +239,10 @@ Versioned artifact storage, Confluence publishing, per-phase gallery.
 > read endpoints; onboarding persists a `Project`. Verified offline via aiosqlite (the dormant DB test suite
 > was revived by making the schema SQLite-portable). Still pending: S3 storage, Confluence publish, artifact
 > and an Alembic baseline (the repo currently has no migrations). Artifact **version lineage** is now built
-> (`ArtifactVersion` + idempotent upsert). See
+> (`ArtifactVersion` + idempotent upsert). Every agent run is now **metered** — input/output tokens, model,
+> latency, and computed `cost_usd` persist on `AgentRun`, and `GET /projects/{id}/metrics/cost-latency`
+> serves a **per-persona cost/token/latency dashboard** (Increment 11; pricing table in `app/agents/pricing.py`,
+> deterministic `$0` offline). Still pending: a frontend dashboard view and time-series rollups. See
 > [`docs/progress.md`](docs/progress.md).
 
 **Deliverables:**
@@ -262,8 +270,11 @@ transition rule — a phase cannot advance until its spec is approved and its ga
 > `POST …/gate/evaluate` expose it, `python -m app.demo.gate_report` +
 > [`examples/reference-project/gate-report.md`](examples/reference-project/gate-report.md) demonstrate the
 > spine blocking at Requirements until specs are approved, and the `/journey` page shows gate badges with an
-> approve toggle. Still pending: DB persistence of evaluations, a real approval store, and the rest of this
-> phase (ARB workflow, mainframe gate, CISO view, CDK). See [`docs/progress.md`](docs/progress.md).
+> approve toggle. **Auth & persona RBAC** are now built (Increment 8): HS256 JWT (`POST /api/v1/auth/token`,
+> `GET /auth/me`) + a reusable `require_persona(...)` dependency guarding the human-approval write
+> (`journey/persist` and `devops/flow` require an approver persona). Still pending: DB persistence of gate
+> evaluations, a real approval/credential store, global auth middleware, and the rest of this phase (ARB
+> workflow, mainframe gate, CISO view, CDK). See [`docs/progress.md`](docs/progress.md).
 
 **Deliverables:**
 - Phase gate engine: configurable criteria per gate (required artifacts, min test coverage, approved reviewers, policy checks), enforcing the spec-driven spine's phase-to-phase transitions
