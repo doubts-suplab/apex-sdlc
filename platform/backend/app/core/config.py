@@ -19,6 +19,12 @@ class Settings(BaseSettings):
     REDIS_URL: str = Field(..., description="Redis connection URL")
     SECRET_KEY: str = Field(..., description="Secret key for signing tokens")
 
+    # EEIK onboarding engine — point at a real eeik-bootstrap checkout to resolve capability packs
+    # against its live packs; empty → the vendored snapshot bundled with the platform.
+    EEIK_ENGINE_PATH: str = Field(
+        default="", description="Path to an eeik-bootstrap checkout (empty = use vendored assets)"
+    )
+
     # Application
     ENVIRONMENT: str = Field(default="development", description="Runtime environment")
     LOG_LEVEL: str = Field(default="INFO", description="Logging level")

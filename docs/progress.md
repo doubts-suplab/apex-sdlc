@@ -8,6 +8,30 @@ Legend: ✅ done · 🚧 partial · ❌ not started
 
 ---
 
+## Increment 11 — Real EEIK engine (live checkout vs vendored snapshot) 🚧
+
+Onboarding can now resolve capability packs against a **real eeik-bootstrap checkout**, not only the
+vendored snapshot — driven by the packs' own metadata, config-selected.
+
+- ✅ **`EeikEngine` interface (`app/onboarding/eeik_engine.py`)** with two implementations:
+  `VendoredEeikEngine` (the deterministic offline resolver over `eeik_assets/`, still the default) and
+  `RepoEeikEngine` — which reads each pack's real `metadata.yaml` (`manifest_triggers`,
+  `agents_provided`, `status`) from a checkout, i.e. the **actual eeik resolution mechanism**, so pack
+  availability reflects the *live* repo.
+- ✅ **Config-selected:** `EEIK_ENGINE_PATH` points at the checkout; `select_engine()` uses the repo
+  engine when it is valid and **falls back to vendored** otherwise. The onboarding `preview`/`onboard`
+  API uses it; the demo/tests stay on the vendored default (byte-identical `examples/`). The result
+  now carries an `eeik_source` provenance label.
+- ✅ **Demonstrable difference:** against the live checkout, `python`, `react`, and `banking` packs
+  resolve as **built** (and `containers-pack` is discovered) where the vendored snapshot still marks
+  them **planned** — proof onboarding sees more than the bundled copy.
+- ✅ Handles both eeik trigger shapes (`values: […]` and `value: x`) and tolerant of partial metadata.
+  5 tests (`tests/onboarding/test_eeik_engine.py`): trigger-driven resolution over a synthetic checkout,
+  presence→built, invalid-path fallback, and a real-repo assertion (skipped if absent). **117 total
+  green.**
+- ❌ **Not yet:** invoking eeik's LLM-driven generators (repo-tree emission, `generate-repo`); this reads
+  the packs' declarative metadata, not the generator skills.
+
 ## Increment 10 — Live, config-driven tool adapters (credentialed swap-in) 🚧
 
 The DevOps tools can now run **against real systems**, selected per tool by configured credentials — the

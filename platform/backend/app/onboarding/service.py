@@ -11,6 +11,7 @@ from typing import Any
 
 from app.agents.catalog import PHASE_ORDER
 
+from .eeik_engine import EeikEngine
 from .manifest import ProjectManifest
 from .scaffold import OnboardingResult, build_scaffold
 
@@ -18,11 +19,17 @@ from .scaffold import OnboardingResult, build_scaffold
 ENTRY_PHASE = PHASE_ORDER[0]  # "requirements"
 
 
-def onboard(manifest: ProjectManifest | dict[str, Any]) -> OnboardingResult:
-    """Validate the manifest and produce the onboarding scaffold, positioned at the entry phase."""
+def onboard(
+    manifest: ProjectManifest | dict[str, Any], engine: EeikEngine | None = None
+) -> OnboardingResult:
+    """Validate the manifest and produce the onboarding scaffold, positioned at the entry phase.
+
+    ``engine`` selects the capability-resolution source (vendored by default; a live eeik-bootstrap
+    checkout when the API supplies one).
+    """
     if not isinstance(manifest, ProjectManifest):
         manifest = ProjectManifest.from_dict(manifest)
-    return build_scaffold(manifest, entry_phase=ENTRY_PHASE)
+    return build_scaffold(manifest, entry_phase=ENTRY_PHASE, engine=engine)
 
 
 def registration_payload(result: OnboardingResult) -> dict[str, Any]:
