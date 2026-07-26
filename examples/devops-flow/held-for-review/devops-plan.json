@@ -1,0 +1,23 @@
+{
+  "calls": [
+    {
+      "arguments": {
+        "base": "main",
+        "head": "feature/refund-retry-fix",
+        "repo": "org/UNSET-REPO",
+        "title": "feat: Refund retry fix"
+      },
+      "tool": "github.open_pull_request"
+    },
+    {
+      "arguments": {
+        "channel": "#UNSET",
+        "text": "Shipped: Refund retry fix."
+      },
+      "tool": "slack.post_message"
+    }
+  ],
+  "executed": false,
+  "intent": "open a PR and notify the team",
+  "results": []
+}
