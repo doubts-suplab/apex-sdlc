@@ -8,6 +8,31 @@ Legend: ✅ done · 🚧 partial · ❌ not started
 
 ---
 
+## Increment 9 — Governed DevOps tools: NL intent → multi-tool flow under the harness gate 🚧
+
+The platform can now take a **natural-language DevOps request** and drive **multiple external tools**
+(GitHub, Jira, Confluence, Slack, Jenkins) through the harness — the connective tissue for tool adapters,
+the NL-intent flow, and spine→PR/ticket creation.
+
+- ✅ **Tool catalog + registry (`app/agents/tools/`):** five named, typed write tools registered in the
+  harness `ToolRegistry` with a **default-deny** allowlist (no wildcards; an ungranted tool or agent raises
+  `ToolNotAuthorizedError` *before* any side effect). Offline, deterministic **adapters** stand in for the
+  real systems; a credentialed adapter of the same name swaps in with no change above the registry.
+- ✅ **NL-intent planner (`app/devops/intent.py`):** a transparent, deterministic keyword planner maps a
+  free-text request to an ordered pipeline of tool calls (branch→PR→CI→ticket→docs→notify). It stands in
+  for an LLM planner and returns the same `list[PlannedCall]` shape the real one will.
+- ✅ **Harness-gated executor (`app/devops/flow.py`):** `DevOpsAgent` (authority `RATE_LIMIT`) ties side
+  effects to the **confidence gate** — it executes the tools **only** when confidence clears the
+  auto-enforce bar; a recognised-but-under-specified request is **held for human review** (SUGGEST, no side
+  effects) and an unrecognised one **defers**. The agent never sets `auto_enforced`.
+- ✅ API `POST /api/v1/devops/flow` (approver-persona RBAC) + demo `python -m app.demo.devops_flow` →
+  `examples/devops-flow/` (executed / held-for-review / deferred). 14 tests (`tests/devops/` +
+  `tests/api/test_devops.py`): adapter determinism, default-deny, intent ordering, and the three gated
+  outcomes end-to-end. **109 total green.**
+- ❌ **Not yet (credential-gated):** the real GitHub/Jira/Confluence/Slack/Jenkins adapters (network I/O
+  behind the same tool names), an **LLM planner** replacing the keyword planner, and persisting the flow's
+  runs/artifacts. The governance spine is real and offline-verifiable; the live wiring is the swap-in.
+
 ## Increment 8 — Auth & persona RBAC (ROADMAP Phase 5) 🚧
 
 The platform now has an **identity + authorization** primitive: a bearer token carries a persona, and
@@ -162,7 +187,8 @@ The running shell exists; most of the data model and cross-cutting middleware do
 | **Onboarding via eeik** — resolve packs + scaffold (`CLAUDE.md` + plan), enter the spine | [Phase 0](../ROADMAP.md#phase-0--onboarding-the-eeik-front-door) | 🚧 deterministic bridge built; full repo-tree emission + GitHub repo + DB persistence pending |
 | **Real LLM generation** — model-generated specs from real input | Phase 3–4 | 🚧 path wired via `PhaseAgent.generate()` + prompts; real output needs a configured provider; quality-eval is the follow-on |
 | **Live integrations** — GitHub/Jira/Confluence live data + background refresh | Phase 2 | 🚧 clients exist, not wired to refresh/agents |
-| **Agent write-back** — create Jira epics/stories, post GitHub PR reviews, publish Confluence | Phase 3 | ❌ agents don't call integrations |
+| **Agent write-back** — create Jira epics/stories, post GitHub PR reviews, publish Confluence | Phase 3 | 🚧 governed tool-call path built (Increment 9): default-deny registry + offline adapters, gated execution; real credentialed adapters pending |
+| **DevOps tool flow** — NL intent → multi-tool pipeline (GitHub/Jira/Confluence/Slack/Jenkins) under the harness gate | Phase 3 | 🚧 offline flow built + verified (Increment 9); LLM planner + live adapters pending |
 | **Dev repo bootstrap** — scaffold the actual service (eeik `repository-generator`) | Phase 0 / 3 | ❌ |
 | **Architect target-architecture** — reason over requirements + existing system → target-state ADR/C4 | Phase 4 | ❌ (templated ADR only today) |
 | **Artifact persistence** — artifacts + agent runs + gates in DB, with version lineage | Phase 4 | 🚧 DB persistence + version lineage built (SQLite-verified); S3 + Alembic baseline pending |
