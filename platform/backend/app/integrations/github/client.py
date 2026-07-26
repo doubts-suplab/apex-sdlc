@@ -17,8 +17,9 @@ _GITHUB_API_VERSION = "2022-11-28"
 class GitHubClient:
     """Async GitHub REST API v3 client."""
 
-    def __init__(self, token: str) -> None:
+    def __init__(self, token: str, base_url: str | None = None) -> None:
         self._token = token
+        self._base = (base_url or _GITHUB_API_BASE).rstrip("/")
         self._headers = {
             "Authorization": f"Bearer {token}",
             "Accept": "application/vnd.github+json",
@@ -36,7 +37,7 @@ class GitHubClient:
         **kwargs: Any,
     ) -> Any:
         """Execute an authenticated GitHub API request and return parsed JSON."""
-        url = f"{_GITHUB_API_BASE}{path}"
+        url = f"{self._base}{path}"
         async with httpx.AsyncClient(timeout=30.0) as client:
             response = await client.request(
                 method, url, headers=self._headers, **kwargs
@@ -97,7 +98,7 @@ class GitHubClient:
         Returns:
             Unified diff as a plain string.
         """
-        url = f"{_GITHUB_API_BASE}/repos/{repo}/pulls/{pr_number}"
+        url = f"{self._base}/repos/{repo}/pulls/{pr_number}"
         diff_headers = {**self._headers, "Accept": "application/vnd.github.v3.diff"}
         async with httpx.AsyncClient(timeout=60.0) as client:
             response = await client.get(url, headers=diff_headers)
@@ -130,6 +131,32 @@ class GitHubClient:
             "POST",
             f"/repos/{repo}/issues/{pr_number}/comments",
             json={"body": body},
+        )
+
+    async def create_pull_request(
+        self,
+        repo: str,
+        title: str,
+        head: str,
+        base: str,
+        body: str = "",
+    ) -> dict:
+        """Open a pull request.
+
+        Args:
+            repo: ``"owner/repo"`` format.
+            title: PR title.
+            head: Head branch (the source of the changes).
+            base: Base branch to merge into.
+            body: Optional PR description.
+
+        Returns:
+            Created pull request object (with ``number``, ``html_url``, ``state``).
+        """
+        return await self._request(
+            "POST",
+            f"/repos/{repo}/pulls",
+            json={"title": title, "head": head, "base": base, "body": body},
         )
 
     async def get_repo_file(

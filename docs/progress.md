@@ -8,6 +8,29 @@ Legend: ✅ done · 🚧 partial · ❌ not started
 
 ---
 
+## Increment 10 — Live, config-driven tool adapters (credentialed swap-in) 🚧
+
+The DevOps tools can now run **against real systems**, selected per tool by configured credentials — the
+offline set stays the default and the fallback.
+
+- ✅ **Live adapters (`app/agents/tools/live_adapters.py`):** GitHub PR, Jira issue, Confluence page,
+  Slack message, Jenkins build — each wraps an async integration client, bridges to the harness's sync
+  tool call, and normalises to the same result shape as the offline adapter (drop-in).
+- ✅ **Every endpoint is config/env-driven:** base URLs and tokens come from `Settings`
+  (`GITHUB_API_BASE`, `SLACK_BASE_URL`/`SLACK_BOT_TOKEN`, `JENKINS_BASE_URL`/`JENKINS_USER`/
+  `JENKINS_API_TOKEN`, plus the existing Jira/Confluence config), so a tool can point at the real API, a
+  **mock server**, or a self-hosted instance with no code change. New `SlackClient` + `JenkinsClient`;
+  `GitHubClient` gained a configurable `base_url` + `create_pull_request`.
+- ✅ **`resolve_adapters(settings)`** picks live-vs-offline **per tool**: a system with credentials runs
+  live, everything else stays offline — so a partially-configured env still runs end-to-end. The
+  `POST /devops/flow` API uses it; the demo/tests stay fully offline and deterministic.
+- ✅ 3 tests (`tests/devops/test_live_adapters.py`): offline fallback with no creds, a single tool
+  flipping to live when configured, and a **live GitHub PR driven against an in-process mock transport**
+  proving the configurable base URL is honoured (no real network). Test env is now **hermetic** —
+  conftest clears ambient integration creds so no test reaches a live system. **112 total green.**
+- ❌ **Not yet:** webhook receivers for inbound events, retry/backoff + rate-limit handling in the live
+  adapters, and persisting each tool call to an audit table.
+
 ## Increment 9 — Governed DevOps tools: NL intent → multi-tool flow under the harness gate 🚧
 
 The platform can now take a **natural-language DevOps request** and drive **multiple external tools**
