@@ -11,7 +11,7 @@ from pathlib import Path
 import pytest
 import yaml
 
-pytest.importorskip("eeik", reason="eeik engine not installed")
+eeik = pytest.importorskip("eeik", reason="eeik engine not installed")
 
 from app.onboarding import (  # noqa: E402
     ManifestInvalidError,
@@ -72,6 +72,25 @@ def test_onboard_falls_back_when_engine_unavailable(manifest):
     assert prov["engine"] == "vendored" and prov["eeik_available"] is False
     assert prov["eeik_resolved_packs"] is None
     assert result.project_name
+
+
+def test_model_dump_round_trips_valid_against_canonical_schema():
+    """Regression guard: ProjectManifest.model_dump() must validate against eeik's canonical schema.
+
+    APEX's Pydantic model is an internal representation, but it mirrors eeik's schema — so a round-trip
+    (raw → model → dump → eeik.validate) must stay valid, or vendored drift has crept back in.
+    """
+    import glob
+
+    from app.onboarding.manifest import ProjectManifest
+
+    examples = glob.glob(str(_EXAMPLE.parent / "*.yaml"))
+    assert examples, "no example manifests found"
+    for path in examples:
+        raw = yaml.safe_load(Path(path).read_text(encoding="utf-8"))
+        dumped = ProjectManifest.from_dict(raw).model_dump(exclude_none=True)
+        result = eeik.validate_manifest(manifest=dumped)
+        assert result.valid, f"{Path(path).name}: model_dump invalid vs canonical schema: {result.errors}"
 
 
 def test_mcp_engine_roundtrip(manifest):
