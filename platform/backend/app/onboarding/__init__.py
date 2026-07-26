@@ -11,9 +11,10 @@ under ``eeik_assets/`` (see ``eeik_assets/PROVENANCE.md``) so it can onboard sta
 from __future__ import annotations
 
 from .capability_resolver import ResolvedPack, resolve_packs
+from .eeik_engine import EeikEngine, McpEngine, SdkEngine, get_engine
 from .manifest import ProjectManifest
 from .scaffold import OnboardingResult, build_scaffold
-from .service import onboard
+from .service import ManifestInvalidError, onboard, onboard_with_eeik
 
 __all__ = [
     "ProjectManifest",
@@ -22,4 +23,11 @@ __all__ = [
     "OnboardingResult",
     "build_scaffold",
     "onboard",
+    # Real eeik engine consumption (SDK in-process, or MCP over the protocol).
+    "onboard_with_eeik",
+    "ManifestInvalidError",
+    "EeikEngine",
+    "SdkEngine",
+    "McpEngine",
+    "get_engine",
 ]

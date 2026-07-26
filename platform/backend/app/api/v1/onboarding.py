@@ -13,7 +13,6 @@ from typing import Annotated, Any
 from fastapi import APIRouter, Query
 
 from app.db.session import DbSession
-from app.onboarding.eeik_engine import select_engine
 from app.onboarding.manifest import ProjectManifest
 from app.onboarding.questions import load_questions
 from app.onboarding.service import onboard as onboard_project
@@ -32,11 +31,8 @@ async def get_questions() -> dict[str, Any]:
 
 @router.post("/preview", summary="Preview onboarding — resolve packs + scaffold, no side effects")
 async def preview(manifest: ProjectManifest) -> dict[str, Any]:
-    """Validate a manifest and return the resolved packs + generated scaffold, without registering.
-
-    Uses the real eeik-bootstrap engine when ``EEIK_ENGINE_PATH`` is configured, else the vendored one.
-    """
-    return onboard_project(manifest, engine=select_engine()).to_dict()
+    """Validate a manifest and return the resolved packs + generated scaffold, without registering."""
+    return onboard_project(manifest).to_dict()
 
 
 @router.post("/", summary="Onboard a project — scaffold + registry hand-off")
@@ -50,7 +46,7 @@ async def onboard(
     When ``organisation_id`` is supplied, the onboarded project is **persisted** as a Project row at the
     Requirements phase and its id is returned; otherwise the flow is offline/DB-free.
     """
-    result = onboard_project(manifest, engine=select_engine())
+    result = onboard_project(manifest)
     reg = registration_payload(result)
     body: dict[str, Any] = {**result.to_dict(), "registration": reg}
     if organisation_id is not None:

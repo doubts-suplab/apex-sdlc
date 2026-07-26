@@ -45,7 +45,9 @@ governance:
   - security-review
   compliance_frameworks: []
 modernization:
-  source_technology: none
+  enabled: false
+  source_platform: none
+  wave_approach: true
 delivery:
   model: multi-team
   methodology: agile

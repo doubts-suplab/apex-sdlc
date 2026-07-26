@@ -1,9 +1,7 @@
-"""EEIK engine tests — vendored vs a real eeik-bootstrap checkout.
+"""APEX consumes the real eeik engine — SDK (in-process) and MCP (over the protocol).
 
-The repo engine is exercised against a synthetic checkout (hermetic) and, when a real eeik-bootstrap
-checkout is present, an assertion that it sees packs the vendored snapshot still marks "planned".
-
-Self-contained: ``pytest --noconftest tests/onboarding/test_eeik_engine.py``.
+These tests require the eeik package to be importable (`pip install -e ../../eeik-bootstrap`); they
+skip otherwise, so APEX's vendored offline path is never a hard dependency on eeik being present.
 """
 
 from __future__ import annotations
@@ -13,99 +11,96 @@ from pathlib import Path
 import pytest
 import yaml
 
-from app.onboarding.eeik_engine import (
-    RepoEeikEngine,
-    VendoredEeikEngine,
-    select_engine,
+eeik = pytest.importorskip("eeik", reason="eeik engine not installed")
+
+from app.onboarding import (  # noqa: E402
+    ManifestInvalidError,
+    SdkEngine,
+    get_engine,
+    onboard_with_eeik,
 )
-from app.onboarding.manifest import ProjectManifest
 
-_MANIFEST = {
-    "schema_version": "1.0",
-    "project": {"name": "refund-service", "description": "", "owner": "pay",
-                "domain": "banking", "project_type": "greenfield"},
-    "technology": {"backend": {"language": "python", "framework": "fastapi"},
-                   "frontend": {"framework": "react"}, "database": {"migration_tool": "alembic"}},
-    "architecture": {"style": "microservices", "api_style": "rest"},
-    "cloud": {"provider": "aws", "infra_as_code": "cdk"},
-    "ai": {"enabled": False, "pattern": "none"},
-    "governance": {"profile": "regulated"},
-}
-
-
-def _manifest() -> ProjectManifest:
-    return ProjectManifest.from_dict(_MANIFEST)
-
-
-def _write_pack(root: Path, name: str, *, triggers: list[dict], status: str | None = None,
-                agents: list[str] | None = None, category: str = "") -> None:
-    pack_dir = root / "capability-packs" / name.replace("-pack", "")
-    pack_dir.mkdir(parents=True)
-    meta: dict = {"name": name, "manifest_triggers": triggers, "category": category}
-    if status:
-        meta["status"] = status
-    if agents:
-        meta["agents_provided"] = agents
-    (pack_dir / "metadata.yaml").write_text(yaml.safe_dump(meta), encoding="utf-8")
-
-
-def _fake_checkout(tmp_path: Path) -> Path:
-    _write_pack(tmp_path, "python-pack",
-                triggers=[{"field": "technology.backend.language", "values": ["python"]}],
-                agents=["python-developer"], category="language")
-    _write_pack(tmp_path, "core-pack", triggers=[{"field": "project.project_type",
-                "values": ["greenfield", "mvp"]}], category="core")
-    _write_pack(tmp_path, "azure-pack",  # should NOT match (cloud is aws)
-                triggers=[{"field": "cloud.provider", "values": ["azure"]}])
-    return tmp_path
-
-
-# -- repo engine over a synthetic checkout ------------------------------------------------------
-def test_repo_engine_resolves_via_pack_triggers(tmp_path: Path):
-    engine = RepoEeikEngine(_fake_checkout(tmp_path))
-    res = engine.resolve(_manifest())
-    names = res.pack_names()
-    assert "python-pack" in names and "core-pack" in names
-    assert "azure-pack" not in names  # cloud=aws, so the azure trigger did not fire
-    # core category sorts first.
-    assert names[0] == "core-pack"
-    assert "python-developer" in res.recommended_agents
-    assert engine.source.startswith("repo:")
-
-
-def test_repo_engine_reports_presence_as_built(tmp_path: Path):
-    engine = RepoEeikEngine(_fake_checkout(tmp_path))
-    res = engine.resolve(_manifest())
-    python = next(p for p in res.packs if p.name == "python-pack")
-    assert python.availability == "built"  # present in the checkout → built
-
-
-def test_invalid_checkout_raises(tmp_path: Path):
-    with pytest.raises(ValueError):
-        RepoEeikEngine(tmp_path / "nope")
-
-
-def test_select_engine_falls_back_to_vendored_for_bad_path():
-    from app.core.config import Settings
-
-    settings = Settings(DATABASE_URL="x", REDIS_URL="y", SECRET_KEY="z",  # type: ignore[arg-type]
-                        EEIK_ENGINE_PATH="/does/not/exist")
-    assert isinstance(select_engine(settings), VendoredEeikEngine)
-
-
-# -- against the real eeik-bootstrap checkout, if present ----------------------------------------
-_REAL_EEIK = Path("/home/user/eeik-bootstrap")
-
-
-@pytest.mark.skipif(
-    not (_REAL_EEIK / "capability-packs").is_dir(), reason="no real eeik-bootstrap checkout"
+_EXAMPLE = (
+    Path(__file__).resolve().parents[2]
+    / "app" / "onboarding" / "eeik_assets" / "examples" / "greenfield-java-aws.yaml"
 )
-def test_real_repo_sees_packs_vendored_calls_planned():
-    """The live repo ships python/react/banking packs the vendored snapshot still marks 'planned'."""
-    repo = RepoEeikEngine(_REAL_EEIK).resolve(_manifest())
-    vendored = VendoredEeikEngine().resolve(_manifest())
-    repo_built = {p.name for p in repo.packs if p.availability == "built"}
-    vendored_planned = {p.name for p in vendored.packs if p.availability == "planned"}
-    # python-pack is 'planned' in the vendored matrix but built in the live checkout.
-    assert "python-pack" in repo_built
-    assert "python-pack" in vendored_planned
+
+
+@pytest.fixture
+def manifest() -> dict:
+    return yaml.safe_load(_EXAMPLE.read_text(encoding="utf-8"))
+
+
+def test_get_engine_sdk_and_unknown():
+    assert isinstance(get_engine("sdk"), SdkEngine)
+    assert get_engine("bogus-mode") is None
+
+
+def test_sdk_engine_validate_resolve_catalog_verify(manifest):
+    engine = SdkEngine()
+    v = engine.validate(manifest)
+    assert v["valid"] is True and v["errors"] == []
+
+    packs = engine.resolve_packs(manifest)
+    assert "core" in packs and "java" in packs
+
+    banking = engine.catalog(tag="banking")
+    assert any(p["pack"] == "banking" for p in banking)
+
+    report = engine.verify()
+    assert report["ok"] is True and "counts" in report
+
+
+def test_onboard_with_eeik_records_provenance(manifest):
+    result, prov = onboard_with_eeik(manifest, mode="sdk")
+    assert prov["engine"] == "sdk"
+    assert prov["eeik_available"] is True
+    assert prov["validation"]["valid"] is True
+    assert "java" in prov["eeik_resolved_packs"]
+    # the deterministic scaffold is still produced
+    assert result.project_name and result.entry_phase == "requirements"
+
+
+def test_onboard_with_eeik_rejects_invalid_manifest():
+    with pytest.raises(ManifestInvalidError):
+        onboard_with_eeik({"project": {"name": "x"}}, mode="sdk")
+
+
+def test_onboard_falls_back_when_engine_unavailable(manifest):
+    # An explicitly unavailable mode → vendored provenance, no eeik calls, scaffold still built.
+    result, prov = onboard_with_eeik(manifest, mode="bogus-mode")
+    assert prov["engine"] == "vendored" and prov["eeik_available"] is False
+    assert prov["eeik_resolved_packs"] is None
+    assert result.project_name
+
+
+def test_model_dump_round_trips_valid_against_canonical_schema():
+    """Regression guard: ProjectManifest.model_dump() must validate against eeik's canonical schema.
+
+    APEX's Pydantic model is an internal representation, but it mirrors eeik's schema — so a round-trip
+    (raw → model → dump → eeik.validate) must stay valid, or vendored drift has crept back in.
+    """
+    import glob
+
+    from app.onboarding.manifest import ProjectManifest
+
+    examples = glob.glob(str(_EXAMPLE.parent / "*.yaml"))
+    assert examples, "no example manifests found"
+    for path in examples:
+        raw = yaml.safe_load(Path(path).read_text(encoding="utf-8"))
+        dumped = ProjectManifest.from_dict(raw).model_dump(exclude_none=True)
+        result = eeik.validate_manifest(manifest=dumped)
+        assert result.valid, f"{Path(path).name}: model_dump invalid vs canonical schema: {result.errors}"
+
+
+def test_mcp_engine_roundtrip(manifest):
+    pytest.importorskip("mcp", reason="mcp client not installed")
+    from app.onboarding import McpEngine
+
+    try:
+        engine = McpEngine()
+        v = engine.validate(manifest)
+    except Exception as exc:  # spawning `eeik mcp` unavailable in this environment
+        pytest.skip(f"eeik MCP server not runnable here: {exc}")
+    assert v["valid"] is True
+    assert "java" in engine.resolve_packs(manifest)

@@ -12,8 +12,7 @@ from typing import Any
 
 import yaml
 
-from .capability_resolver import Resolution
-from .eeik_engine import EeikEngine, VendoredEeikEngine
+from .capability_resolver import Resolution, resolve
 from .manifest import ProjectManifest
 
 _TEMPLATE = Path(__file__).parent / "eeik_assets" / "templates" / "project-claude-md.md"
@@ -34,7 +33,6 @@ class OnboardingResult:
     claude_md: str
     manifest_yaml: str
     scaffold_plan: str = field(default="")
-    eeik_source: str = field(default="vendored")  # provenance: "vendored" | "repo:<path>"
 
     def to_dict(self) -> dict[str, Any]:
         return asdict(self)
@@ -48,18 +46,9 @@ class OnboardingResult:
         }
 
 
-def build_scaffold(
-    manifest: ProjectManifest,
-    entry_phase: str = "requirements",
-    engine: EeikEngine | None = None,
-) -> OnboardingResult:
-    """Resolve packs and generate the CLAUDE.md, normalized manifest, and scaffold plan.
-
-    ``engine`` selects the resolution source; it defaults to the vendored engine so the offline demo and
-    tests stay byte-reproducible. The onboarding API passes a repo engine when one is configured.
-    """
-    engine = engine or VendoredEeikEngine()
-    res = engine.resolve(manifest)
+def build_scaffold(manifest: ProjectManifest, entry_phase: str = "requirements") -> OnboardingResult:
+    """Resolve packs and generate the CLAUDE.md, normalized manifest, and scaffold plan."""
+    res = resolve(manifest)
     packs = [
         {"name": p.name, "availability": p.availability, "selected_by": p.selected_by} for p in res.packs
     ]
@@ -78,7 +67,6 @@ def build_scaffold(
         claude_md=claude_md,
         manifest_yaml=manifest_yaml,
         scaffold_plan=scaffold_plan,
-        eeik_source=engine.source,
     )
 
 
