@@ -1,7 +1,7 @@
 """ProjectManifest — a Pydantic model mirroring the eeik manifest schema.
 
 Mirrors ``eeik_assets/manifest-schema.json`` (source of truth:
-eeik-bootstrap `bootstrap/schemas/manifest-schema.json`). Kept intentionally permissive on enums
+eeik-bootstrap `eeik/schemas/manifest.schema.json`, canonical since eeik v1.4). Kept intentionally permissive on enums
 (``str`` with documented allowed values) so a new eeik value never hard-breaks onboarding — the
 capability resolver simply finds no packs for an unknown value. Required fields match the eeik schema's
 ``(required)`` markers.
@@ -79,7 +79,17 @@ class ProjectIdentity(BaseModel):
 
 
 class ModernizationSpec(BaseModel):
-    source_technology: str = "none"  # ibmi | rpg | cobol | mainframe | oracle-forms | mixed | none
+    """Mirrors the eeik manifest-schema `modernization` object (source_platform, strategy, wave_approach).
+
+    Field names/enums match eeik's canonical schema so ``model_dump`` round-trips validate against it
+    (the schema is ``additionalProperties: false``). ``strategy`` has no default because eeik's enum has
+    no "none" member — it is emitted only when set.
+    """
+
+    enabled: bool = False
+    source_platform: str = "none"  # ibmi | rpg | cobol | mainframe | oracle-forms | vb6 | mixed | none
+    strategy: str | None = None    # strangler-fig | rewrite | lift-and-shift | encapsulate | hybrid
+    wave_approach: bool = True
 
 
 class ProjectManifest(BaseModel):

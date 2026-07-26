@@ -126,7 +126,7 @@ def resolve(manifest: ProjectManifest) -> Resolution:
     add(list(domain_entry.get("packs", [])), f"domain={manifest.project.domain}")
     compliance = list(domain_entry.get("compliance_hints", []))
 
-    mod = manifest.modernization.source_technology
+    mod = manifest.modernization.source_platform
     if mod and mod != "none":
         mod_entry = (matrix.get("modernization") or {}).get(mod) or {}
         add(list(mod_entry.get("packs", [])), f"modernization={mod}")
