@@ -57,14 +57,32 @@ class PhaseAgent(ABC):
     def __init__(self, llm: LlmPort) -> None:
         self._llm = llm
         self._artifacts: list[dict[str, Any]] = []
+        self._input_tokens = 0
+        self._output_tokens = 0
+        self._model = ""
+        self._provider = ""
 
     # -- harness Agent protocol -----------------------------------------
     def run(self, request: AgentInput, tools: ToolInvoker) -> Decision:
-        # A harness invocation is one run: start from an empty artifact buffer so a reused instance
-        # never leaks a previous run's artifacts. The harness owns the Decision; artifacts ride
-        # alongside on the agent (the harness ``AgentOutput`` carries only the Decision).
+        # A harness invocation is one run: start from an empty artifact buffer and zeroed token tally so
+        # a reused instance never leaks a previous run's artifacts or usage. The harness owns the
+        # Decision; artifacts + token usage ride alongside on the agent (the ``AgentOutput`` carries only
+        # the Decision).
         self._artifacts = []
+        self._input_tokens = self._output_tokens = 0
         return self.decide(context_from_input(request), tools)
+
+    def token_usage(self) -> tuple[int, int]:
+        """(input_tokens, output_tokens) accumulated across this run's LLM calls."""
+        return self._input_tokens, self._output_tokens
+
+    @property
+    def model(self) -> str:
+        return self._model
+
+    @property
+    def provider(self) -> str:
+        return self._provider
 
     @abstractmethod
     def decide(self, ctx: AgentContext, tools: ToolInvoker) -> Decision:
@@ -104,6 +122,12 @@ class PhaseAgent(ABC):
         ]
         safe_system = _PII_GUARD.scrub(system) if system else system
         result: Any = _run_sync(self._llm.complete(safe_messages, system=safe_system))
+        # Accumulate token usage + capture the model/provider for cost accounting (spec: every run is
+        # metered). The harness owns the decision; usage rides alongside on the agent.
+        self._input_tokens += int(getattr(result, "input_tokens", 0) or 0)
+        self._output_tokens += int(getattr(result, "output_tokens", 0) or 0)
+        self._model = getattr(result, "model", "") or self._model
+        self._provider = getattr(result, "provider", "") or self._provider
         content: str = result.content
         findings = _PII_GUARD.scan(content)
         if findings:

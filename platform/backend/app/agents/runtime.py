@@ -7,6 +7,8 @@ audit, human review, observability, safe-failure) is enforced by the harness, no
 
 from __future__ import annotations
 
+import time
+
 from agent_harness import Harness, ToolRegistry
 from agent_harness.ports.governance import (
     AuditPort,
@@ -17,7 +19,7 @@ from agent_harness.ports.governance import (
 
 from .adapters import FlagKillSwitch, StructlogAudit, StructlogHumanReview, StructlogObservability
 from .base import PhaseAgent
-from .context import AgentContext, AgentResult, to_agent_input, to_agent_result
+from .context import AgentContext, AgentResult, TokenUsage, to_agent_input, to_agent_result
 
 
 def build_apex_harness(
@@ -45,5 +47,16 @@ def run_agent(harness: Harness, agent: PhaseAgent, ctx: AgentContext) -> AgentRe
     Artifacts the agent produced during the run ride alongside the harness ``AgentOutput`` (which
     carries only the Decision) and are drained here into the apex result.
     """
+    started = time.perf_counter()
     output = harness.invoke(agent, to_agent_input(ctx))
-    return to_agent_result(output, ctx, artifacts=agent.drain_artifacts())
+    duration_ms = (time.perf_counter() - started) * 1000.0
+    in_tokens, out_tokens = agent.token_usage()
+    return to_agent_result(
+        output,
+        ctx,
+        artifacts=agent.drain_artifacts(),
+        token_usage=TokenUsage(input_tokens=in_tokens, output_tokens=out_tokens),
+        duration_ms=duration_ms,
+        model=agent.model,
+        provider=agent.provider,
+    )

@@ -8,6 +8,28 @@ Legend: ✅ done · 🚧 partial · ❌ not started
 
 ---
 
+## Increment 12 — Cost / token / latency metering, per-persona dashboard 🚧
+
+Every agent run is now **metered**, and the platform aggregates cost, tokens, and latency **per persona**.
+
+- ✅ **Per-run capture:** `PhaseAgent.complete()` accumulates input/output tokens and captures the
+  model/provider across a run; `run_agent` times the harness invocation. Flows into `AgentResult` →
+  `JourneyPhase` → the persisted `AgentRun` (new columns: `input_tokens`, `output_tokens`, `cost_usd`,
+  `duration_ms`, `model`, `provider`).
+- ✅ **Pricing (`app/agents/pricing.py`):** USD-per-1M-token table by model; unknown/`stub` models cost
+  `$0`, so the offline journey meters deterministically at zero while a real provider yields real figures.
+- ✅ **Determinism preserved:** metering rides in-memory on `JourneyPhase` but `JourneyResult.to_dict()`
+  serializes only the stable subset — `journey.json` and all `examples/` stay **byte-identical**
+  (`duration_ms` is wall-clock and never leaks in).
+- ✅ **Dashboard:** `PersistenceService.cost_latency_by_persona()` maps each phase to its owning persona
+  (catalog) and sums runs/tokens/cost + average latency; `GET /projects/{id}/metrics/cost-latency`
+  serves it, and `GET …/agent-runs` now returns per-run metering.
+- ✅ 7 tests (`tests/agents/test_metering.py` + persistence): pricing math, per-run capture, journey
+  metering, the serialization-exclusion guard, and per-persona aggregation (developer owns 2 phases →
+  2 runs). **124 total green.**
+- ❌ **Not yet:** real per-run pricing eval (needs a live provider), a frontend dashboard view, and time-
+  series/rollup storage.
+
 ## Increment 11 — Real EEIK engine (live checkout vs vendored snapshot) 🚧
 
 Onboarding can now resolve capability packs against a **real eeik-bootstrap checkout**, not only the

@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import uuid
 
-from sqlalchemy import Boolean, Float, ForeignKey, String, Text
+from sqlalchemy import Boolean, Float, ForeignKey, Integer, String, Text
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.db.base import Base, TimestampMixin
@@ -27,6 +27,14 @@ class AgentRun(Base, TimestampMixin):
     outcome: Mapped[str] = mapped_column(String(30), nullable=False)  # auto-enforced | human-review
     rationale: Mapped[str] = mapped_column(Text, nullable=False, default="")
     status: Mapped[str] = mapped_column(String(20), nullable=False, default="completed")
+
+    # Metering — captured per run for the cost/token/latency dashboard.
+    input_tokens: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
+    output_tokens: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
+    cost_usd: Mapped[float] = mapped_column(Float, nullable=False, default=0.0)
+    duration_ms: Mapped[float] = mapped_column(Float, nullable=False, default=0.0)
+    model: Mapped[str] = mapped_column(String(100), nullable=False, default="")
+    provider: Mapped[str] = mapped_column(String(50), nullable=False, default="")
 
     project: Mapped["Project"] = relationship(  # type: ignore[name-defined]  # noqa: F821
         "Project", lazy="noload"

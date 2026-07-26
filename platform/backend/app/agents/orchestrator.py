@@ -24,6 +24,7 @@ from agent_harness.ports.llm import LlmPort
 
 from .catalog import PHASE_CATALOG, PhaseSpec
 from .context import AgentContext
+from .pricing import cost_usd
 from .runtime import build_apex_harness, run_agent
 
 
@@ -45,6 +46,14 @@ class JourneyPhase:
     eeik_agent: str
     summary: str
     artifacts: list[dict[str, Any]] = field(default_factory=list)
+    # Metering — captured in-memory for persistence; intentionally NOT serialized to the committed
+    # journey.json (duration_ms is wall-clock and would break the reference example's determinism).
+    input_tokens: int = 0
+    output_tokens: int = 0
+    cost_usd: float = 0.0
+    duration_ms: float = 0.0
+    model: str = ""
+    provider: str = ""
 
 
 @dataclass
@@ -56,9 +65,15 @@ class JourneyResult:
     stats: dict[str, int]
 
     def to_dict(self) -> dict[str, Any]:
+        # Serialize the stable, deterministic subset only — metering fields (tokens/cost/duration) are
+        # kept in-memory for persistence but excluded here so the committed journey.json stays reproducible.
+        stable = {
+            "phase", "label", "persona", "stakeholders", "agent_name", "authority", "action",
+            "confidence", "auto_enforced", "outcome", "rationale", "eeik_agent", "summary", "artifacts",
+        }
         return {
             "project": self.project,
-            "phases": [asdict(p) for p in self.phases],
+            "phases": [{k: v for k, v in asdict(p).items() if k in stable} for p in self.phases],
             "stats": self.stats,
         }
 
@@ -145,6 +160,14 @@ def _run_phase(harness: Any, spec: PhaseSpec, project: dict[str, Any], llm: LlmP
         eeik_agent=spec.eeik_agent,
         summary=spec.summary,
         artifacts=result.artifacts,
+        input_tokens=result.token_usage.input_tokens,
+        output_tokens=result.token_usage.output_tokens,
+        cost_usd=cost_usd(
+            result.model, result.token_usage.input_tokens, result.token_usage.output_tokens
+        ),
+        duration_ms=result.duration_ms,
+        model=result.model,
+        provider=result.provider,
     )
 
 
