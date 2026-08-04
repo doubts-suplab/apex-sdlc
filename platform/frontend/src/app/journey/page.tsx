@@ -12,6 +12,7 @@ import {
 } from "lucide-react";
 import { useReferenceJourney, useReferenceGates } from "@/lib/queries/journey";
 import { usePersona } from "@/lib/persona";
+import { CostDashboard } from "@/components/projects/CostDashboard";
 import { PERSONA_LABELS, PHASE_LABELS, Persona, PhaseType } from "@/types/project";
 import { GateResult, JourneyPhase } from "@/types/journey";
 import { Badge } from "@/components/ui/badge";
@@ -268,6 +269,9 @@ export default function JourneyPage() {
           {onlyMine ? "Show all phases" : "Only my phases"}
         </Button>
       </div>
+
+      {/* Cost / token / latency dashboard, per persona */}
+      <CostDashboard selectedPersona={persona} />
 
       {/* Spine gate status */}
       {gatesQuery.data && (

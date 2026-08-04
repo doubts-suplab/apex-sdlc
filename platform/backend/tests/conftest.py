@@ -13,6 +13,8 @@ from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_asyn
 os.environ.setdefault("DATABASE_URL", "sqlite+aiosqlite:///:memory:")
 os.environ.setdefault("REDIS_URL", "redis://localhost:6379/0")
 os.environ.setdefault("SECRET_KEY", "test-secret-key-for-tests-only")
+# Deterministic, no-key LLM for endpoints that run the reference journey via get_llm_provider().
+os.environ.setdefault("LLM_PROVIDER", "stub")
 
 # Hermetic tests: clear any ambient integration credentials so tool-adapter resolution stays fully
 # offline and no test can accidentally reach a live system (the CI/session env may carry a real

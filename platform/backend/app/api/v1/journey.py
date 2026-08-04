@@ -13,11 +13,16 @@ from typing import Any
 from fastapi import APIRouter, HTTPException
 
 from app.agents.catalog import PERSONAS, phases_for_persona
+from app.agents.metrics import metrics_by_persona
 from app.agents.orchestrator import run_reference_journey
 from app.gates.engine import evaluate_journey
 from app.integrations.llm.factory import get_llm_provider
 
 router = APIRouter(prefix="/journey", tags=["journey"])
+
+# Reference/illustrative pricing model for the offline dashboard: the deterministic stub token counts are
+# priced at this model's rates so the demo shows meaningful dollars (the stub itself costs $0).
+_DEFAULT_PRICING_MODEL = "claude-opus-4-8"
 
 
 def _journey() -> dict[str, Any]:
@@ -57,6 +62,18 @@ async def get_reference_gates(approved: str | None = None) -> dict[str, Any]:
     approvals = {p.strip() for p in approved.split(",")} if approved else set()
     journey = run_reference_journey(get_llm_provider())
     return {"project": journey.project, "approved": sorted(approvals), **evaluate_journey(journey, approvals)}
+
+
+@router.get("/reference/metrics", summary="Per-persona cost / token / latency for the reference journey")
+async def get_reference_metrics(model: str | None = None) -> dict[str, Any]:
+    """Aggregate the reference journey's metering per persona (the offline cost/latency dashboard).
+
+    Token counts and latency are real (the stub yields deterministic tokens); ``model`` sets the pricing
+    used for the illustrative ``cost_usd`` (defaults to a reference model so the demo shows dollars).
+    """
+    journey = run_reference_journey(get_llm_provider())
+    pricing_model = model or _DEFAULT_PRICING_MODEL
+    return {"project": journey.project, **metrics_by_persona(journey.phases, pricing_model=pricing_model)}
 
 
 @router.get("/reference/artifacts/{phase}", summary="Artifacts produced in one phase")
