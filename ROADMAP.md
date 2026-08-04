@@ -242,7 +242,9 @@ Versioned artifact storage, Confluence publishing, per-phase gallery.
 > (`ArtifactVersion` + idempotent upsert). Every agent run is now **metered** — input/output tokens, model,
 > latency, and computed `cost_usd` persist on `AgentRun`, and `GET /projects/{id}/metrics/cost-latency`
 > serves a **per-persona cost/token/latency dashboard** (Increment 11; pricing table in `app/agents/pricing.py`,
-> deterministic `$0` offline). Still pending: a frontend dashboard view and time-series rollups. See
+> deterministic `$0` offline). A **front-end dashboard** now renders it — a persona-aware `CostDashboard` on
+> `/journey`, fed by the offline `GET /journey/reference/metrics` endpoint (Increment 12). Still pending:
+> wiring the UI to a persisted project's DB metrics and time-series rollups. See
 > [`docs/progress.md`](docs/progress.md).
 
 **Deliverables:**

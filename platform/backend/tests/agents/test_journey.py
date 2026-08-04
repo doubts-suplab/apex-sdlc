@@ -12,6 +12,7 @@ from agent_harness.adapters import StubLlm
 
 from app.agents import PHASE_ORDER, phases_for_persona, run_reference_journey
 from app.agents.catalog import PERSONAS
+from app.agents.metrics import metrics_by_persona
 from app.integrations.llm.stub_provider import StubLLMProvider
 
 
@@ -57,3 +58,25 @@ def test_reference_journey_is_serialisable():
     assert data["project"]["slug"] == "refund-service"
     first = data["phases"][0]
     assert {"phase", "persona", "authority", "action", "auto_enforced", "artifacts"} <= set(first)
+
+
+def test_metrics_by_persona_aggregates_deterministically():
+    phases = run_reference_journey(StubLLMProvider()).phases
+    metrics = metrics_by_persona(phases, pricing_model="claude-opus-4-8")
+    personas = {p["persona"]: p for p in metrics["personas"]}
+    # developer owns two phases (development + docs) → two runs.
+    assert personas["developer"]["runs"] == 2
+    assert metrics["totals"]["runs"] == 7
+    assert all(p["input_tokens"] > 0 for p in metrics["personas"])
+    assert metrics["totals"]["cost_usd"] > 0  # illustrative pricing yields non-zero dollars
+    assert metrics["pricing_model"] == "claude-opus-4-8"
+    # Token counts + cost are deterministic across runs (stub tokens are stable).
+    again = metrics_by_persona(run_reference_journey(StubLLMProvider()).phases, pricing_model="claude-opus-4-8")
+    assert [p["cost_usd"] for p in metrics["personas"]] == [p["cost_usd"] for p in again["personas"]]
+
+
+def test_metrics_without_pricing_uses_recorded_cost():
+    # No pricing_model → each run's own cost (stub = $0), and label reflects "actual".
+    metrics = metrics_by_persona(run_reference_journey(StubLLMProvider()).phases)
+    assert metrics["totals"]["cost_usd"] == 0.0
+    assert metrics["pricing_model"] == "actual"

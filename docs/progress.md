@@ -8,6 +8,24 @@ Legend: ✅ done · 🚧 partial · ❌ not started
 
 ---
 
+## Increment 12 — Cost dashboard UI + offline reference-metrics endpoint 🚧
+
+The per-persona metering now has a **live front-end** and an offline API to feed it.
+
+- ✅ **Offline endpoint:** `GET /api/v1/journey/reference/metrics?model=<id>` aggregates the reference
+  journey's metering per persona (`app/agents/metrics.py::metrics_by_persona`) — real token counts +
+  latency, with an **illustrative `cost_usd`** priced at a reference model (default `claude-opus-4-8`)
+  so the offline demo shows meaningful dollars. No DB/auth, mirroring `/journey/reference`.
+- ✅ **Frontend dashboard:** a `CostDashboard` component on `/journey` (TanStack Query hook
+  `useReferenceMetrics` + Zod `ReferenceMetrics` schema) renders a **per-persona table** (runs, tokens
+  in/out, est. cost, avg latency) with totals, and **highlights the active persona** from the switcher.
+- ✅ 4 tests (`test_journey.py` aggregation + `tests/api/test_journey_metrics.py`): deterministic
+  per-persona tokens/cost, developer-owns-two-phases, model override, and the "actual" (no-pricing) path.
+  Frontend `tsc --noEmit` + `next build` clean; `examples/` byte-identical. Test env now pins
+  `LLM_PROVIDER=stub` so API-driven journeys meter deterministically. **123 total green.**
+- ❌ **Not yet:** wiring the dashboard to a **persisted project's** DB metrics
+  (`GET /projects/{id}/metrics/cost-latency`, which needs auth + a stored journey) and time-series rollups.
+
 ## Increment 11 — Cost / token / latency metering, per-persona dashboard 🚧
 
 Every agent run is now **metered**, and the platform aggregates cost, tokens, and latency **per persona**.
