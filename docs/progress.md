@@ -8,6 +8,29 @@ Legend: ✅ done · 🚧 partial · ❌ not started
 
 ---
 
+## Increment 13 — Project cost dashboard wired to DB + frontend persona-login 🚧
+
+The cost dashboard now works on a **persisted project's stored runs**, driven by a frontend auth flow.
+
+- ✅ **Frontend persona-login (`lib/auth.ts`):** `useAuthToken()` mints a JWT for the active persona via
+  `POST /auth/token` and registers it on `apiFetch` (module-level bearer). It re-mints on persona change,
+  so authenticated calls carry the persona for RBAC — the first UI path that drives the auth endpoints.
+- ✅ **Project dashboard on `/projects/{id}`:** `ProjectCostDashboard` reads the project's stored metering
+  (`useProjectMetrics` → `GET /projects/{id}/metrics/cost-latency`) and offers a **"Run + persist journey"**
+  action (`usePersistJourney` → `POST …/journey/persist`) that is **gated to approver personas** — a
+  developer/qa/pm sees a disabled button with a hint; lead/ba/architect/ciso can run it. On success the
+  dashboard refreshes.
+- ✅ **Re-priceable DB endpoint:** `GET /projects/{id}/metrics/cost-latency?model=<id>` re-prices the stored
+  token counts illustratively (the UI passes `claude-opus-4-8`), so a stub-metered ($0) project still shows
+  meaningful dollars; default is the actual recorded cost.
+- ✅ `CostDashboard` refactored into a shared presentational `MetricsPanel` (loading/error/empty states) +
+  a reference container (`/journey`, unchanged) and the new project container. `apiFetch` now unwraps both
+  flat and `detail`-nested RFC-7807 errors.
+- ✅ Backend re-pricing test (persist → `$0` actual, non-zero at a reference model); frontend
+  `tsc --noEmit` + `next build` clean; `examples/` byte-identical; **123 backend tests green**.
+- ❌ **Not yet:** a real credential login (this is still the persona identity-broker), an org-level
+  cross-project cost roll-up, and streaming live agent runs (SSE) into the UI.
+
 ## Increment 12 — Cost dashboard UI + offline reference-metrics endpoint 🚧
 
 The per-persona metering now has a **live front-end** and an offline API to feed it.

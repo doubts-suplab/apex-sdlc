@@ -243,8 +243,10 @@ Versioned artifact storage, Confluence publishing, per-phase gallery.
 > latency, and computed `cost_usd` persist on `AgentRun`, and `GET /projects/{id}/metrics/cost-latency`
 > serves a **per-persona cost/token/latency dashboard** (Increment 11; pricing table in `app/agents/pricing.py`,
 > deterministic `$0` offline). A **front-end dashboard** now renders it — a persona-aware `CostDashboard` on
-> `/journey`, fed by the offline `GET /journey/reference/metrics` endpoint (Increment 12). Still pending:
-> wiring the UI to a persisted project's DB metrics and time-series rollups. See
+> `/journey`, fed by the offline `GET /journey/reference/metrics` endpoint (Increment 12). The **project
+> detail page now shows a DB-backed cost dashboard** for a persisted journey, with an approver-gated
+> "Run + persist journey" action and a frontend persona-login that mints the JWT (Increment 13). Still
+> pending: an org-level cross-project roll-up and time-series rollups. See
 > [`docs/progress.md`](docs/progress.md).
 
 **Deliverables:**

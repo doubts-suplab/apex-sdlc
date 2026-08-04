@@ -16,6 +16,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.agents.catalog import PHASE_CATALOG
 from app.agents.orchestrator import JourneyResult
+from app.agents.pricing import cost_usd
 from app.core.logging import get_logger
 from app.gates.engine import evaluate_journey
 from app.models.agent_run import AgentRun
@@ -192,11 +193,15 @@ class PersistenceService:
         )
         return [{"phase": phase_type, "status": status} for phase_type, status in result.all()]
 
-    async def cost_latency_by_persona(self, project_id: uuid.UUID) -> dict[str, Any]:
+    async def cost_latency_by_persona(
+        self, project_id: uuid.UUID, *, pricing_model: str | None = None
+    ) -> dict[str, Any]:
         """Aggregate stored agent-run metering by owning persona (the per-persona cost dashboard).
 
         Each phase maps to its primary persona via the catalog; runs are grouped and summed. Explicit
         columns only (no ``SELECT *``); aggregation is in Python so the persona mapping stays in one place.
+        ``pricing_model`` re-prices the stored token counts at that model (illustrative) instead of using
+        each run's recorded ``cost_usd`` — useful when the runs were metered against a free/stub provider.
         """
         result = await self._db.execute(
             select(
@@ -210,7 +215,8 @@ class PersistenceService:
         persona_for = {s.phase: s.primary_persona for s in PHASE_CATALOG}
         by_persona: dict[str, dict[str, Any]] = {}
         totals = {"input_tokens": 0, "output_tokens": 0, "cost_usd": 0.0, "runs": 0, "duration_ms": 0.0}
-        for phase, in_tok, out_tok, cost, duration in result.all():
+        for phase, in_tok, out_tok, stored_cost, duration in result.all():
+            cost = cost_usd(pricing_model, in_tok, out_tok) if pricing_model else stored_cost
             persona = persona_for.get(phase, "unknown")
             bucket = by_persona.setdefault(
                 persona,
@@ -235,4 +241,4 @@ class PersistenceService:
             bucket["avg_latency_ms"] = round(bucket["duration_ms"] / runs, 3)
             personas.append(bucket)
         totals["cost_usd"] = round(totals["cost_usd"], 6)
-        return {"personas": personas, "totals": totals}
+        return {"personas": personas, "totals": totals, "pricing_model": pricing_model or "actual"}

@@ -141,6 +141,12 @@ async def test_cost_latency_dashboard_aggregates_by_persona(db_session: AsyncSes
     assert "avg_latency_ms" in developer
     assert dash["totals"]["runs"] == 7
     assert dash["totals"]["cost_usd"] == 0.0  # stub is free
+    assert dash["pricing_model"] == "actual"
+
+    # Re-pricing the stored token counts at a reference model yields illustrative dollars.
+    priced = await svc.cost_latency_by_persona(project.id, pricing_model="claude-opus-4-8")
+    assert priced["pricing_model"] == "claude-opus-4-8"
+    assert priced["totals"]["cost_usd"] > 0
 
 
 async def test_cost_latency_via_api(client: AsyncClient, db_session: AsyncSession):
