@@ -11,6 +11,18 @@ export class ApiError extends Error {
   }
 }
 
+// Bearer token for authenticated calls. Set by the persona-login flow (lib/auth.ts); attached to every
+// request when present. Kept module-level so query/mutation hooks don't each thread it through.
+let authToken: string | null = null;
+
+export function setAuthToken(token: string | null): void {
+  authToken = token;
+}
+
+export function getAuthToken(): string | null {
+  return authToken;
+}
+
 export async function apiFetch<T>(
   path: string,
   init?: RequestInit
@@ -19,15 +31,21 @@ export async function apiFetch<T>(
     ...init,
     headers: {
       "Content-Type": "application/json",
+      ...(authToken ? { Authorization: `Bearer ${authToken}` } : {}),
       ...init?.headers,
     },
   });
   if (!res.ok) {
-    const problem = await res.json().catch(() => ({})) as Record<string, string>;
+    const problem = await res.json().catch(() => ({})) as Record<string, unknown>;
+    // RFC 7807 problem details may be flat or nested under `detail`.
+    const detailObj =
+      problem["detail"] && typeof problem["detail"] === "object"
+        ? (problem["detail"] as Record<string, unknown>)
+        : problem;
     throw new ApiError(
       res.status,
-      problem["title"] ?? "Request failed",
-      problem["detail"] ?? res.statusText
+      String(detailObj["title"] ?? problem["title"] ?? "Request failed"),
+      String(detailObj["detail"] ?? problem["detail"] ?? res.statusText)
     );
   }
   return res.json() as Promise<T>;

@@ -6,6 +6,7 @@ import { AlertCircle, GitBranch, Trello, Calendar, Plug, Route } from "lucide-re
 import { useProject } from "@/lib/queries/projects";
 import { SDLCTimeline } from "@/components/projects/SDLCTimeline";
 import { LiveMetricsBar } from "@/components/projects/LiveMetricsBar";
+import { ProjectCostDashboard } from "@/components/projects/ProjectCostDashboard";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -145,6 +146,9 @@ export default function ProjectDetailPage() {
         </h2>
         <SDLCTimeline currentPhase={project.current_phase} />
       </div>
+
+      {/* Cost / token / latency dashboard for this project's stored journey */}
+      <ProjectCostDashboard projectId={projectId} />
 
       {/* Metrics & Info */}
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
