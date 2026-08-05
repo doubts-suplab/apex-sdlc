@@ -21,20 +21,20 @@ backend:
   python:
     packs:
       - architecture-pack    # ✅ built
-      - python-pack          # 📋 planned
+      - python-pack          # ✅ built
   mixed:
     packs:
       - architecture-pack    # ✅ built
       - java-pack            # ✅ built
-      - python-pack          # 📋 planned
+      - python-pack          # ✅ built
 
 frontend:
   react:
     packs:
-      - react-pack           # 📋 planned
+      - react-pack           # ✅ built
   angular:
     packs:
-      - angular-pack         # 📋 planned
+      - angular-pack         # ✅ built
   none:
     packs: []
 
@@ -130,20 +130,20 @@ governance:
 domain:
   insurance:
     packs:
-      - insurance-pack       # 📋 planned Phase 7
+      - insurance-pack       # ✅ built
     compliance_hints:
       - gdpr
       - solvency-ii
   banking:
     packs:
-      - banking-pack         # 📋 planned Phase 7
+      - banking-pack         # ✅ built
     compliance_hints:
       - pci-dss
       - gdpr
       - basel-iii
   healthcare:
     packs:
-      - healthcare-pack      # 📋 planned Phase 7
+      - healthcare-pack      # ✅ built
     compliance_hints:
       - hipaa
       - gdpr
@@ -158,34 +158,34 @@ domain:
 modernization:
   ibmi:
     packs:
-      - modernization-pack   # 🔧 stub
+      - modernization-pack   # ✅ built
     agents:
       - ibmi-modernization-expert
       - modernization-expert
   rpg:
     packs:
-      - modernization-pack   # 🔧 stub
+      - modernization-pack   # ✅ built
     agents:
       - ibmi-modernization-expert
       - modernization-expert
   cobol:
     packs:
-      - modernization-pack   # 🔧 stub
+      - modernization-pack   # ✅ built
     agents:
       - modernization-expert
   mainframe:
     packs:
-      - modernization-pack   # 🔧 stub
+      - modernization-pack   # ✅ built
     agents:
       - modernization-expert
   oracle-forms:
     packs:
-      - modernization-pack   # 🔧 stub
+      - modernization-pack   # ✅ built
     agents:
       - modernization-expert
   mixed:
     packs:
-      - modernization-pack   # 🔧 stub
+      - modernization-pack   # ✅ built
     agents:
       - modernization-expert
       - ibmi-modernization-expert
@@ -202,7 +202,7 @@ project_type:
     extra_packs: []
   modernization:
     extra_packs:
-      - modernization-pack   # 🔧 stub
+      - modernization-pack   # ✅ built
   poc:
     extra_packs: []
     governance_override: basic

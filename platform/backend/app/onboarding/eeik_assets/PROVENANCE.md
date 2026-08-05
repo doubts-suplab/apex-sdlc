@@ -7,17 +7,25 @@ not code** — eeik remains the single source of truth.
 
 | Vendored file | eeik source | 
 |---|---|
-| `capability-matrix.yaml` | `generators/capability-selector/capability-matrix.yaml` |
+| `capability-matrix.yaml` | `bootstrap/resolvers/capability-matrix.yaml` (canonical field→pack reference, since eeik v1.4) |
 | `questions/*.yaml` | `bootstrap/questions/*.yaml` |
 | `examples/*.yaml` | `bootstrap/examples/*.yaml` |
 | `manifest-schema.json` | `eeik/schemas/manifest.schema.json` (canonical, since eeik v1.4 — ADR-005) |
 
-**Synced from eeik-bootstrap @ `b7bb2f6`.**
+**Synced from eeik-bootstrap @ `b7bb2f6`.** Pack **availability** (built/planned) tracked to eeik v1.4:
+all 19 packs built; azure/gcp/retail remain planned (eeik ROADMAP v2.0).
+
+> **`capability-matrix.yaml` is adapted, not byte-verbatim.** In eeik v1.4 the *authoritative* resolver is
+> code (`eeik/packs.py::resolve_packs`); the eeik matrix at `bootstrap/resolvers/` is human-readable
+> reference. APEX's offline resolver (`capability_resolver.py`) needs a couple of fields the reference
+> matrix does not carry — `resolution_order` and `project_type` — so this vendored copy keeps them. When
+> the `eeik` engine is installed, prefer the live engine (below) over this fallback entirely.
 
 ## Sync rule
 When eeik changes the manifest schema, question sets, or capability matrix, re-copy these files and update
-the SHA above (and re-check `app/onboarding/manifest.py`, which mirrors the schema as a Pydantic model).
-This mirrors the convention already used for `docs/personas.md` ↔ `app/agents/catalog.py`.
+the SHA above (and re-check `app/onboarding/manifest.py`, which mirrors the schema as a Pydantic model, and
+`capability_resolver.py::_AVAILABILITY`, which mirrors pack availability). This mirrors the convention
+already used for `docs/personas.md` ↔ `app/agents/catalog.py`.
 
 ## Live-engine option (preferred when eeik is installed)
 
