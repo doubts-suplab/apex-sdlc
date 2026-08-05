@@ -28,15 +28,16 @@ _AVAILABILITY: dict[str, str] = {
     "ai-engineering-pack": "built",
     "agent-harness-pack": "built",
     "governance-pack": "built",
-    "modernization-pack": "stub",
-    "python-pack": "planned",
-    "react-pack": "planned",
-    "angular-pack": "planned",
+    "modernization-pack": "built",
+    "python-pack": "built",
+    "react-pack": "built",
+    "angular-pack": "built",
+    "insurance-pack": "built",
+    "banking-pack": "built",
+    "healthcare-pack": "built",
+    # Still on the eeik roadmap (ROADMAP v2.0) — not yet in capability-packs/.
     "azure-pack": "planned",
     "gcp-pack": "planned",
-    "insurance-pack": "planned",
-    "banking-pack": "planned",
-    "healthcare-pack": "planned",
     "retail-pack": "planned",
 }
 

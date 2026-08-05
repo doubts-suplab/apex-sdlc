@@ -38,8 +38,18 @@ def test_agentic_poc_pulls_ai_packs_and_triggers_governance():
     assert "ai-engineering-pack" in names and "agent-harness-pack" in names
     # multi-agent AI trigger → governance required even though the profile is 'basic'.
     assert res.governance_required is True
-    # planned packs are surfaced but tagged, not hidden.
-    assert any(p.name == "python-pack" and p.availability == "planned" for p in res.packs)
+    # every pack this manifest resolves is built as of eeik v1.4 (python-pack included).
+    assert all(p.availability == "built" for p in res.packs)
+
+
+def test_availability_tags_still_flag_planned_packs():
+    # The resolver surfaces packs with an availability tag rather than hiding unbuilt ones.
+    # azure/gcp/retail remain on the eeik roadmap (ROADMAP v2.0) → tagged 'planned'.
+    from app.onboarding.capability_resolver import _AVAILABILITY
+
+    assert _AVAILABILITY["azure-pack"] == "planned"
+    assert _AVAILABILITY["retail-pack"] == "planned"
+    assert _AVAILABILITY["python-pack"] == "built"
 
 
 def test_resolution_is_ordered_and_deduped():
