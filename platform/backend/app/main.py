@@ -12,6 +12,7 @@ from app.api.v1.router import api_router
 from app.core.config import get_settings
 from app.core.logging import configure_logging, get_logger
 from app.db.session import init_engine
+from app.middleware.auth import AuthMiddleware
 from app.middleware.correlation import CorrelationMiddleware
 
 logger = get_logger(__name__)
@@ -44,6 +45,8 @@ def create_app() -> FastAPI:
     )
 
     # --- Middleware (order matters: outermost = first to process request) ---
+    # Auth runs inside correlation so 401s still carry a request id. No-op unless AUTH_REQUIRED.
+    application.add_middleware(AuthMiddleware)
     application.add_middleware(CorrelationMiddleware)
 
     # --- Exception handlers ---

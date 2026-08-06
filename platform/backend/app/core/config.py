@@ -21,6 +21,9 @@ class Settings(BaseSettings):
 
     # Application
     ENVIRONMENT: str = Field(default="development", description="Runtime environment")
+    # When true, the global auth middleware requires a valid bearer token on every route except the
+    # allowlist (health/docs/auth). Off by default so the offline demo endpoints stay open.
+    AUTH_REQUIRED: bool = Field(default=False, description="Enforce JWT auth on all non-allowlisted routes")
     LOG_LEVEL: str = Field(default="INFO", description="Logging level")
     APP_VERSION: str = Field(default="1.0.0", description="Application version")
 

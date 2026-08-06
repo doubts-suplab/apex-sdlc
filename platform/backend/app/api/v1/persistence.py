@@ -23,6 +23,8 @@ router = APIRouter(prefix="/projects", tags=["persistence"])
 # Personas allowed to run + approve a journey (a spec-approval / gate action). Read endpoints stay
 # open for now; global auth enforcement on every route is the follow-on (see docs/progress.md).
 _APPROVER_PERSONAS = ("lead", "ba", "architect", "ciso")
+# Governance data (audit log, PII events, policy violations) is CISO/Lead-only (platform CLAUDE.md).
+_GOVERNANCE_PERSONAS = ("ciso", "lead")
 
 
 def _svc(db: DbSession) -> PersistenceService:
@@ -142,3 +144,77 @@ async def cost_latency(
     illustratively (useful when runs were metered against a free/stub provider)."""
     await _require_project(db, project_id)
     return await svc.cost_latency_by_persona(project_id, pricing_model=model)
+
+
+# -- governance (CISO/Lead only) ----------------------------------------------------------------
+GovPrincipal = Annotated[Principal, Depends(require_persona(*_GOVERNANCE_PERSONAS))]
+
+
+@router.get("/{project_id}/governance/audit-log", summary="Append-only AI-action audit log (CISO/Lead)")
+async def audit_log(project_id: uuid.UUID, db: DbSession, svc: Svc, _p: GovPrincipal) -> dict[str, Any]:
+    await _require_project(db, project_id)
+    items = await svc.list_audit_log(project_id)
+    return {
+        "total": len(items),
+        "items": [
+            {
+                "id": str(a.id),
+                "actor": a.actor,
+                "phase": a.phase,
+                "agent_name": a.agent_name,
+                "action": a.action,
+                "model": a.model,
+                "input_tokens": a.input_tokens,
+                "output_tokens": a.output_tokens,
+                "cost_usd": a.cost_usd,
+                "auto_enforced": a.auto_enforced,
+                "summary": a.summary,
+            }
+            for a in items
+        ],
+    }
+
+
+@router.get("/{project_id}/governance/pii-events", summary="PII-guard detections on agent I/O (CISO/Lead)")
+async def pii_events(project_id: uuid.UUID, db: DbSession, svc: Svc, _p: GovPrincipal) -> dict[str, Any]:
+    await _require_project(db, project_id)
+    items = await svc.list_pii_events(project_id)
+    return {
+        "total": len(items),
+        "items": [
+            {
+                "id": str(e.id),
+                "phase": e.phase,
+                "label": e.label,
+                "direction": e.direction,
+                "action": e.action,
+                "occurrences": e.occurrences,
+            }
+            for e in items
+        ],
+    }
+
+
+@router.get(
+    "/{project_id}/governance/policy-violations",
+    summary="Policy/governance violations for the CISO view (CISO/Lead)",
+)
+async def policy_violations(
+    project_id: uuid.UUID, db: DbSession, svc: Svc, _p: GovPrincipal
+) -> dict[str, Any]:
+    await _require_project(db, project_id)
+    items = await svc.list_policy_violations(project_id)
+    return {
+        "total": len(items),
+        "items": [
+            {
+                "id": str(v.id),
+                "phase": v.phase,
+                "policy": v.policy,
+                "severity": v.severity,
+                "detail": v.detail,
+                "status": v.status,
+            }
+            for v in items
+        ],
+    }

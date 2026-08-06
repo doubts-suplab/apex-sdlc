@@ -59,4 +59,5 @@ def run_agent(harness: Harness, agent: PhaseAgent, ctx: AgentContext) -> AgentRe
         duration_ms=duration_ms,
         model=agent.model,
         provider=agent.provider,
+        pii_findings=agent.pii_findings(),
     )

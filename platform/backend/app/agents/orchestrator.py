@@ -54,6 +54,7 @@ class JourneyPhase:
     duration_ms: float = 0.0
     model: str = ""
     provider: str = ""
+    pii_findings: list[dict[str, Any]] = field(default_factory=list)
 
 
 @dataclass
@@ -168,6 +169,7 @@ def _run_phase(harness: Any, spec: PhaseSpec, project: dict[str, Any], llm: LlmP
         duration_ms=result.duration_ms,
         model=result.model,
         provider=result.provider,
+        pii_findings=result.pii_findings,
     )
 
 

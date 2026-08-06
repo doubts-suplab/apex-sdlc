@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import asyncio
+import os
 from logging.config import fileConfig
 
 from alembic import context
@@ -8,14 +9,17 @@ from sqlalchemy import pool
 from sqlalchemy.engine import Connection
 from sqlalchemy.ext.asyncio import async_engine_from_config
 
-# Import Base and all models so autogenerate sees them
+# Import Base and *all* models (the package __init__ imports each) so autogenerate/upgrade see them.
+import app.models  # noqa: F401
 from app.db.base import Base
-import app.models.organisation  # noqa: F401
-import app.models.project  # noqa: F401
-import app.models.phase  # noqa: F401
 
 # Alembic Config object
 config = context.config
+
+# Prefer the runtime DATABASE_URL (production Postgres, or SQLite in tests) over the ini default.
+_db_url = os.environ.get("DATABASE_URL")
+if _db_url:
+    config.set_main_option("sqlalchemy.url", _db_url)
 
 # Interpret the config file for Python logging.
 if config.config_file_name is not None:

@@ -43,6 +43,7 @@ class AgentResult:
     duration_ms: float = 0.0
     model: str = ""
     provider: str = ""
+    pii_findings: list[dict[str, Any]] = field(default_factory=list)
     error: str | None = None
 
 
@@ -82,6 +83,7 @@ def to_agent_result(
     duration_ms: float = 0.0,
     model: str = "",
     provider: str = "",
+    pii_findings: list[dict[str, Any]] | None = None,
     error: str | None = None,
 ) -> AgentResult:
     """Map a harness AgentOutput back to an apex AgentResult (spec §2.2)."""
@@ -94,5 +96,6 @@ def to_agent_result(
         duration_ms=duration_ms,
         model=model,
         provider=provider,
+        pii_findings=pii_findings or [],
         error=error,
     )

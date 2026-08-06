@@ -276,9 +276,15 @@ transition rule — a phase cannot advance until its spec is approved and its ga
 > spine blocking at Requirements until specs are approved, and the `/journey` page shows gate badges with an
 > approve toggle. **Auth & persona RBAC** are now built (Increment 8): HS256 JWT (`POST /api/v1/auth/token`,
 > `GET /auth/me`) + a reusable `require_persona(...)` dependency guarding the human-approval write
-> (`journey/persist` and `devops/flow` require an approver persona). Still pending: DB persistence of gate
-> evaluations, a real approval/credential store, global auth middleware, and the rest of this phase (ARB
-> workflow, mainframe gate, CISO view, CDK). See [`docs/progress.md`](docs/progress.md).
+> (`journey/persist` and `devops/flow` require an approver persona). **Governance persistence is now built**
+> (Increment 14): `audit_log` (one append-only row per AI action), `pii_events` (guard detections), and
+> `policy_violations` are populated on persist, with a **CISO/Lead-gated read API**
+> (`GET /projects/{id}/governance/{audit-log,pii-events,policy-violations}`). Still pending: DB persistence
+> of gate evaluations, a real approval/credential store, append-only DB enforcement, and the rest of this
+> phase (ARB workflow, mainframe gate, CDK). **Schema is now Alembic-versioned** (Increment 15), the
+> **full data model exists** (Team/Member added — Increment 16), and a **global auth middleware** enforces
+> JWT on all non-allowlisted routes when `AUTH_REQUIRED` is set (opt-in, Increment 17). See
+> [`docs/progress.md`](docs/progress.md).
 
 **Deliverables:**
 - Phase gate engine: configurable criteria per gate (required artifacts, min test coverage, approved reviewers, policy checks), enforcing the spec-driven spine's phase-to-phase transitions

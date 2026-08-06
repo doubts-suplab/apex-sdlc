@@ -61,6 +61,7 @@ class PhaseAgent(ABC):
         self._output_tokens = 0
         self._model = ""
         self._provider = ""
+        self._pii_findings: list[dict[str, Any]] = []
 
     # -- harness Agent protocol -----------------------------------------
     def run(self, request: AgentInput, tools: ToolInvoker) -> Decision:
@@ -70,11 +71,16 @@ class PhaseAgent(ABC):
         # the Decision).
         self._artifacts = []
         self._input_tokens = self._output_tokens = 0
+        self._pii_findings = []
         return self.decide(context_from_input(request), tools)
 
     def token_usage(self) -> tuple[int, int]:
         """(input_tokens, output_tokens) accumulated across this run's LLM calls."""
         return self._input_tokens, self._output_tokens
+
+    def pii_findings(self) -> list[dict[str, Any]]:
+        """PII the guard detected on this run's I/O: ``{label, direction, action, occurrences}`` rows."""
+        return list(self._pii_findings)
 
     @property
     def model(self) -> str:
@@ -117,6 +123,12 @@ class PhaseAgent(ABC):
         but the text is returned intact (redacting the model's output would corrupt a legitimately
         generated artifact; the primary data-protection boundary is the outbound one).
         """
+        # Record what the guard redacts on the way out (the auditable PII events) before scrubbing.
+        for m in messages:
+            self._record_pii(m.content, direction="outgoing", action="redacted")
+        if system:
+            self._record_pii(system, direction="outgoing", action="redacted")
+
         safe_messages = [
             Message(role=m.role, content=_PII_GUARD.scrub(m.content)) for m in messages
         ]
@@ -132,7 +144,20 @@ class PhaseAgent(ABC):
         findings = _PII_GUARD.scan(content)
         if findings:
             _PII_GUARD.log_findings(findings, source=f"agent:{getattr(self, 'name', 'unknown')}")
+        self._record_pii(content, direction="incoming", action="logged")
         return content
+
+    def _record_pii(self, text: str, *, direction: str, action: str) -> None:
+        """Scan ``text`` and accumulate PII findings (aggregated by label) for the audit trail."""
+        by_label: dict[str, dict[str, Any]] = {}
+        for f in _PII_GUARD.scan(text):
+            row = by_label.setdefault(
+                f.label,
+                {"label": f.label, "direction": direction, "action": action,
+                 "occurrences": 0, "confidence": f.confidence},
+            )
+            row["occurrences"] += 1
+        self._pii_findings.extend(by_label.values())
 
     def generate(self, *, prompt: str, fallback: str, system: str | None = None) -> str:
         """Generate an artifact body via the LLM port, falling back to a deterministic template.
