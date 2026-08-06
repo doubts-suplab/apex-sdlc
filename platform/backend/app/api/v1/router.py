@@ -16,6 +16,7 @@ from app.api.v1 import (
     organisations,
     persistence,
     projects,
+    webhooks,
 )
 from app.core.config import get_settings
 from app.core.logging import get_logger
@@ -35,6 +36,7 @@ api_router.include_router(onboarding.router)
 api_router.include_router(gates.router)
 api_router.include_router(persistence.router)
 api_router.include_router(devops.router)
+api_router.include_router(webhooks.router)
 
 
 @api_router.get(

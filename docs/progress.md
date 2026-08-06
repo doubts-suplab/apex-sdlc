@@ -8,6 +8,43 @@ Legend: ✅ done · 🚧 partial · ❌ not started
 
 ---
 
+## Increment 20 — Phase 2: webhook → phase-agent dispatch router 🚧
+
+The inbound event now routes to the SDLC phase whose agent should react — the seam a background worker
+consumes to enqueue an agent run.
+
+- ✅ **`integrations/dispatch.py`** maps a normalized event to a `WebhookDispatch(phase, agent, persona,
+  reason)` drawn straight from the phase catalog (so it can never name an agent the platform doesn't run):
+  a GitHub `pull_request` opened/reopened/synchronize → **Development** (PR review), a `release` published
+  → **CI/CD** (release artifacts), a Jira `Story`/`Epic`/`Task` created/updated → **Requirements** (refresh).
+  Noise (a `labeled` PR, a `push`, a Jira comment, a `Sub-task`) routes to **nothing**.
+- ✅ **Governed posture, mirrored:** the router only *proposes* — it holds no authority. The harness
+  confidence gate still decides auto-enforcement and the default-deny tool registry still governs side
+  effects; the mapping is transparent so the routing is auditable (structlog `dispatch=<phase>`).
+- ✅ Both webhook endpoints now return `dispatch` alongside the parsed event.
+- ✅ 9 dispatch tests + endpoint assertion. **159 total green;** `examples/` byte-identical.
+- ❌ **Not yet:** actually enqueuing/running the dispatched agent (needs the Celery path + a configured
+  provider), and event de-dup/idempotency.
+
+## Increment 19 — Phase 2: signature-verified webhook receivers (GitHub + Jira) 🚧
+
+Inbound events now have a governed entry point — the seam a background dispatcher/agent reacts to.
+
+- ✅ **GitHub receiver** `POST /api/v1/webhooks/github`: reads the raw body, verifies the
+  `X-Hub-Signature-256` HMAC-SHA256 against `GITHUB_WEBHOOK_SECRET` **before any processing** (platform
+  security rule), returns **401** on a missing/malformed/mismatched signature, then normalizes
+  `pull_request` / `push` / `release` into a compact `{event, repo, action, summary, …}`.
+- ✅ **Jira receiver** `POST /api/v1/webhooks/jira`: optional shared-secret check (empty configured secret
+  → accept, dev mode; mismatch → 401), normalizes the `webhookEvent` discriminator into
+  `{event, issue_key, issue_type, status, summary}`.
+- ✅ Pure, offline-testable verification + normalization in `integrations/github/webhooks.py` and
+  `integrations/jira/webhooks.py`; config gains `GITHUB_WEBHOOK_SECRET` + `JIRA_WEBHOOK_SECRET`.
+- ✅ 12 tests (`tests/api/test_webhooks.py`): valid/tampered/malformed signatures, event parsing for all
+  three GitHub events + Jira, endpoint 200/401 paths. **150 total green;** `examples/` byte-identical.
+- ✅ **Event → agent routing now built** (Increment 20: `pull_request` → PR-review, `release` → CI/CD,
+  Jira Story → Requirements). ❌ **Not yet:** actually running the dispatched agent, and delivery
+  retry/idempotency (event de-dup).
+
 ## Increment 18 — Phase 0: full repo-tree emission + GitHub bootstrap 🚧
 
 Onboarding now emits an **actual scaffolded repository** (files), not just a plan — the core remaining
@@ -181,8 +218,8 @@ offline set stays the default and the fallback.
   flipping to live when configured, and a **live GitHub PR driven against an in-process mock transport**
   proving the configurable base URL is honoured (no real network). Test env is now **hermetic** —
   conftest clears ambient integration creds so no test reaches a live system. **112 total green.**
-- ❌ **Not yet:** webhook receivers for inbound events, retry/backoff + rate-limit handling in the live
-  adapters, and persisting each tool call to an audit table.
+- ✅ **Webhook receivers now built** (Increment 19). ❌ **Not yet:** retry/backoff + rate-limit handling
+  in the live adapters, and persisting each tool call to an audit table.
 
 ## Increment 9 — Governed DevOps tools: NL intent → multi-tool flow under the harness gate 🚧
 
@@ -371,7 +408,7 @@ The running shell exists; most of the data model and cross-cutting middleware do
 |---|---|---|
 | **Onboarding via eeik** — resolve packs + scaffold (`CLAUDE.md` + plan), enter the spine | [Phase 0](../ROADMAP.md#phase-0--onboarding-the-eeik-front-door) | 🚧 deterministic bridge built; full repo-tree emission + GitHub repo + DB persistence pending |
 | **Real LLM generation** — model-generated specs from real input | Phase 3–4 | 🚧 path wired via `PhaseAgent.generate()` + prompts; real output needs a configured provider; quality-eval is the follow-on |
-| **Live integrations** — GitHub/Jira/Confluence live data + background refresh | Phase 2 | 🚧 clients exist, not wired to refresh/agents |
+| **Live integrations** — GitHub/Jira/Confluence live data + background refresh | Phase 2 | 🚧 clients + config-driven live adapters (Increment 10) + signature-verified inbound webhooks (Increment 19) + event→phase-agent dispatch router (Increment 20) built; background refresh + running the dispatched agent pending |
 | **Agent write-back** — create Jira epics/stories, post GitHub PR reviews, publish Confluence | Phase 3 | 🚧 governed tool-call path built (Increment 9): default-deny registry + offline adapters, gated execution; real credentialed adapters pending |
 | **DevOps tool flow** — NL intent → multi-tool pipeline (GitHub/Jira/Confluence/Slack/Jenkins) under the harness gate | Phase 3 | 🚧 offline flow built + verified (Increment 9); LLM planner + live adapters pending |
 | **Dev repo bootstrap** — scaffold the actual service (eeik `repository-generator`) | Phase 0 / 3 | 🚧 deterministic repo-tree emission built (Increment 18); real GitHub repo creation + LLM generator pending |

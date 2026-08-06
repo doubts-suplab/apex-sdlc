@@ -49,6 +49,12 @@ class Settings(BaseSettings):
     # GitHub
     # ------------------------------------------------------------------
     GITHUB_TOKEN: str = Field(default="", description="GitHub personal access token")
+    GITHUB_WEBHOOK_SECRET: str = Field(
+        default="", description="Secret for X-Hub-Signature-256 verification"
+    )
+    JIRA_WEBHOOK_SECRET: str = Field(
+        default="", description="Optional shared secret for Jira webhooks"
+    )
     GITHUB_API_BASE: str = Field(
         default="https://api.github.com",
         description="GitHub API base URL (override to point at a mock/GHE server)",
