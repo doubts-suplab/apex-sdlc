@@ -8,6 +8,21 @@ Legend: ✅ done · 🚧 partial · ❌ not started
 
 ---
 
+## Increment 16 — Team & Member models (the last missing data-model tables) ✅
+
+Adds the final two entities from the core data model, closing Increment 1's "missing models" list.
+
+- ✅ **`Team`** (org-scoped, unique `slug` per org) and **`Member`** (`app/models/team.py`): a user with a
+  **persona role** on a project (`persona` ∈ the catalog's seven), optionally via a team, unique per
+  `(project, subject)`. This is the **persona↔identity mapping** the RBAC layer (Increment 8) referenced —
+  a JWT `sub`+`persona` can now be reconciled against a project's members.
+- ✅ **Migration `0002_add_teams_and_members.py`** chains off the baseline; the drift-guard test now runs
+  `0001 → 0002` and still matches `Base.metadata` exactly.
+- ✅ 2 model tests (`tests/models/test_team_member.py`): team + members persist with personas and the
+  `(project, subject)` uniqueness constraint is enforced. **129 total green.**
+- ❌ **Not yet:** a members CRUD API + onboarding seeding a default team, and enforcing that a token's
+  persona matches a project member at request time (the mapping exists; wiring it into RBAC is the follow-on).
+
 ## Increment 15 — Alembic baseline migration (schema versioning) ✅
 
 Closes the "no migrations" gap flagged in Increments 1 and 6 — the schema is now **versioned**, not just
@@ -300,9 +315,9 @@ The running shell exists; most of the data model and cross-cutting middleware do
 - ✅ FastAPI app, correlation-ID middleware, health, structlog; org/project/integration registry API.
 - ✅ Multi-provider LLM layer (`anthropic`, `ollama`, `groq`, `huggingface`, `stub`).
 - ✅ Frontend shell: org home (project grid), project detail (SDLC timeline), integrations pages.
-- 🚧 ORM models cover `organisation`, `project`, `integration`, `phase`, `artifact`, `artifact_version`,
-  `agent_run`, and now **`audit_log`, `pii_event`, `policy_violation`** (Increment 14) — still **missing**
-  `team`, `member`.
+- ✅ ORM models now cover the **full core data model**: `organisation`, `project`, `integration`, `phase`,
+  `phase_gate`, `artifact`, `artifact_version`, `agent_run`, `audit_log`, `pii_event`, `policy_violation`
+  (Increment 14), and `team` + `member` (Increment 16).
 - ✅ **Alembic baseline migration** now versions the schema (Increment 15). 🚧 PII-guard
   middleware scrubs/scans agent LLM I/O (Increment 7); 🚧 JWT + persona RBAC guards the persist write
   (Increment 8); ❌ audit middleware (only correlation) and global auth enforcement remain.

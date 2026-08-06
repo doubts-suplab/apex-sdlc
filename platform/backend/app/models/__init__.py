@@ -6,12 +6,14 @@ from app.models.integration import ProjectIntegration
 from app.models.organisation import Organisation
 from app.models.phase import Phase, PhaseGate
 from app.models.project import Project
+from app.models.team import Member, Team
 
 __all__ = [
     "AgentRun",
     "Artifact",
     "ArtifactVersion",
     "AuditLog",
+    "Member",
     "Organisation",
     "Phase",
     "PhaseGate",
@@ -19,4 +21,5 @@ __all__ = [
     "PolicyViolation",
     "Project",
     "ProjectIntegration",
+    "Team",
 ]
