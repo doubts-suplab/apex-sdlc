@@ -8,6 +8,22 @@ Legend: ✅ done · 🚧 partial · ❌ not started
 
 ---
 
+## Increment 17 — Global auth middleware (opt-in, allowlist-based) 🚧
+
+Closes Increment 8's "global auth enforcement" gap without breaking the offline demo.
+
+- ✅ **`AuthMiddleware` (`app/middleware/auth.py`):** when `AUTH_REQUIRED=true`, every request needs a
+  valid bearer token except an **allowlist** (`/health`, `/docs`, `/redoc`, `/openapi.json`,
+  `/api/v1/auth/token`) — so login and health stay reachable. Invalid/missing → RFC-7807 401. The
+  per-route `require_persona(...)` RBAC still layers on top (this enforces *authentication* only).
+- ✅ **Off by default** (`AUTH_REQUIRED=false`) so the reference/onboarding/devops demo endpoints stay
+  open and every existing test/demo is unaffected; production flips one env var to lock the surface.
+- ✅ 4 tests (`tests/api/test_auth_middleware.py`): default-off leaves routes open; enforced → 401 without
+  a token, 200 with, 401 on a bad token; health + `/auth/token` stay open under enforcement. **133 total
+  green;** `examples/` byte-identical.
+- ❌ **Not yet:** binding the token's persona to a project `Member` at request time (the mapping exists —
+  Increment 16 — but isn't enforced), and refresh tokens.
+
 ## Increment 16 — Team & Member models (the last missing data-model tables) ✅
 
 Adds the final two entities from the core data model, closing Increment 1's "missing models" list.
@@ -344,7 +360,7 @@ The running shell exists; most of the data model and cross-cutting middleware do
 | **Phase-gate engine** — enforce the spec-driven spine's phase transitions | Phase 5 | 🚧 pure engine + API + UI built offline; DB persistence + approval store pending |
 | **PII guard on agent I/O** — regex scrub outgoing / scan+log incoming on every LLM call | Phase 5 | 🚧 middleware built + wired (Increment 7); `pii_events` persistence + Comprehend NLP layer pending |
 | **Governance persistence** — audit_log, pii_events, policy_violations tables + CISO view + ARB | Phase 5 | 🚧 tables + population during persist + CISO-gated read API built (Increment 14); append-only DB enforcement + ARB workflow pending |
-| **Auth & RBAC** — JWT, persona-scoped access | Phase 5 | 🚧 HS256 JWT + `require_persona` built (Increment 8), guarding the journey-persist write; global middleware + credential store + refresh pending |
+| **Auth & RBAC** — JWT, persona-scoped access | Phase 5 | 🚧 HS256 JWT + `require_persona` built (Increment 8), guarding the journey-persist write; global auth middleware built opt-in (Increment 17); credential store + refresh + member-binding pending |
 | **AWS deploy** — CDK (ECS Fargate, RDS Aurora, ElastiCache, S3) | Phase 5 | ❌ |
 
 **One-line status:** the framework is *demonstrable and governed end-to-end offline*, but the substance —
