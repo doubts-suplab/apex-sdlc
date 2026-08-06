@@ -8,6 +8,26 @@ Legend: ✅ done · 🚧 partial · ❌ not started
 
 ---
 
+## Increment 23 — Frontend catches up: phase-run trigger + governance view 🚧
+
+The portal now *drives* the newer backend, not just reads a couple of metrics endpoints. The project
+page surfaces the run trigger and the stored governed state that Increments 14/19–22 produce.
+
+- ✅ **`PhaseRunnerPanel`** (project page): every SDLC phase has an approver-gated **Run** button that
+  calls `POST /projects/{id}/phases/{phase}/agents/run-persist` — the UI surface of the dispatch
+  execution path (event → project → this run). Each row reflects the stored **agent run** (auto-enforced
+  vs human-review + confidence), its **gate status**, and its **artifact count**, refetched on success.
+- ✅ **`GovernancePanel`** (CISO/Lead-gated in the UI, matching the API): the append-only **audit log**,
+  **PII events**, and **policy violations** for the project — three columns, persona-locked for everyone
+  else. First frontend surface of the Increment 14 governance API.
+- ✅ New typed hooks + Zod schemas mirroring the backend: `lib/queries/phases.ts`
+  (`useAgentRuns`/`useArtifacts`/`useGateStatus`/`useRunPhase`) and `lib/queries/governance.ts`
+  (`useAuditLog`/`usePiiEvents`/`usePolicyViolations`), with `types/agentRun.ts` + `types/governance.ts`.
+- ✅ Approver/persona gating reuses `useAuthToken()` (mints the JWT) so writes carry the persona for RBAC.
+  `npm run type-check` + `npm run build` clean.
+- ❌ **Not yet:** per-artifact content/diff view, live SSE progress during a run, and a webhook-activity
+  feed (inbound events don't yet stream to the UI).
+
 ## Increment 22 — Phase 2/3: run + persist a single dispatched phase-agent 🚧
 
 The event-driven loop now *executes*: a resolved trigger (project + phase) runs that one phase agent on
@@ -424,7 +444,10 @@ The running shell exists; most of the data model and cross-cutting middleware do
 
 - ✅ FastAPI app, correlation-ID middleware, health, structlog; org/project/integration registry API.
 - ✅ Multi-provider LLM layer (`anthropic`, `ollama`, `groq`, `huggingface`, `stub`).
-- ✅ Frontend shell: org home (project grid), project detail (SDLC timeline), integrations pages.
+- ✅ Frontend shell: org home (project grid), project detail (SDLC timeline), integrations pages, and
+  (Increment 23) a per-phase **run trigger** + stored-run/gate/artifact panel and a CISO/Lead
+  **governance view** (audit log, PII events, policy violations) — the portal now drives the run/persist
+  and governance APIs, not just the metrics endpoints.
 - ✅ ORM models now cover the **full core data model**: `organisation`, `project`, `integration`, `phase`,
   `phase_gate`, `artifact`, `artifact_version`, `agent_run`, `audit_log`, `pii_event`, `policy_violation`
   (Increment 14), and `team` + `member` (Increment 16).
@@ -453,7 +476,7 @@ The running shell exists; most of the data model and cross-cutting middleware do
 | **Artifact persistence** — artifacts + agent runs + gates in DB, with version lineage | Phase 4 | 🚧 DB persistence + version lineage built (SQLite-verified); S3 storage pending; Alembic baseline built (Increment 15) |
 | **Phase-gate engine** — enforce the spec-driven spine's phase transitions | Phase 5 | 🚧 pure engine + API + UI built offline; DB persistence + approval store pending |
 | **PII guard on agent I/O** — regex scrub outgoing / scan+log incoming on every LLM call | Phase 5 | 🚧 middleware built + wired (Increment 7); `pii_events` persistence + Comprehend NLP layer pending |
-| **Governance persistence** — audit_log, pii_events, policy_violations tables + CISO view + ARB | Phase 5 | 🚧 tables + population during persist + CISO-gated read API built (Increment 14); append-only DB enforcement + ARB workflow pending |
+| **Governance persistence** — audit_log, pii_events, policy_violations tables + CISO view + ARB | Phase 5 | 🚧 tables + population during persist + CISO-gated read API built (Increment 14) + CISO/Lead frontend governance panel (Increment 23); append-only DB enforcement + ARB workflow pending |
 | **Auth & RBAC** — JWT, persona-scoped access | Phase 5 | 🚧 HS256 JWT + `require_persona` built (Increment 8), guarding the journey-persist write; global auth middleware built opt-in (Increment 17); credential store + refresh + member-binding pending |
 | **AWS deploy** — CDK (ECS Fargate, RDS Aurora, ElastiCache, S3) | Phase 5 | ❌ |
 
