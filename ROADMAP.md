@@ -158,9 +158,14 @@ APEX project sitting at the Requirements phase, ready for the SDLC to run.
 > **Status:** 🚧 the deterministic bridge is built — onboarding resolves capability packs from an eeik
 > manifest, generates the scaffold (`CLAUDE.md` + plan), and registers the project at the Requirements
 > phase (`app/onboarding/`, `/api/v1/onboarding`, the `/onboard` wizard, and
-> [`examples/onboarded-project/`](examples/onboarded-project/README.md), all offline). Still pending: full
-> compilable repo-tree emission + actually creating a GitHub repo (the LLM-driven `repository-generator`),
-> and DB persistence of the registration. See [`docs/progress.md`](docs/progress.md).
+> [`examples/onboarded-project/`](examples/onboarded-project/README.md), all offline). **Full repo-tree
+> emission is now built** (Increment 18): `POST /api/v1/onboarding/repo-tree` +
+> `python -m app.demo.generate_repo` emit an actual compilable scaffold (Java/Spring Boot or
+> Python/FastAPI — [`examples/generated-repo/`](examples/generated-repo/)) plus a GitHub bootstrap plan.
+> Onboarding also **persists a Project** when an `organisation_id` is supplied, and **consumes the real
+> eeik SDK/MCP engine** (Increment, `onboard_with_eeik`). Still pending: actually creating the GitHub repo
+> (credential-gated) and the LLM-driven `repository-generator` for richer source. See
+> [`docs/progress.md`](docs/progress.md).
 
 ---
 

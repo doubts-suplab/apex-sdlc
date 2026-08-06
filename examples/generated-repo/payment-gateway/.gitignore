@@ -1,0 +1,19 @@
+# Build / deps
+target/
+dist/
+build/
+__pycache__/
+*.py[cod]
+.venv/
+node_modules/
+.next/
+
+# Env / secrets
+.env
+.env.*
+!.env.example
+
+# IDE / OS
+.idea/
+.vscode/
+.DS_Store

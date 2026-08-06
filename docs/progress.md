@@ -8,6 +8,26 @@ Legend: ✅ done · 🚧 partial · ❌ not started
 
 ---
 
+## Increment 18 — Phase 0: full repo-tree emission + GitHub bootstrap 🚧
+
+Onboarding now emits an **actual scaffolded repository** (files), not just a plan — the core remaining
+Phase 0 deliverable.
+
+- ✅ **`repo_generator.generate_repo_tree()`** turns an onboarding result into a `{path: content}` tree:
+  a stack-appropriate skeleton (**Java/Spring Boot** — `pom.xml` + a `@SpringBootApplication` main +
+  DDD `domain/application/infrastructure/web` layers + a `@SpringBootTest`; **Python/FastAPI** —
+  `pyproject.toml` + `app/main.py` with a `/health` route + `tests/`), plus `CLAUDE.md`, the normalized
+  manifest, `README.md`, `.gitignore`, and a CI workflow. Deterministic, offline, byte-reproducible.
+- ✅ **GitHub bootstrap:** `repo_bootstrap.bootstrap_plan()` gives an offline dry-run (repo + files that
+  *would* be created); `push_repo_tree()` + new `GitHubClient.create_repository`/`put_file` are the
+  credentialed swap-in (create repo → commit each file).
+- ✅ API `POST /api/v1/onboarding/repo-tree` returns the tree + bootstrap plan; demo
+  `python -m app.demo.generate_repo` → `examples/generated-repo/<slug>/` (a full committed Java repo).
+- ✅ 5 tests (`tests/onboarding/test_repo_generator.py`): common files present, Java/Python skeletons,
+  determinism, bootstrap-plan shape. **138 total green;** pre-existing `examples/` byte-identical.
+- ❌ **Not yet:** actually creating the GitHub repo (credential-gated), and the eeik LLM-driven
+  `repository-generator` for richer, input-tailored source (this is the deterministic stand-in).
+
 ## Increment 17 — Global auth middleware (opt-in, allowlist-based) 🚧
 
 Closes Increment 8's "global auth enforcement" gap without breaking the offline demo.
@@ -354,7 +374,7 @@ The running shell exists; most of the data model and cross-cutting middleware do
 | **Live integrations** — GitHub/Jira/Confluence live data + background refresh | Phase 2 | 🚧 clients exist, not wired to refresh/agents |
 | **Agent write-back** — create Jira epics/stories, post GitHub PR reviews, publish Confluence | Phase 3 | 🚧 governed tool-call path built (Increment 9): default-deny registry + offline adapters, gated execution; real credentialed adapters pending |
 | **DevOps tool flow** — NL intent → multi-tool pipeline (GitHub/Jira/Confluence/Slack/Jenkins) under the harness gate | Phase 3 | 🚧 offline flow built + verified (Increment 9); LLM planner + live adapters pending |
-| **Dev repo bootstrap** — scaffold the actual service (eeik `repository-generator`) | Phase 0 / 3 | ❌ |
+| **Dev repo bootstrap** — scaffold the actual service (eeik `repository-generator`) | Phase 0 / 3 | 🚧 deterministic repo-tree emission built (Increment 18); real GitHub repo creation + LLM generator pending |
 | **Architect target-architecture** — reason over requirements + existing system → target-state ADR/C4 | Phase 4 | ❌ (templated ADR only today) |
 | **Artifact persistence** — artifacts + agent runs + gates in DB, with version lineage | Phase 4 | 🚧 DB persistence + version lineage built (SQLite-verified); S3 storage pending; Alembic baseline built (Increment 15) |
 | **Phase-gate engine** — enforce the spec-driven spine's phase transitions | Phase 5 | 🚧 pure engine + API + UI built offline; DB persistence + approval store pending |

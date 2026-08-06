@@ -1,0 +1,22 @@
+{
+  "action": "create_repository",
+  "owner": "payments-engineering",
+  "repo": "payment-gateway",
+  "full_name": "payments-engineering/payment-gateway",
+  "file_count": 12,
+  "files": [
+    ".github/workflows/ci.yml",
+    ".gitignore",
+    "CLAUDE.md",
+    "README.md",
+    "infra/README.md",
+    "pom.xml",
+    "project-manifest.yaml",
+    "src/main/java/com/example/paymentgateway/application/.gitkeep",
+    "src/main/java/com/example/paymentgateway/domain/.gitkeep",
+    "src/main/java/com/example/paymentgateway/infrastructure/.gitkeep",
+    "src/main/java/com/example/paymentgateway/web/PaymentGatewayApplication.java",
+    "src/test/java/com/example/paymentgateway/PaymentGatewayApplicationTests.java"
+  ],
+  "executed": false
+}

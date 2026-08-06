@@ -159,6 +159,28 @@ class GitHubClient:
             json={"title": title, "head": head, "base": base, "body": body},
         )
 
+    async def create_repository(self, name: str, private: bool = True, description: str = "") -> dict:
+        """Create a repository for the authenticated user.
+
+        Returns the created repo object (with ``full_name``, ``html_url``).
+        """
+        return await self._request(
+            "POST",
+            "/user/repos",
+            json={"name": name, "private": private, "description": description, "auto_init": True},
+        )
+
+    async def put_file(
+        self, repo: str, path: str, content: str, message: str, branch: str = "main"
+    ) -> dict:
+        """Create or update a file via the contents API (base64-encoded content)."""
+        encoded = base64.b64encode(content.encode("utf-8")).decode("ascii")
+        return await self._request(
+            "PUT",
+            f"/repos/{repo}/contents/{path}",
+            json={"message": message, "content": encoded, "branch": branch},
+        )
+
     async def get_repo_file(
         self,
         repo: str,
