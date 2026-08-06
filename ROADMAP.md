@@ -192,8 +192,15 @@ Establish the running skeleton: API, DB, Docker environment, project registry.
 
 Live data from GitHub, Jira, and Confluence per registered project.
 
+> **Status:** 🚧 config/env-driven **live adapters** for GitHub/Jira/Confluence/Slack/Jenkins swap in per
+> tool when credentials are set (Increment 10), and **signature-verified inbound webhook receivers** are
+> built — `POST /api/v1/webhooks/github` (HMAC-SHA256 `X-Hub-Signature-256`, 401 on mismatch, normalizes
+> `pull_request`/`push`/`release`) and `POST /api/v1/webhooks/jira` (optional shared secret), Increment 19.
+> Still pending: the background refresh job, per-project integration config in the DB, and turning a
+> normalized webhook event into an agent run.
+
 **Deliverables:**
-- GitHub integration: repository metadata, open PRs, branch list, recent commits, webhook receiver
+- GitHub integration: repository metadata, open PRs, branch list, recent commits, webhook receiver ✅ (webhook receiver + live client built)
 - Jira integration: project board, epics, stories, sprint status per APEX project
 - Confluence integration: space listing, page list, page create/update
 - Per-project integration config stored in DB (`project_integrations` table)
