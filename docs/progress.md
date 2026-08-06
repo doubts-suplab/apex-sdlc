@@ -8,6 +8,23 @@ Legend: ✅ done · 🚧 partial · ❌ not started
 
 ---
 
+## Increment 15 — Alembic baseline migration (schema versioning) ✅
+
+Closes the "no migrations" gap flagged in Increments 1 and 6 — the schema is now **versioned**, not just
+built ad-hoc via `metadata.create_all`.
+
+- ✅ **Baseline migration** (`app/db/migrations/versions/0001_initial_schema.py`) creates all 11 current
+  tables (organisations, projects, project_integrations, phases, phase_gates, artifacts,
+  artifact_versions, agent_runs, audit_log, pii_events, policy_violations) with their indexes and FKs;
+  the Postgres `JSONB` variants are preserved (`sa.JSON().with_variant(JSONB, "postgresql")`).
+- ✅ **`env.py` now sees every model** (imports the `app.models` package, not a stale subset) and reads
+  the runtime `DATABASE_URL` — so `alembic upgrade head` works against production Postgres **or** SQLite.
+- ✅ **Drift-guard test** (`tests/db/test_migrations.py`): runs the real migration against a throwaway
+  SQLite file and asserts the created tables **exactly equal** `Base.metadata` (a model added without a
+  migration, or vice-versa, fails CI), then `downgrade base` drops everything. **127 total green.**
+- ❌ **Not yet:** switching the app/tests off `metadata.create_all` onto migrations as the sole schema
+  source (the test suite still builds via `create_all` for speed; the migration is verified separately).
+
 ## Increment 14 — Governance persistence: audit_log · pii_events · policy_violations ✅
 
 Completes a long-standing gap from Increments 1, 7, and 8: the governance tables now exist and are
@@ -199,8 +216,8 @@ A governed journey's outputs are now **stored, queryable state** instead of in-m
   (`JSON().with_variant(JSONB, "postgresql")`) so the schema compiles on SQLite, and added `aiosqlite` —
   the previously-erroring 16 `tests/api` tests now pass. 5 new persistence tests (75 total green) verify a
   reference journey persists 17 artifacts / 7 runs / 7 gates and reads back.
-- ❌ **Not yet:** an Alembic baseline (the repo has **no** migrations — schema is via `metadata.create_all`;
-  a full initial migration is a follow-on), S3 storage, and auth/RBAC on the new endpoints.
+- ✅ **Alembic baseline** now versions the schema (Increment 15). ❌ **Not yet:** S3 storage, and
+  auth/RBAC on the read endpoints (the persist write is guarded — Increment 8).
 - ✅ **Artifact version lineage:** an `ArtifactVersion` table + idempotent upsert — re-persisting unchanged
   content is a no-op; a content change bumps the artifact version and snapshots the prior content
   (`GET /projects/{id}/artifacts/{artifact_id}/versions`).
@@ -286,8 +303,8 @@ The running shell exists; most of the data model and cross-cutting middleware do
 - 🚧 ORM models cover `organisation`, `project`, `integration`, `phase`, `artifact`, `artifact_version`,
   `agent_run`, and now **`audit_log`, `pii_event`, `policy_violation`** (Increment 14) — still **missing**
   `team`, `member`.
-- ❌ No Alembic migrations yet (`versions/` empty; schema via `metadata.create_all`). 🚧 PII-guard
-  middleware now scrubs/scans agent LLM I/O (Increment 7); 🚧 JWT + persona RBAC guards the persist write
+- ✅ **Alembic baseline migration** now versions the schema (Increment 15). 🚧 PII-guard
+  middleware scrubs/scans agent LLM I/O (Increment 7); 🚧 JWT + persona RBAC guards the persist write
   (Increment 8); ❌ audit middleware (only correlation) and global auth enforcement remain.
 
 ## Increment 0 — Framework & platform spec ✅
@@ -308,7 +325,7 @@ The running shell exists; most of the data model and cross-cutting middleware do
 | **DevOps tool flow** — NL intent → multi-tool pipeline (GitHub/Jira/Confluence/Slack/Jenkins) under the harness gate | Phase 3 | 🚧 offline flow built + verified (Increment 9); LLM planner + live adapters pending |
 | **Dev repo bootstrap** — scaffold the actual service (eeik `repository-generator`) | Phase 0 / 3 | ❌ |
 | **Architect target-architecture** — reason over requirements + existing system → target-state ADR/C4 | Phase 4 | ❌ (templated ADR only today) |
-| **Artifact persistence** — artifacts + agent runs + gates in DB, with version lineage | Phase 4 | 🚧 DB persistence + version lineage built (SQLite-verified); S3 + Alembic baseline pending |
+| **Artifact persistence** — artifacts + agent runs + gates in DB, with version lineage | Phase 4 | 🚧 DB persistence + version lineage built (SQLite-verified); S3 storage pending; Alembic baseline built (Increment 15) |
 | **Phase-gate engine** — enforce the spec-driven spine's phase transitions | Phase 5 | 🚧 pure engine + API + UI built offline; DB persistence + approval store pending |
 | **PII guard on agent I/O** — regex scrub outgoing / scan+log incoming on every LLM call | Phase 5 | 🚧 middleware built + wired (Increment 7); `pii_events` persistence + Comprehend NLP layer pending |
 | **Governance persistence** — audit_log, pii_events, policy_violations tables + CISO view + ARB | Phase 5 | 🚧 tables + population during persist + CISO-gated read API built (Increment 14); append-only DB enforcement + ARB workflow pending |
