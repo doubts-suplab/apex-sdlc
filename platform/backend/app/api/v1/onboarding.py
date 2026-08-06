@@ -15,6 +15,8 @@ from fastapi import APIRouter, Query
 from app.db.session import DbSession
 from app.onboarding.manifest import ProjectManifest
 from app.onboarding.questions import load_questions
+from app.onboarding.repo_bootstrap import bootstrap_plan
+from app.onboarding.repo_generator import _slug, generate_repo_tree
 from app.onboarding.service import onboard as onboard_project
 from app.onboarding.service import registration_payload
 from app.schemas.project import ProjectCreate
@@ -33,6 +35,23 @@ async def get_questions() -> dict[str, Any]:
 async def preview(manifest: ProjectManifest) -> dict[str, Any]:
     """Validate a manifest and return the resolved packs + generated scaffold, without registering."""
     return onboard_project(manifest).to_dict()
+
+
+@router.post("/repo-tree", summary="Emit the full scaffolded repository tree from a manifest")
+async def repo_tree(manifest: ProjectManifest) -> dict[str, Any]:
+    """Return the emitted repository as ``{path: content}`` plus a GitHub bootstrap dry-run.
+
+    Deterministic and offline — the same tree a live build would commit to a new GitHub repo.
+    """
+    result = onboard_project(manifest)
+    tree = generate_repo_tree(result, manifest)
+    slug = _slug(manifest.project.name)
+    return {
+        "project": manifest.project.name,
+        "file_count": len(tree),
+        "files": tree,
+        "bootstrap": bootstrap_plan(manifest.project.owner or "acme", slug, tree),
+    }
 
 
 @router.post("/", summary="Onboard a project — scaffold + registry hand-off")
