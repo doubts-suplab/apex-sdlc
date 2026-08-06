@@ -14,6 +14,7 @@ from fastapi import APIRouter, Header, HTTPException, Query, Request
 
 from app.core.config import get_settings
 from app.core.logging import get_logger
+from app.integrations import dispatch
 from app.integrations.github import webhooks as gh
 from app.integrations.jira import webhooks as jira
 
@@ -43,8 +44,14 @@ async def github_webhook(
     except json.JSONDecodeError as exc:
         raise _bad(400, "Bad Payload", "Webhook body is not valid JSON.") from exc
     event = gh.parse_event(x_github_event or "unknown", payload)
-    logger.info("webhook.github", gh_event=event["event"], repo=event.get("repo"))
-    return {"received": True, "event": event}
+    plan = dispatch.dispatch_for_github(event)
+    logger.info(
+        "webhook.github",
+        gh_event=event["event"],
+        repo=event.get("repo"),
+        dispatch=plan.phase if plan else None,
+    )
+    return {"received": True, "event": event, "dispatch": plan.to_dict() if plan else None}
 
 
 @router.post("/jira", summary="Jira webhook receiver (optional shared-secret)")
@@ -55,5 +62,11 @@ async def jira_webhook(
     if not jira.verify_secret(get_settings().JIRA_WEBHOOK_SECRET, secret):
         raise _bad(401, "Invalid Secret", "Jira webhook shared-secret mismatch.")
     event = jira.parse_event(payload)
-    logger.info("webhook.jira", jira_event=event["event"], issue=event.get("issue_key"))
-    return {"received": True, "event": event}
+    plan = dispatch.dispatch_for_jira(event)
+    logger.info(
+        "webhook.jira",
+        jira_event=event["event"],
+        issue=event.get("issue_key"),
+        dispatch=plan.phase if plan else None,
+    )
+    return {"received": True, "event": event, "dispatch": plan.to_dict() if plan else None}

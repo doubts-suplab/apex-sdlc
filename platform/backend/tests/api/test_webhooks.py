@@ -138,6 +138,8 @@ async def test_github_webhook_accepts_valid_signature(
     assert data["received"] is True
     assert data["event"]["event"] == "pull_request"
     assert data["event"]["repo"] == "acme/widgets"
+    # A PR-opened event routes to the Development phase (PR review).
+    assert data["dispatch"]["phase"] == "development"
 
 
 @pytest.mark.asyncio

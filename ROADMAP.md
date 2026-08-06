@@ -196,8 +196,10 @@ Live data from GitHub, Jira, and Confluence per registered project.
 > tool when credentials are set (Increment 10), and **signature-verified inbound webhook receivers** are
 > built — `POST /api/v1/webhooks/github` (HMAC-SHA256 `X-Hub-Signature-256`, 401 on mismatch, normalizes
 > `pull_request`/`push`/`release`) and `POST /api/v1/webhooks/jira` (optional shared secret), Increment 19.
-> Still pending: the background refresh job, per-project integration config in the DB, and turning a
-> normalized webhook event into an agent run.
+> A **dispatch router** (Increment 20) then maps each normalized event to the phase-agent that should
+> react (`pull_request` → Development / PR review, `release` → CI/CD, Jira Story → Requirements) — it
+> *proposes* only; the harness gate still decides. Still pending: the background refresh job, per-project
+> integration config in the DB, and actually running the dispatched agent.
 
 **Deliverables:**
 - GitHub integration: repository metadata, open PRs, branch list, recent commits, webhook receiver ✅ (webhook receiver + live client built)
