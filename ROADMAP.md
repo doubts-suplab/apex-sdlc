@@ -228,9 +228,12 @@ First AI agents running end-to-end: Requirements Analyst and PR Reviewer.
 > the **NL-intent → multi-tool DevOps flow** (`POST /api/v1/devops/flow`) drives GitHub/Jira/Confluence/
 > Slack/Jenkins under the confidence gate (Increment 9), and **live, config/env-driven adapters** swap in
 > per tool when credentials are set — offline deterministic otherwise (Increment 10). **PII guard** now
-> scrubs/scans all agent LLM I/O (Increment 7). Still pending: an LLM planner (vs the keyword planner),
-> webhook receivers, SSE streaming, and quality-eval of generated output. See
-> [`docs/progress.md`](docs/progress.md).
+> scrubs/scans all agent LLM I/O (Increment 7). **Single-phase run+persist** (Increment 22) now runs one
+> phase agent for a stored project on the harness and persists the run (`AgentRun` + append-only audit +
+> artifacts) via `POST /projects/{id}/phases/{phase}/agents/run-persist`. Webhook **receivers, dispatch
+> routing, and event→project resolution** are built (Increments 19–21). Still pending: an LLM planner (vs
+> the keyword planner), the webhook auto-invoking the run (Celery), SSE streaming, and quality-eval of
+> generated output. See [`docs/progress.md`](docs/progress.md).
 
 **Deliverables:**
 - Agent orchestrator: `AgentContext` + `AgentResult` dataclasses, Celery task wrapper, SSE progress stream endpoint (`/api/v1/agents/{run_id}/stream`)

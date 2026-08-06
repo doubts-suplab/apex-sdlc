@@ -8,6 +8,27 @@ Legend: ✅ done · 🚧 partial · ❌ not started
 
 ---
 
+## Increment 22 — Phase 2/3: run + persist a single dispatched phase-agent 🚧
+
+The event-driven loop now *executes*: a resolved trigger (project + phase) runs that one phase agent on
+the governed harness and stores the run — closing **event → project → run → persisted state**.
+
+- ✅ **`orchestrator.run_single_phase(project, phase, llm)`** runs one phase's agent on a fresh
+  `build_apex_harness` (the same seam as the full journey — confidence gate, tool registry, audit, and
+  safe-failure defaults all still apply). Extracted a shared `_fresh_harness()` so the single-phase and
+  full-journey paths build the harness identically.
+- ✅ **`PersistenceService.persist_phase(project_id, phase)`** stores one `AgentRun` + its append-only
+  `AuditLog` entry (golden rule #10: exactly one per AI action) + any `PiiEvent`s + the phase's artifacts
+  (idempotent version snapshot). A single phase run is incremental — it does **not** re-evaluate the whole
+  spine's gates.
+- ✅ API `POST /api/v1/projects/{id}/phases/{phase}/agents/run-persist` (RBAC-guarded to approver personas,
+  404 on unknown phase/project) builds the agent-facing project dict from the stored `Project` and runs +
+  persists. The in-memory `agents.py` run endpoint stays as the keyless-offline demo path.
+- ✅ 4 tests (service persists one run + one audit entry; API run-persist then read-back; unknown-phase
+  404; non-approver 403), DB-verified via aiosqlite. **166 total green;** `examples/` byte-identical.
+- ❌ **Not yet:** the webhook auto-invoking this (still returns the dispatch plan for a worker to act on),
+  the Celery task wrapper, and a real LLM provider for non-stub artifact bodies.
+
 ## Increment 21 — Phase 2: resolve an inbound event to the owning APEX project 🚧
 
 The event → project → phase-agent chain is now complete: a webhook says *what happened*, the dispatch
@@ -424,7 +445,7 @@ The running shell exists; most of the data model and cross-cutting middleware do
 |---|---|---|
 | **Onboarding via eeik** — resolve packs + scaffold (`CLAUDE.md` + plan), enter the spine | [Phase 0](../ROADMAP.md#phase-0--onboarding-the-eeik-front-door) | 🚧 deterministic bridge built; full repo-tree emission + GitHub repo + DB persistence pending |
 | **Real LLM generation** — model-generated specs from real input | Phase 3–4 | 🚧 path wired via `PhaseAgent.generate()` + prompts; real output needs a configured provider; quality-eval is the follow-on |
-| **Live integrations** — GitHub/Jira/Confluence live data + background refresh | Phase 2 | 🚧 clients + config-driven live adapters (Increment 10) + signature-verified inbound webhooks (Increment 19) + event→phase-agent dispatch router (Increment 20) + event→owning-project resolution (Increment 21) built; background refresh + running the dispatched agent pending |
+| **Live integrations** — GitHub/Jira/Confluence live data + background refresh | Phase 2 | 🚧 clients + config-driven live adapters (Increment 10) + signature-verified inbound webhooks (Increment 19) + event→phase-agent dispatch router (Increment 20) + event→owning-project resolution (Increment 21) + single-phase run+persist (Increment 22) built; background refresh + webhook auto-invocation (Celery) pending |
 | **Agent write-back** — create Jira epics/stories, post GitHub PR reviews, publish Confluence | Phase 3 | 🚧 governed tool-call path built (Increment 9): default-deny registry + offline adapters, gated execution; real credentialed adapters pending |
 | **DevOps tool flow** — NL intent → multi-tool pipeline (GitHub/Jira/Confluence/Slack/Jenkins) under the harness gate | Phase 3 | 🚧 offline flow built + verified (Increment 9); LLM planner + live adapters pending |
 | **Dev repo bootstrap** — scaffold the actual service (eeik `repository-generator`) | Phase 0 / 3 | 🚧 deterministic repo-tree emission built (Increment 18); real GitHub repo creation + LLM generator pending |

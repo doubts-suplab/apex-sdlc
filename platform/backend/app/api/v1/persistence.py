@@ -11,10 +11,12 @@ from typing import Annotated, Any
 
 from fastapi import APIRouter, Depends, HTTPException, Query
 
-from app.agents.orchestrator import run_reference_journey
+from app.agents.catalog import PHASE_ORDER
+from app.agents.orchestrator import run_reference_journey, run_single_phase
 from app.core.security import Principal, require_persona
 from app.db.session import DbSession
 from app.integrations.llm.factory import get_llm_provider
+from app.models.project import Project
 from app.services.persistence_service import PersistenceService
 from app.services.project_service import ProjectService
 
@@ -34,8 +36,9 @@ def _svc(db: DbSession) -> PersistenceService:
 Svc = Annotated[PersistenceService, Depends(_svc)]
 
 
-async def _require_project(db: DbSession, project_id: uuid.UUID) -> None:
-    if await ProjectService(db).get_by_id(project_id) is None:
+async def _load_project(db: DbSession, project_id: uuid.UUID) -> Project:
+    project = await ProjectService(db).get_by_id(project_id)
+    if project is None:
         raise HTTPException(
             status_code=404,
             detail={
@@ -45,6 +48,23 @@ async def _require_project(db: DbSession, project_id: uuid.UUID) -> None:
                 "detail": f"No project with id={project_id} exists.",
             },
         )
+    return project
+
+
+async def _require_project(db: DbSession, project_id: uuid.UUID) -> None:
+    await _load_project(db, project_id)
+
+
+def _project_dict(project: Project, inputs: dict[str, Any] | None = None) -> dict[str, Any]:
+    """Build the agent-facing project dict from the stored project, enriched with per-run inputs."""
+    base: dict[str, Any] = {
+        "name": project.name,
+        "slug": project.slug,
+        "description": project.description or "",
+        "github_repo": project.github_repo or "",
+    }
+    base.update(inputs or {})
+    return base
 
 
 @router.post("/{project_id}/journey/persist", summary="Run + persist the reference journey for a project")
@@ -59,6 +79,33 @@ async def persist_journey(
     approvals = {p.strip() for p in approved.split(",")} if approved else set()
     journey = run_reference_journey(get_llm_provider())
     return await svc.persist_journey(project_id, journey, approvals)
+
+
+@router.post(
+    "/{project_id}/phases/{phase}/agents/run-persist",
+    summary="Run one phase agent for a project and persist the run",
+)
+async def run_and_persist_phase(
+    project_id: uuid.UUID,
+    phase: str,
+    db: DbSession,
+    svc: Svc,
+    principal: Annotated[Principal, Depends(require_persona(*_APPROVER_PERSONAS))],
+) -> dict[str, Any]:
+    """Execution + persistence primitive behind an event-driven trigger (webhook → phase run)."""
+    if phase not in PHASE_ORDER:
+        raise HTTPException(
+            status_code=404,
+            detail={
+                "type": "https://apex.example.com/problems/unknown-phase",
+                "title": "Unknown Phase",
+                "status": 404,
+                "detail": f"Phase {phase!r} is not one of {list(PHASE_ORDER)}.",
+            },
+        )
+    project = await _load_project(db, project_id)
+    jp = run_single_phase(_project_dict(project), phase, get_llm_provider())
+    return await svc.persist_phase(project_id, jp)
 
 
 @router.get("/{project_id}/artifacts", summary="Stored artifacts for a project")

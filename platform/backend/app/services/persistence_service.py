@@ -15,7 +15,7 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.agents.catalog import PHASE_CATALOG
-from app.agents.orchestrator import JourneyResult
+from app.agents.orchestrator import JourneyPhase, JourneyResult
 from app.agents.pricing import cost_usd
 from app.core.logging import get_logger
 from app.gates.engine import evaluate_journey
@@ -153,6 +153,90 @@ class PersistenceService:
             "phases": len(journey.phases),
             "blocking_phase": gate_eval["blocking_phase"],
             "all_passed": gate_eval["all_passed"],
+        }
+
+    async def persist_phase(self, project_id: uuid.UUID, jp: JourneyPhase) -> dict[str, Any]:
+        """Persist one phase's agent run, its audit entry, PII events, and artifacts.
+
+        The write side of an event-driven trigger (a resolved webhook → one phase run). Unlike
+        ``persist_journey`` this does not re-evaluate the whole spine's gates: a single phase run is
+        an incremental action, not a full lifecycle pass. Golden rule #10 still holds — exactly one
+        append-only audit entry per AI action.
+        """
+        self._db.add(
+            AgentRun(
+                project_id=project_id,
+                phase=jp.phase,
+                agent_name=jp.agent_name,
+                action=jp.action,
+                confidence=jp.confidence,
+                auto_enforced=jp.auto_enforced,
+                outcome=jp.outcome,
+                rationale=jp.rationale,
+                status="completed",
+                input_tokens=jp.input_tokens,
+                output_tokens=jp.output_tokens,
+                cost_usd=jp.cost_usd,
+                duration_ms=jp.duration_ms,
+                model=jp.model,
+                provider=jp.provider,
+            )
+        )
+        self._db.add(
+            AuditLog(
+                project_id=project_id,
+                actor=jp.persona,
+                phase=jp.phase,
+                agent_name=jp.agent_name,
+                action=jp.action,
+                model=jp.model,
+                input_tokens=jp.input_tokens,
+                output_tokens=jp.output_tokens,
+                cost_usd=jp.cost_usd,
+                auto_enforced=jp.auto_enforced,
+                summary=f"{len(jp.artifacts)} artifact(s); {jp.rationale}"[:2000],
+            )
+        )
+        n_pii = 0
+        for finding in jp.pii_findings:
+            self._db.add(
+                PiiEvent(
+                    project_id=project_id,
+                    phase=jp.phase,
+                    label=str(finding.get("label", "UNKNOWN")),
+                    direction=str(finding.get("direction", "outgoing")),
+                    action=str(finding.get("action", "redacted")),
+                    occurrences=int(finding.get("occurrences", 1)),
+                    confidence=float(finding.get("confidence", 1.0)),
+                )
+            )
+            n_pii += 1
+
+        n_versions = 0
+        for art in jp.artifacts:
+            if await self._upsert_artifact(project_id, jp.phase, art):
+                n_versions += 1
+
+        await self._db.flush()
+        logger.info(
+            "phase.persisted",
+            project_id=str(project_id),
+            phase=jp.phase,
+            agent=jp.agent_name,
+            outcome=jp.outcome,
+            artifacts=len(jp.artifacts),
+        )
+        return {
+            "project_id": str(project_id),
+            "phase": jp.phase,
+            "agent": jp.agent_name,
+            "action": jp.action,
+            "confidence": jp.confidence,
+            "auto_enforced": jp.auto_enforced,
+            "outcome": jp.outcome,
+            "artifacts": len(jp.artifacts),
+            "new_versions": n_versions,
+            "pii_events": n_pii,
         }
 
     async def _upsert_artifact(self, project_id: uuid.UUID, phase: str, art: dict[str, Any]) -> bool:
