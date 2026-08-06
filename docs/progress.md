@@ -8,6 +8,30 @@ Legend: ✅ done · 🚧 partial · ❌ not started
 
 ---
 
+## Increment 24 — Phase 6: repo consolidation (legacy layer folded in) ✅
+
+The repo grew from a framework-of-files (Lambda automation, a static portal, a root PII guard) into the
+`platform/` app, leaving both eras side by side at the root. This retires the superseded layer so the
+root has one clear structure — the [Phase 6](../ROADMAP.md#phase-6--repo-consolidation--hardening-weeks-1718)
+exit gate.
+
+- ✅ **Deleted `automation/`** (`jira-bridge`, `confluence-writer`): the webhook logic is ported to
+  `integrations/{github,jira}/webhooks.py` (Increment 19) and the clients already lived under
+  `integrations/`, so the Lambda-era directory is gone.
+- ✅ **Deleted the root `governance/pii-guard/`**: absorbed into `middleware/pii_guard/` (Increment 7);
+  its last consumer (`automation/jira-bridge`) is now removed, so the duplicate is retired.
+- ✅ **Deleted `scripts/fetch_portal_data.py` + `portal-data-refresh.yml`**: the superseded static-portal
+  refresh (Phase 2's background-refresh job replaces the approach). `scripts/` is gone.
+- ✅ **Relocated `portal-prototype/` → `docs/legacy/portal-prototype/`** (retained as a reference, off the
+  root).
+- ✅ **Labelled the in-limbo reference libraries:** `claude-templates/README.md` + `prompts/README.md`
+  document that both are human-authored reference content (not runtime-loaded — `agents/prompts.py` and
+  the onboarding scaffolder are the runtime sources) and stay at the root.
+- ✅ Provenance comments + docs updated (backend/platform `CLAUDE.md`, `APEX-Framework.md`, ROADMAP File
+  Inventory). No runtime imports touched these dirs, so **166 backend tests stay green;** `examples/`
+  byte-identical. Root now holds only `platform/ docs/ examples/ prompts/ claude-templates/
+  governance/policies/` + standard repo files.
+
 ## Increment 23 — Frontend catches up: phase-run trigger + governance view 🚧
 
 The portal now *drives* the newer backend, not just reads a couple of metrics endpoints. The project
@@ -343,10 +367,9 @@ The backend golden rule "PII guard on all agent I/O" is now **enforced in code**
   incoming content. **84 total green.** `examples/` byte-identical (the offline stub carries no PII).
 - ✅ **`pii_events` now persisted** (Increment 14): the guard's findings are captured on the agent and
   stored as `PiiEvent` rows during `persist_journey`, surfaced via the CISO governance API.
-- ❌ **Not yet:** the Comprehend NLP layer (names/addresses), and the **physical** retirement of the root
-  `governance/pii-guard/` copy + `automation/jira-bridge` — that path move is the dedicated
-  [Phase 6 consolidation](../ROADMAP.md#phase-6--repo-consolidation--hardening-weeks-1718) increment
-  (moving it now would churn imports mid-stream).
+- ✅ **Root copy retired** (Increment 24): `governance/pii-guard/` + `automation/jira-bridge` are now
+  deleted; the platform middleware is the single home. ❌ **Not yet:** the Comprehend NLP layer
+  (names/addresses).
 
 ## Increment 6 — DB persistence (ROADMAP Phase 4) 🚧
 

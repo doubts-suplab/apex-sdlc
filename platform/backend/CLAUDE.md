@@ -50,12 +50,12 @@ backend/
         repos.py              File read/write via GitHub contents API (CLAUDE.md writes)
         webhooks.py           pull_request + push event dispatch
       jira/
-        client.py             Jira Agile REST v1 + REST API v3 wrapper (absorbs automation/jira-bridge/)
+        client.py             Jira Agile REST v1 + REST API v3 wrapper (canonical home — the retired automation/jira-bridge/ was absorbed here)
         sprints.py            Active sprint, sprint issues by board
         stories.py            Create epic, create story, update status, add remote link
         webhooks.py           Jira webhook receiver
       confluence/
-        client.py             Confluence REST API v2 client (absorbs automation/confluence-writer/)
+        client.py             Confluence REST API v2 client (canonical home — the retired automation/confluence-writer/ was absorbed here)
         pages.py              Create page, update page with version bump, get space pages
       anthropic/
         client.py             AsyncAnthropic wrapper — streaming, retry, token accounting
@@ -63,8 +63,8 @@ backend/
         prompt_loader.py      Loads system prompts from /prompts/{phase}/system.md
     middleware/
       pii_guard/
-        guard.py              FastAPI middleware; scans all agent I/O (absorbs governance/pii-guard/guard.py)
-        patterns.py           PII regex patterns (absorbs governance/pii-guard/patterns.py)
+        guard.py              FastAPI middleware; scans all agent I/O (the retired governance/pii-guard/guard.py was absorbed here)
+        patterns.py           PII regex patterns (the retired governance/pii-guard/patterns.py was absorbed here)
       audit.py                Writes audit_log entry for every agent invocation
       auth.py                 JWT RS256 Bearer token validation (Phase 5)
       correlation.py          Injects X-Correlation-ID on every request; binds to structlog context
