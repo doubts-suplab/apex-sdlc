@@ -27,6 +27,10 @@ def _approver_auth() -> dict[str, str]:
     return {"Authorization": f"Bearer {token}"}
 
 
+def _auth(persona: str) -> dict[str, str]:
+    return {"Authorization": f"Bearer {create_access_token(subject=f'{persona}-user', persona=persona)}"}
+
+
 async def _make_project(db: AsyncSession) -> Project:
     org = Organisation(name=f"Org {uuid.uuid4().hex[:8]}", slug=f"org-{uuid.uuid4().hex[:8]}")
     db.add(org)
@@ -158,6 +162,49 @@ async def test_cost_latency_via_api(client: AsyncClient, db_session: AsyncSessio
     body = resp.json()
     assert body["totals"]["runs"] == 7
     assert any(p["persona"] == "ciso" for p in body["personas"])
+
+
+# -- governance persistence ---------------------------------------------------------------------
+async def test_persist_writes_governance_rows(db_session: AsyncSession):
+    project = await _make_project(db_session)
+    svc = PersistenceService(db_session)
+    summary = await svc.persist_journey(project.id, run_reference_journey(StubLLMProvider()))
+
+    assert summary["audit_entries"] == 7  # one append-only audit row per agent run
+    assert summary["policy_violations"] == 1  # the governance phase ALERTs
+
+    audit = await svc.list_audit_log(project.id)
+    assert len(audit) == 7
+    assert {a.phase for a in audit} == {
+        "requirements", "architecture", "development", "testing", "cicd", "docs", "governance"
+    }
+    violations = await svc.list_policy_violations(project.id)
+    assert violations[0].policy == "ai-governance-review" and violations[0].phase == "governance"
+    # PII events are captured deterministically from the reference journey's agent I/O.
+    assert summary["pii_events"] == len(await svc.list_pii_events(project.id))
+
+
+async def test_governance_api_is_ciso_gated(client: AsyncClient, db_session: AsyncSession):
+    project = await _make_project(db_session)
+    pid = str(project.id)
+    await client.post(f"/api/v1/projects/{pid}/journey/persist", headers=_approver_auth())
+
+    # Anonymous → 401; a non-privileged persona → 403.
+    assert (await client.get(f"/api/v1/projects/{pid}/governance/audit-log")).status_code == 401
+    forbidden = await client.get(
+        f"/api/v1/projects/{pid}/governance/audit-log", headers=_auth("developer")
+    )
+    assert forbidden.status_code == 403
+
+    # CISO can read all three governance views.
+    audit = await client.get(f"/api/v1/projects/{pid}/governance/audit-log", headers=_auth("ciso"))
+    assert audit.status_code == 200 and audit.json()["total"] == 7
+    viol = await client.get(
+        f"/api/v1/projects/{pid}/governance/policy-violations", headers=_auth("ciso")
+    )
+    assert viol.status_code == 200 and viol.json()["total"] == 1
+    pii = await client.get(f"/api/v1/projects/{pid}/governance/pii-events", headers=_auth("ciso"))
+    assert pii.status_code == 200
 
 
 async def test_persist_unknown_project_404(client: AsyncClient):

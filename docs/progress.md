@@ -8,6 +8,28 @@ Legend: ✅ done · 🚧 partial · ❌ not started
 
 ---
 
+## Increment 14 — Governance persistence: audit_log · pii_events · policy_violations ✅
+
+Completes a long-standing gap from Increments 1, 7, and 8: the governance tables now exist and are
+**populated when a journey is persisted**, with a CISO-gated read API.
+
+- ✅ **Models (`app/models/audit.py`):** `AuditLog` (append-only, one per AI action — golden rule #10),
+  `PiiEvent` (a PII-guard detection: label · direction · action · occurrences), and `PolicyViolation`
+  (severity + remediation status). Registered for Alembic discovery; portable JSON columns.
+- ✅ **Populated in `persist_journey`:** every phase run writes an `AuditLog` (actor=persona, model,
+  tokens, cost, after-summary); the agent now **accumulates PII findings** (`PhaseAgent._record_pii` →
+  `AgentResult.pii_findings` → `JourneyPhase`, excluded from `journey.json` so `examples/` stay
+  byte-identical) which persist as `PiiEvent` rows; a governance-phase ALERT/BLOCK or a failing gate
+  becomes a `PolicyViolation`.
+- ✅ **CISO/Lead read API:** `GET /projects/{id}/governance/{audit-log,pii-events,policy-violations}` —
+  `require_persona("ciso","lead")` (anonymous → 401, other persona → 403). The persist summary now
+  reports `audit_entries` / `pii_events` / `policy_violations`.
+- ✅ Tests: the reference journey persists **7 audit rows**, **1 policy violation** (governance ALERT),
+  and deterministic PII events; the governance API's 401/403/200 RBAC matrix. **126 total green;**
+  `examples/` byte-identical.
+- ❌ **Not yet:** append-only enforcement at the DB level (a trigger/permission blocking UPDATE/DELETE on
+  `audit_log`), the AWS-Comprehend PII layer, and an ARB approval workflow.
+
 ## Increment 13 — Project cost dashboard wired to DB + frontend persona-login 🚧
 
 The cost dashboard now works on a **persisted project's stored runs**, driven by a frontend auth flow.
@@ -157,8 +179,9 @@ The backend golden rule "PII guard on all agent I/O" is now **enforced in code**
 - ✅ 7 tests (`tests/middleware/test_pii_guard.py`): detect/redact email·SSN·card, clean-text passthrough,
   disabled passthrough, and a capturing-LLM test proving `complete()` scrubs outgoing PII and preserves
   incoming content. **84 total green.** `examples/` byte-identical (the offline stub carries no PII).
-- ❌ **Not yet:** persisting `pii_events` rows (the model/table is still pending — findings are logged, not
-  stored), the Comprehend NLP layer (names/addresses), and the **physical** retirement of the root
+- ✅ **`pii_events` now persisted** (Increment 14): the guard's findings are captured on the agent and
+  stored as `PiiEvent` rows during `persist_journey`, surfaced via the CISO governance API.
+- ❌ **Not yet:** the Comprehend NLP layer (names/addresses), and the **physical** retirement of the root
   `governance/pii-guard/` copy + `automation/jira-bridge` — that path move is the dedicated
   [Phase 6 consolidation](../ROADMAP.md#phase-6--repo-consolidation--hardening-weeks-1718) increment
   (moving it now would churn imports mid-stream).
@@ -260,8 +283,9 @@ The running shell exists; most of the data model and cross-cutting middleware do
 - ✅ FastAPI app, correlation-ID middleware, health, structlog; org/project/integration registry API.
 - ✅ Multi-provider LLM layer (`anthropic`, `ollama`, `groq`, `huggingface`, `stub`).
 - ✅ Frontend shell: org home (project grid), project detail (SDLC timeline), integrations pages.
-- 🚧 ORM models cover `organisation`, `project`, `integration`, `phase`, **`artifact`, `agent_run`** —
-  still **missing** `team`, `member`, `artifact_version`, `audit_log`, `pii_event`, `policy_violation`.
+- 🚧 ORM models cover `organisation`, `project`, `integration`, `phase`, `artifact`, `artifact_version`,
+  `agent_run`, and now **`audit_log`, `pii_event`, `policy_violation`** (Increment 14) — still **missing**
+  `team`, `member`.
 - ❌ No Alembic migrations yet (`versions/` empty; schema via `metadata.create_all`). 🚧 PII-guard
   middleware now scrubs/scans agent LLM I/O (Increment 7); 🚧 JWT + persona RBAC guards the persist write
   (Increment 8); ❌ audit middleware (only correlation) and global auth enforcement remain.
@@ -287,7 +311,7 @@ The running shell exists; most of the data model and cross-cutting middleware do
 | **Artifact persistence** — artifacts + agent runs + gates in DB, with version lineage | Phase 4 | 🚧 DB persistence + version lineage built (SQLite-verified); S3 + Alembic baseline pending |
 | **Phase-gate engine** — enforce the spec-driven spine's phase transitions | Phase 5 | 🚧 pure engine + API + UI built offline; DB persistence + approval store pending |
 | **PII guard on agent I/O** — regex scrub outgoing / scan+log incoming on every LLM call | Phase 5 | 🚧 middleware built + wired (Increment 7); `pii_events` persistence + Comprehend NLP layer pending |
-| **Governance persistence** — audit_log, pii_events, policy_violations tables + CISO view + ARB | Phase 5 | ❌ |
+| **Governance persistence** — audit_log, pii_events, policy_violations tables + CISO view + ARB | Phase 5 | 🚧 tables + population during persist + CISO-gated read API built (Increment 14); append-only DB enforcement + ARB workflow pending |
 | **Auth & RBAC** — JWT, persona-scoped access | Phase 5 | 🚧 HS256 JWT + `require_persona` built (Increment 8), guarding the journey-persist write; global middleware + credential store + refresh pending |
 | **AWS deploy** — CDK (ECS Fargate, RDS Aurora, ElastiCache, S3) | Phase 5 | ❌ |
 
