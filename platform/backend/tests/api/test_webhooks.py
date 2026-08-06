@@ -10,12 +10,16 @@ from __future__ import annotations
 import hashlib
 import hmac
 import json
+import uuid
 
 import pytest
 from httpx import AsyncClient
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.integrations.github import webhooks as gh
 from app.integrations.jira import webhooks as jira
+from app.models.organisation import Organisation
+from app.models.project import Project
 
 _SECRET = "whsec_test_1234567890"
 
@@ -187,3 +191,92 @@ async def test_jira_webhook_rejects_secret_mismatch(
     )
     assert resp.status_code == 401
     assert resp.json()["detail"]["title"] == "Invalid Secret"
+
+
+# --------------------------------------------------------------------------- project resolution
+
+
+async def _seed_project(db: AsyncSession, repo: str) -> Project:
+    org = Organisation(name=f"Org {uuid.uuid4().hex[:8]}", slug=f"org-{uuid.uuid4().hex[:8]}")
+    db.add(org)
+    await db.flush()
+    project = Project(
+        organisation_id=org.id, name="Widgets", slug="widgets", github_repo=repo
+    )
+    db.add(project)
+    await db.flush()
+    return project
+
+
+@pytest.mark.asyncio
+async def test_github_webhook_resolves_owning_project(
+    client: AsyncClient, db_session: AsyncSession, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    monkeypatch.setenv("GITHUB_WEBHOOK_SECRET", _SECRET)
+    project = await _seed_project(db_session, "acme/widgets")
+    payload = {
+        "action": "opened",
+        "repository": {"full_name": "acme/widgets"},
+        "pull_request": {"number": 5, "title": "Fix", "state": "open"},
+    }
+    body = json.dumps(payload).encode("utf-8")
+    resp = await client.post(
+        "/api/v1/webhooks/github",
+        content=body,
+        headers={
+            "X-GitHub-Event": "pull_request",
+            "X-Hub-Signature-256": _sign(_SECRET, body),
+        },
+    )
+    assert resp.status_code == 200
+    ref = resp.json()["project"]
+    assert ref is not None
+    assert ref["id"] == str(project.id)
+    assert ref["slug"] == "widgets"
+
+
+@pytest.mark.asyncio
+async def test_github_webhook_resolves_project_case_insensitively(
+    client: AsyncClient, db_session: AsyncSession, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    monkeypatch.setenv("GITHUB_WEBHOOK_SECRET", _SECRET)
+    await _seed_project(db_session, "Acme/Widgets")
+    payload = {
+        "action": "published",
+        "repository": {"full_name": "acme/widgets"},
+        "release": {"tag_name": "v2.0.0"},
+    }
+    body = json.dumps(payload).encode("utf-8")
+    resp = await client.post(
+        "/api/v1/webhooks/github",
+        content=body,
+        headers={
+            "X-GitHub-Event": "release",
+            "X-Hub-Signature-256": _sign(_SECRET, body),
+        },
+    )
+    assert resp.status_code == 200
+    assert resp.json()["project"]["slug"] == "widgets"
+
+
+@pytest.mark.asyncio
+async def test_github_webhook_unknown_repo_resolves_to_null_project(
+    client: AsyncClient, db_session: AsyncSession, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    monkeypatch.setenv("GITHUB_WEBHOOK_SECRET", _SECRET)
+    payload = {
+        "action": "opened",
+        "repository": {"full_name": "nobody/unknown"},
+        "pull_request": {"number": 1, "title": "x", "state": "open"},
+    }
+    body = json.dumps(payload).encode("utf-8")
+    resp = await client.post(
+        "/api/v1/webhooks/github",
+        content=body,
+        headers={
+            "X-GitHub-Event": "pull_request",
+            "X-Hub-Signature-256": _sign(_SECRET, body),
+        },
+    )
+    assert resp.status_code == 200
+    assert resp.json()["project"] is None

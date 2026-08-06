@@ -198,8 +198,10 @@ Live data from GitHub, Jira, and Confluence per registered project.
 > `pull_request`/`push`/`release`) and `POST /api/v1/webhooks/jira` (optional shared secret), Increment 19.
 > A **dispatch router** (Increment 20) then maps each normalized event to the phase-agent that should
 > react (`pull_request` → Development / PR review, `release` → CI/CD, Jira Story → Requirements) — it
-> *proposes* only; the harness gate still decides. Still pending: the background refresh job, per-project
-> integration config in the DB, and actually running the dispatched agent.
+> *proposes* only; the harness gate still decides. The receiver then **resolves the owning APEX project**
+> from the event's repo (`ProjectService.get_by_github_repo`, Increment 21), completing the
+> event → project → phase-agent chain. Still pending: the background refresh job and actually running the
+> dispatched agent for the resolved project.
 
 **Deliverables:**
 - GitHub integration: repository metadata, open PRs, branch list, recent commits, webhook receiver ✅ (webhook receiver + live client built)

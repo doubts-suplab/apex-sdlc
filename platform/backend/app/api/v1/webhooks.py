@@ -10,13 +10,16 @@ from __future__ import annotations
 import json
 from typing import Annotated, Any
 
-from fastapi import APIRouter, Header, HTTPException, Query, Request
+from fastapi import APIRouter, Depends, Header, HTTPException, Query, Request
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.config import get_settings
 from app.core.logging import get_logger
+from app.db.session import get_db
 from app.integrations import dispatch
 from app.integrations.github import webhooks as gh
 from app.integrations.jira import webhooks as jira
+from app.services.project_service import ProjectService
 
 router = APIRouter(prefix="/webhooks", tags=["webhooks"])
 logger = get_logger(__name__)
@@ -30,11 +33,19 @@ def _bad(status: int, title: str, detail: str) -> HTTPException:
     )
 
 
+def _project_ref(project: Any) -> dict[str, str] | None:
+    """Compact reference to the resolved APEX project, or None when the event matches no project."""
+    if project is None:
+        return None
+    return {"id": str(project.id), "slug": project.slug, "name": project.name}
+
+
 @router.post("/github", summary="GitHub webhook receiver (HMAC-SHA256 verified)")
 async def github_webhook(
     request: Request,
     x_github_event: Annotated[str | None, Header()] = None,
     x_hub_signature_256: Annotated[str | None, Header()] = None,
+    db: AsyncSession = Depends(get_db),
 ) -> dict[str, Any]:
     body = await request.body()
     if not gh.verify_signature(get_settings().GITHUB_WEBHOOK_SECRET, body, x_hub_signature_256):
@@ -45,13 +56,20 @@ async def github_webhook(
         raise _bad(400, "Bad Payload", "Webhook body is not valid JSON.") from exc
     event = gh.parse_event(x_github_event or "unknown", payload)
     plan = dispatch.dispatch_for_github(event)
+    project = await ProjectService(db).get_by_github_repo(event.get("repo", ""))
     logger.info(
         "webhook.github",
         gh_event=event["event"],
         repo=event.get("repo"),
         dispatch=plan.phase if plan else None,
+        project_id=str(project.id) if project else None,
     )
-    return {"received": True, "event": event, "dispatch": plan.to_dict() if plan else None}
+    return {
+        "received": True,
+        "event": event,
+        "dispatch": plan.to_dict() if plan else None,
+        "project": _project_ref(project),
+    }
 
 
 @router.post("/jira", summary="Jira webhook receiver (optional shared-secret)")
@@ -69,4 +87,11 @@ async def jira_webhook(
         issue=event.get("issue_key"),
         dispatch=plan.phase if plan else None,
     )
-    return {"received": True, "event": event, "dispatch": plan.to_dict() if plan else None}
+    # Jira → project resolution is not yet built (no jira-project-key column on Project); the shape
+    # stays consistent with the GitHub receiver so a consumer can treat both uniformly.
+    return {
+        "received": True,
+        "event": event,
+        "dispatch": plan.to_dict() if plan else None,
+        "project": None,
+    }

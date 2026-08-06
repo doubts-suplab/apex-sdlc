@@ -8,6 +8,22 @@ Legend: ✅ done · 🚧 partial · ❌ not started
 
 ---
 
+## Increment 21 — Phase 2: resolve an inbound event to the owning APEX project 🚧
+
+The event → project → phase-agent chain is now complete: a webhook says *what happened*, the dispatch
+router says *which phase reacts*, and this resolves *which registered project it concerns*.
+
+- ✅ **`ProjectService.get_by_github_repo(repo)`** looks the project up by its `github_repo` column
+  (case-insensitive — GitHub slugs are; empty repo → `None`, never a spurious match).
+- ✅ The GitHub receiver now takes a DB session and returns a compact `project` reference
+  (`{id, slug, name}`) alongside `event` + `dispatch`, or `null` when the repo matches no project. The
+  Jira receiver returns the same key (currently always `null` — a jira-project-key column is still
+  pending), so a consumer treats both uniformly.
+- ✅ 3 DB-backed tests (seeded project resolved, case-insensitive match, unknown repo → `null`), verified
+  offline via aiosqlite. **162 total green;** `examples/` byte-identical.
+- ❌ **Not yet:** Jira project resolution (needs a jira-project-key column), and actually enqueuing the
+  dispatched agent run for the resolved project.
+
 ## Increment 20 — Phase 2: webhook → phase-agent dispatch router 🚧
 
 The inbound event now routes to the SDLC phase whose agent should react — the seam a background worker
@@ -408,7 +424,7 @@ The running shell exists; most of the data model and cross-cutting middleware do
 |---|---|---|
 | **Onboarding via eeik** — resolve packs + scaffold (`CLAUDE.md` + plan), enter the spine | [Phase 0](../ROADMAP.md#phase-0--onboarding-the-eeik-front-door) | 🚧 deterministic bridge built; full repo-tree emission + GitHub repo + DB persistence pending |
 | **Real LLM generation** — model-generated specs from real input | Phase 3–4 | 🚧 path wired via `PhaseAgent.generate()` + prompts; real output needs a configured provider; quality-eval is the follow-on |
-| **Live integrations** — GitHub/Jira/Confluence live data + background refresh | Phase 2 | 🚧 clients + config-driven live adapters (Increment 10) + signature-verified inbound webhooks (Increment 19) + event→phase-agent dispatch router (Increment 20) built; background refresh + running the dispatched agent pending |
+| **Live integrations** — GitHub/Jira/Confluence live data + background refresh | Phase 2 | 🚧 clients + config-driven live adapters (Increment 10) + signature-verified inbound webhooks (Increment 19) + event→phase-agent dispatch router (Increment 20) + event→owning-project resolution (Increment 21) built; background refresh + running the dispatched agent pending |
 | **Agent write-back** — create Jira epics/stories, post GitHub PR reviews, publish Confluence | Phase 3 | 🚧 governed tool-call path built (Increment 9): default-deny registry + offline adapters, gated execution; real credentialed adapters pending |
 | **DevOps tool flow** — NL intent → multi-tool pipeline (GitHub/Jira/Confluence/Slack/Jenkins) under the harness gate | Phase 3 | 🚧 offline flow built + verified (Increment 9); LLM planner + live adapters pending |
 | **Dev repo bootstrap** — scaffold the actual service (eeik `repository-generator`) | Phase 0 / 3 | 🚧 deterministic repo-tree emission built (Increment 18); real GitHub repo creation + LLM generator pending |

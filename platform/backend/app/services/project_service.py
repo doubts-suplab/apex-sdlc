@@ -50,6 +50,20 @@ class ProjectService:
         )
         return result.scalar_one_or_none()
 
+    async def get_by_github_repo(self, repo: str) -> Project | None:
+        """Return the project registered for a GitHub ``owner/name`` repo, or None.
+
+        The seam that resolves an inbound webhook to the APEX project it concerns. Case-insensitive
+        (GitHub repo slugs are case-insensitive); returns None on an empty repo rather than matching
+        the many projects with no repo configured.
+        """
+        if not repo:
+            return None
+        result = await self._db.execute(
+            select(Project).where(func.lower(Project.github_repo) == repo.lower())
+        )
+        return result.scalars().first()
+
     async def list_paginated(
         self,
         limit: int = 20,
