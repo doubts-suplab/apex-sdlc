@@ -7,6 +7,8 @@ import { useProject } from "@/lib/queries/projects";
 import { SDLCTimeline } from "@/components/projects/SDLCTimeline";
 import { LiveMetricsBar } from "@/components/projects/LiveMetricsBar";
 import { ProjectCostDashboard } from "@/components/projects/ProjectCostDashboard";
+import { PhaseRunnerPanel } from "@/components/projects/PhaseRunnerPanel";
+import { GovernancePanel } from "@/components/projects/GovernancePanel";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -205,25 +207,26 @@ export default function ProjectDetailPage() {
         </div>
       </div>
 
-      {/* Phase agent runs & the governed journey */}
-      <div className="rounded-lg border bg-white p-6 shadow-sm">
-        <div className="flex flex-wrap items-center justify-between gap-3">
-          <div className="flex items-center gap-2 text-slate-700">
-            <Route className="h-4 w-4" />
-            <span className="text-sm font-semibold">Phase agent runs & artifacts</span>
-          </div>
-          <Link href="/journey">
-            <Button variant="outline" size="sm" className="gap-1.5">
-              <Route className="h-4 w-4" />
-              View reference journey
-            </Button>
-          </Link>
+      {/* Phase agents: per-phase run trigger + stored governed state (runs, gates, artifacts) */}
+      <PhaseRunnerPanel projectId={projectId} />
+
+      {/* CISO/Lead governance view: audit log, PII events, policy violations */}
+      <GovernancePanel projectId={projectId} />
+
+      {/* Reference journey link */}
+      <div className="flex flex-wrap items-center justify-between gap-3 rounded-lg border bg-slate-50 px-6 py-4">
+        <div className="flex items-center gap-2 text-slate-600">
+          <Route className="h-4 w-4" />
+          <span className="text-xs">
+            Want the full worked example? See a project walking all seven phases end-to-end.
+          </span>
         </div>
-        <p className="mt-2 text-xs text-slate-500">
-          Each SDLC phase is run by an AI agent on the governed agent-harness — the confidence gate
-          decides what auto-enforces and what routes to a human. See the worked reference journey for a
-          project walking all seven phases and producing real artifacts.
-        </p>
+        <Link href="/journey">
+          <Button variant="outline" size="sm" className="gap-1.5 bg-white">
+            <Route className="h-4 w-4" />
+            View reference journey
+          </Button>
+        </Link>
       </div>
     </div>
   );

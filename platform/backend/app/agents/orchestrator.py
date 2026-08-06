@@ -22,7 +22,7 @@ from agent_harness.adapters import (
 from agent_harness.core.harness import BYPASS_COUNTER
 from agent_harness.ports.llm import LlmPort
 
-from .catalog import PHASE_CATALOG, PhaseSpec
+from .catalog import PHASE_CATALOG, PhaseSpec, spec_for
 from .context import AgentContext
 from .pricing import cost_usd
 from .runtime import build_apex_harness, run_agent
@@ -101,8 +101,10 @@ REFERENCE_PROJECT: dict[str, Any] = {
 }
 
 
-def run_journey(project: dict[str, Any], llm: LlmPort, *, registry: ToolRegistry | None = None) -> JourneyResult:
-    """Run ``project`` through every phase in ``PHASE_CATALOG`` on one harness; collect the outcomes."""
+def _fresh_harness(
+    registry: ToolRegistry | None = None,
+) -> tuple[Any, InMemoryAudit, InMemoryObservability]:
+    """Build a governed harness with in-memory adapters; return it with the audit + obs sinks."""
     audit, review, obs, kill = (
         InMemoryAudit(),
         InMemoryHumanReview(),
@@ -116,6 +118,29 @@ def run_journey(project: dict[str, Any], llm: LlmPort, *, registry: ToolRegistry
         observability=obs,
         kill_switch=kill,
     )
+    return harness, audit, obs
+
+
+def run_single_phase(
+    project: dict[str, Any],
+    phase: str,
+    llm: LlmPort,
+    *,
+    registry: ToolRegistry | None = None,
+) -> JourneyPhase:
+    """Run one phase's agent for ``project`` on a fresh governed harness; return its outcome.
+
+    The execution primitive behind an event-driven trigger (a webhook dispatch that resolved to a
+    project + phase). Same ``build_apex_harness`` / ``run_agent`` seam as the full journey — the
+    harness still owns the confidence gate, tool registry, audit, and safe-failure defaults.
+    """
+    harness, _audit, _obs = _fresh_harness(registry)
+    return _run_phase(harness, spec_for(phase), project, llm)
+
+
+def run_journey(project: dict[str, Any], llm: LlmPort, *, registry: ToolRegistry | None = None) -> JourneyResult:
+    """Run ``project`` through every phase in ``PHASE_CATALOG`` on one harness; collect the outcomes."""
+    harness, audit, obs = _fresh_harness(registry)
 
     phases: list[JourneyPhase] = []
     for spec in PHASE_CATALOG:

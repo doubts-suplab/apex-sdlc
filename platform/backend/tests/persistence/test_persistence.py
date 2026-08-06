@@ -11,7 +11,7 @@ import pytest
 from httpx import AsyncClient
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.agents.orchestrator import run_reference_journey
+from app.agents.orchestrator import run_reference_journey, run_single_phase
 from app.core.security import create_access_token
 from app.integrations.llm.stub_provider import StubLLMProvider
 from app.models.organisation import Organisation
@@ -39,6 +39,62 @@ async def _make_project(db: AsyncSession) -> Project:
     db.add(project)
     await db.flush()
     return project
+
+
+# -- single-phase run + persist ------------------------------------------------------------------
+async def test_run_single_phase_persists_one_run_and_artifacts(db_session: AsyncSession):
+    project = await _make_project(db_session)
+    jp = run_single_phase(
+        {"name": "Refund Service", "slug": "refund-service"}, "development", StubLLMProvider()
+    )
+    svc = PersistenceService(db_session)
+
+    summary = await svc.persist_phase(project.id, jp)
+    assert summary["phase"] == "development"
+    assert summary["agent"] == jp.agent_name
+    assert summary["artifacts"] >= 1
+
+    runs = await svc.list_agent_runs(project.id)
+    assert len(runs) == 1 and runs[0].phase == "development"
+    audit = await svc.list_audit_log(project.id)
+    assert len(audit) == 1  # golden rule #10 — exactly one audit entry per run
+
+
+async def test_run_persist_phase_via_api(client: AsyncClient, db_session: AsyncSession):
+    project = await _make_project(db_session)
+    pid = str(project.id)
+
+    resp = await client.post(
+        f"/api/v1/projects/{pid}/phases/development/agents/run-persist",
+        headers=_approver_auth(),
+    )
+    assert resp.status_code == 200
+    body = resp.json()
+    assert body["phase"] == "development"
+    assert body["artifacts"] >= 1
+
+    runs = await client.get(f"/api/v1/projects/{pid}/agent-runs")
+    assert runs.json()["total"] == 1
+
+
+async def test_run_persist_phase_unknown_phase_404(client: AsyncClient, db_session: AsyncSession):
+    project = await _make_project(db_session)
+    resp = await client.post(
+        f"/api/v1/projects/{project.id}/phases/nope/agents/run-persist",
+        headers=_approver_auth(),
+    )
+    assert resp.status_code == 404
+    # The app's global 404 handler normalizes to a Problem Detail (title "Not Found", detail stringified).
+    assert "nope" in resp.json()["detail"]
+
+
+async def test_run_persist_phase_requires_approver_persona(client: AsyncClient, db_session: AsyncSession):
+    project = await _make_project(db_session)
+    resp = await client.post(
+        f"/api/v1/projects/{project.id}/phases/development/agents/run-persist",
+        headers=_auth("developer"),  # developer is not an approver persona
+    )
+    assert resp.status_code == 403
 
 
 # -- service layer ------------------------------------------------------------------------------
