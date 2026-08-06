@@ -15,7 +15,7 @@
 > - **All seven personas served** — Developer, BA, QA, PM, Tech Lead, Architect, and CISO each own or consume a phase, with a dedicated agent, prompt set, and artifacts. See [`docs/personas.md`](personas.md).
 > - **A runnable reference journey** — [`examples/reference-project/`](../examples/reference-project/README.md) walks one project through all seven phases offline, producing 17 real artifacts, as a worked demonstration of the framework.
 > - **Onboarding-first &amp; spec-driven** — the target shape is: *onboard* a project via eeik (scaffold repo + `CLAUDE.md` + capability packs), then run a governed **spec-driven spine** where each phase's approved artifact gates the next. See the [Product Vision](../ROADMAP.md#product-vision--onboarding-first-spec-driven) and the honest [build status](progress.md).
-> - **`portal-prototype/`** — the original static portal is retained as a reference; the live portal is `platform/frontend/`
+> - **`docs/legacy/portal-prototype/`** — the original static portal, retained under `docs/legacy/` as a reference; the live portal is `platform/frontend/`
 >
 > See [`ROADMAP.md`](../ROADMAP.md) for the full 5-phase build plan, [`docs/personas.md`](personas.md) for the persona catalog, and [`platform/CLAUDE.md`](../platform/CLAUDE.md) for the platform architecture.
 

@@ -459,7 +459,7 @@ These rules come from eeik-bootstrap standards and must never be violated:
 
 ## Security
 
-- **PII Guard** (`middleware/pii_guard.py`): runs on every agent input and output. Detects PII using regex patterns from `governance/pii-guard/patterns.py`. Redacts before sending to Claude API. Writes `pii_events` records for every detection event.
+- **PII Guard** (`middleware/pii_guard/`): runs on every agent input and output. Detects PII using the regex patterns in `middleware/pii_guard/patterns.py` (absorbed from the retired root `governance/pii-guard/`). Redacts before sending to Claude API. Writes `pii_events` records for every detection event.
 - **Audit log**: every agent invocation creates an `agent_runs` record (actor, model, phase, cost_usd) and an `audit_log` record (before/after artifact state). Append-only — no UPDATE or DELETE on `audit_log` table.
 - **JWT authentication** (Phase 5): `middleware/auth.py` validates Bearer token on all routes except `/health`, `/docs`, `/redoc`, `/openapi.json`. Claims: `sub` (user ID), `org_id`, `persona` (role enum).
 - **RBAC per persona**: Governance routes require `CISO` or `Lead` persona. Agent trigger endpoints require appropriate persona for the phase (e.g., Requirements agent requires `BA` or `Lead`).
