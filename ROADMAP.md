@@ -132,6 +132,44 @@ For an honest, increment-by-increment view of what is built vs. planned, see
 
 ---
 
+## Priority Initiative — First Production Slice (Vertical V1)
+
+> **Status: 📋 planned (from the external maturity review).** This is the single highest-leverage next
+> step and it deliberately cuts *across* the phase plan below rather than completing any one phase. The
+> phases remain the breadth map; this slice is the depth cut that moves APEX out of "impressive offline
+> demo" territory into something an enterprise can trial.
+
+**The slice:** one project, end-to-end, on real infrastructure —
+
+```
+onboard (real GitHub repo + DB registration)
+  → Requirements agent produces real LLM-generated Gherkin + gap analysis (not stub)
+  → Architecture agent produces a reasoned ADR / C4 target-state (not stub)
+  → human approves at the gate (durable approval, identity-bound)
+  → ONE live write-back with a full audit trail (create a Jira story OR post an inline GitHub PR review)
+```
+
+**Why this shape:** it exercises every layer that currently exists only in part — real generation, the
+gate/approval loop, a credentialed adapter, and end-to-end audit — while touching the smallest surface
+that still delivers real value. The excellent offline stub path is **kept** for CI and demos; the slice
+runs on the credentialed path behind config.
+
+**Definition of done (V1):**
+- A configured LLM provider yields **input-driven** Requirements + Architecture artifacts, with quality
+  evaluation and robust fallbacks for short/failed replies (no silent empty artifacts).
+- Onboarding creates a real GitHub repo and a persisted `Project` row (Phase 0 credentialed path).
+- A gate approval is **durable** (stored, identity-bound to a project `Member`), not in-memory.
+- Exactly one live write-back fires under the harness confidence gate, default-deny tool registry, and
+  an append-only audit entry — idempotently (event de-dup so a retry does not double-post).
+- A lightweight metrics path records the run (cost, tokens, latency, gate outcome) so early adopters can
+  measure against the headline claims.
+
+**Explicitly out of V1 scope (deferred to the phases/backlog):** the full 7-phase spine in production,
+S3 artifact storage, ARB workflow, SSE streaming, the Comprehend PII layer, and the CDK/ECS deploy
+(V1 can run against a single container / managed Postgres for the trial).
+
+---
+
 ## Build Phases
 
 ### Phase 0 — Onboarding (the eeik front door)
@@ -350,6 +388,83 @@ and removes what's superseded, so the root has one clear structure.
 **Exit gate:** ✅ the root contains only `platform/`, `docs/`, `examples/`, `prompts/`,
 `claude-templates/`, `governance/policies/`, plus the standard repo files; PII guard runs on agent I/O;
 no dead scripts.
+
+---
+
+## Maturity & Adoption Backlog (from external review)
+
+> **Status: 📋 planned, not built.** Captured from an external maturity review. Each item is tagged with
+> the **target phase** it belongs to (breadth) and feeds the [First Production Slice](#priority-initiative--first-production-slice-vertical-v1)
+> where it's on the depth cut. Priority: **P0** = required for the V1 slice · **P1** = fast-follow /
+> enterprise-trial blocker · **P2** = polish. Feasibility: **offline** = buildable + verifiable without
+> credentials/infra · **credential-gated** · **infra-gated**.
+
+### Theme 1 — Substance vs. structure (close the real-value gap)
+
+| Item | Phase | Priority | Feasibility |
+|---|---|---|---|
+| Real LLM generation quality: quality-eval harness, streaming into artifacts, robust fallbacks for short/failed replies (no silent empty artifacts) | 3 | P0 | offline (eval harness) + credential-gated (real output) |
+| Real input-driven artifacts: requirements→Gherkin, architecture→reasoned C4/target-state | 3 | P0 | credential-gated |
+| Live write-back side-effects: create Jira story · post inline GitHub PR review · publish Confluence · cut releases | 2/3 | P0 (one) / P1 (rest) | credential-gated |
+| Celery auto-invocation of the dispatched run + event de-dup / idempotency | 2 | P1 | offline (idempotency) + infra-gated (broker) |
+| Onboarding: real GitHub repo creation + full DB persistence of onboarded projects | 0 | P0 | credential-gated |
+| Onboarding: richer LLM-driven repository-generator (beyond the deterministic scaffold) | 0/3 | P1 | credential-gated |
+| Reconcile the Pydantic onboarding manifest with eeik's canonical schema | 0 | P1 | offline |
+| S3 artifact storage + durable gate evaluations + approval/identity store | 4/5 | P0 (approvals) / P1 (S3) | offline (approvals via DB) + infra-gated (S3) |
+| Full spine enforcement in production + ARB workflow | 5 | P1 | offline (spine) + credential-gated (ARB write) |
+| Auth/RBAC completion: bind token persona → project `Member`, credential store, refresh tokens, prod-hardening | 5 | P0 (member-binding) / P1 (rest) | offline |
+
+### Theme 2 — Documentation & discoverability
+
+| Item | Priority | Feasibility |
+|---|---|---|
+| Root README "Quick Start for evaluators": one-command offline journey + "what you get" | P1 | offline |
+| Prominent "what works today vs. planned" table in the README (mirrors `docs/progress.md`) | P1 | offline |
+| Clean remaining placeholders / links (e.g. eeik-bootstrap org URL in `platform/README`) | P1 | offline |
+| Single navigable docs site / better GitHub Pages experience for the HTML docs | P2 | offline |
+| Make the runtime source-of-truth for prompts/templates more prominent (vs. the reference libraries) | P2 | offline |
+
+### Theme 3 — Developer experience & operational maturity
+
+| Item | Priority | Feasibility |
+|---|---|---|
+| One-liner **smoke test**: run reference journey + gate report + a test subset, assert `examples/` byte-identical | P1 | offline |
+| Minimal `Makefile` / `justfile` for the common offline demos + test runs | P2 | offline |
+| Frontend: live SSE progress, per-artifact content/diff view, webhook-activity feed | P1 | offline |
+| Expand tests: mocked live-adapter integration path + property-based tests on the authority ladder / gate rules | P1 | offline |
+| Richer observability metrics (agent cost, gate latency, confidence distribution) surfaced in the PM view earlier | P1 | offline |
+| AWS CDK / production deployment (ECS Fargate, RDS Aurora, S3, Secrets Manager) — the main enterprise-trial blocker | P1 | infra-gated |
+
+### Theme 4 — Architecture & design
+
+| Item | Priority | Feasibility |
+|---|---|---|
+| Formalize the harness/eeik contract; pin or vendor critical bits for reproducibility | P1 | offline |
+| Surface confidence thresholds + the G-5 (SUGGEST never auto-enforces) rule in the UI and in generated artifacts | P1 | offline |
+| Keep the catalog-as-source-of-truth discipline (docs + backend + frontend updated together) | P1 | offline |
+| Make the phase spine **configurable** — optional phases, custom gates — for orgs not wanting the full 7-phase model | P1 | offline |
+| PII guard: planned Comprehend/NLP layer (names/addresses) + stronger persistence for regulated environments | P2 | infra-gated |
+
+### Theme 5 — Product / adoption surface
+
+| Item | Priority | Feasibility |
+|---|---|---|
+| Lightweight metrics-collection path so early adopters can measure against the outcome claims (30–40% PR cycle time, etc.) | P0 | offline |
+| First-class prompt packs for non-engineering personas (Claude.ai / Confluence / Jira) — the "zero-new-tools" principle | P1 | offline |
+| Flesh out PM + CISO views early: cost roll-ups, gate health, risk register | P1 | offline |
+| "Start with one phase" adoption recipe (e.g. PR review or Requirements only) with concrete config | P1 | offline |
+
+### Theme 6 — Repo hygiene & community
+
+| Item | Priority | Feasibility |
+|---|---|---|
+| `CONTRIBUTING.md` + issue/PR templates | P1 | offline |
+| "How to try the reference journey" GitHub Discussion / wiki page | P2 | offline |
+| Clear licensing notes for third-party references (eeik, agent-harness) — *no change to the license itself* | P2 | offline |
+
+> **Guiding risk (from the review):** the main risk is staying in "impressive demo" territory too long.
+> The antidote is the vertical slice above — prioritize a narrow, high-value, end-to-end production path
+> over broadening the offline surface further.
 
 ---
 
