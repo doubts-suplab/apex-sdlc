@@ -4,7 +4,33 @@ An honest, increment-by-increment view of what is **built** vs **planned**. Newe
 deliberately separates *structure* (the seams exist and are governed) from *substance* (real generation,
 write-back, persistence, gates) so the [ROADMAP](../ROADMAP.md) and the code never drift apart.
 
-Legend: ✅ done · 🚧 partial · ❌ not started
+Legend: ✅ done · 🚧 partial · ❌ not started · 📋 planned (scoped, not started)
+
+---
+
+## 📋 Planning note — external maturity review folded into the roadmap
+
+Not a built increment — a **planning pass**. An external maturity review (substance-vs-structure gap,
+docs/DX, architecture, adoption, hygiene) has been captured as a prioritized, phase-tagged, feasibility-
+tagged backlog in the ROADMAP, plus a headline **First Production Slice (V1)** initiative. Nothing here
+changes what's *built*; it sharpens what's *planned*.
+
+- 📋 **[Priority Initiative — First Production Slice (V1)](../ROADMAP.md#priority-initiative--first-production-slice-vertical-v1):**
+  the highest-leverage next step — one project end-to-end on real infra: onboard (real repo + DB) → real
+  LLM Requirements + Architecture artifacts → durable human approval → **one** live write-back with full
+  audit. Cuts across the phases; keeps the offline stub path for CI/demos.
+- 📋 **[Maturity & Adoption Backlog](../ROADMAP.md#maturity--adoption-backlog-from-external-review):**
+  six themes (real generation + write-back · docs/discoverability · DX/ops · architecture · product/
+  adoption · hygiene/community), each item tagged **P0/P1/P2** and **offline / credential-gated /
+  infra-gated**.
+- **Guiding risk:** the main risk is staying in "impressive offline demo" territory too long — the V1
+  vertical slice is the antidote. The strong foundation (governance model, persona/phase catalog,
+  offline reproducibility, honest tracking) is the launch pad, not the product.
+- **Licensing:** left as-is by request; only a P2 note to add third-party licensing clarity for eeik /
+  agent-harness references (no change to the license itself).
+
+The capability table at the foot of this file remains the per-capability truth; the ROADMAP backlog is
+where the newly-articulated gaps and their priorities now live.
 
 ---
 
