@@ -34,6 +34,38 @@ where the newly-articulated gaps and their priorities now live.
 
 ---
 
+## Increment 25 — Maturity backlog: DX, docs, and two governance/spine features 🚧
+
+A batch of small, offline backlog items (Themes 2–4, 6) — sharpening discoverability and developer
+experience, and two substantive additions: surfacing the governance model and making the spine
+configurable. Each shipped whole; the offline path stays green and `examples/` byte-identical (bar the one
+intentional `journey.json` field below).
+
+- ✅ **Community & DX (Themes 6, 3):** `CONTRIBUTING.md` + GitHub issue/PR templates (offline-green +
+  governance checklist encoded); a root **`Makefile`** exposing every offline demo/test/check as one-word
+  targets (venv-auto-detecting); and a one-command **smoke test** (`make smoke` →
+  `platform/backend/scripts/smoke_test.py`) that regenerates all fixtures, asserts `examples/` is
+  byte-identical to HEAD, and runs the governance test subset.
+- ✅ **Docs (Theme 2):** a README **"Quick start for evaluators"** (the `make` one-liner + what you get)
+  and a **"What works today vs. planned"** headline table mirroring this tracker; fixed the stale
+  eeik-bootstrap placeholder link in `platform/README`.
+- ✅ **Surface confidence thresholds + the G-5 rule (Theme 4):** `app/agents/authority.py` +
+  `GET /journey/authority` expose the authority ladder and each phase's harness confidence-gate threshold
+  (`null` ⇒ never auto-enforces, gate rule **G-5**), all catalog + harness derived. `JourneyPhase`/
+  `journey.json` now carry per-phase `confidence_threshold`; the frontend journey page gained a "How
+  governance decides" panel + per-phase threshold badges. (This is the one intentional fixture change —
+  `journey.json` gained the field.)
+- ✅ **Per-artifact content view (Theme 3):** journey artifact chips are now clickable, opening a dialog
+  with the artifact's full generated content — offline (content already returned inline). *Deferred:* the
+  webhook-activity feed half (needs backend event persistence — a Phase 2 item).
+- ✅ **Configurable spine (Theme 4):** `app/spine/` (`SpineConfig` = an ordered subset of catalog phases +
+  per-phase gate overrides, with a validating `build_spine`); `run_journey`/`evaluate_journey` take an
+  optional spine (default = full seven-phase catalog, unchanged); `GET /journey/reference[/gates]` gained a
+  `?phases=` control; the journey page gained a live **spine picker**.
+- ✅ **182 backend tests green** (166 + 16: authority, spine config/journey/gates, spine API);
+  `make smoke` passes; frontend `type-check` + `build` clean. Pre-existing repo lint/format/mypy debt
+  (surfaced only by newer tool versions in a fresh env, and repo-wide) is untouched.
+
 ## Increment 24 — Phase 6: repo consolidation (legacy layer folded in) ✅
 
 The repo grew from a framework-of-files (Lambda automation, a static portal, a root PII guard) into the

@@ -12,11 +12,13 @@ from typing import Any
 
 from fastapi import APIRouter, HTTPException
 
+from app.agents.authority import authority_model
 from app.agents.catalog import PERSONAS, phases_for_persona
 from app.agents.metrics import metrics_by_persona
 from app.agents.orchestrator import run_reference_journey
 from app.gates.engine import evaluate_journey
 from app.integrations.llm.factory import get_llm_provider
+from app.spine.config import SpineConfig, SpineConfigError, build_spine, default_spine
 
 router = APIRouter(prefix="/journey", tags=["journey"])
 
@@ -25,17 +27,45 @@ router = APIRouter(prefix="/journey", tags=["journey"])
 _DEFAULT_PRICING_MODEL = "claude-opus-4-8"
 
 
+def _spine_from_query(phases: str | None) -> SpineConfig:
+    """Build a SpineConfig from a ``phases`` CSV query param, or the full default spine when absent.
+
+    A malformed/unknown phase list is a 400 (RFC-7807) rather than a 500 — it is user input.
+    """
+    if phases is None:
+        return default_spine()
+    wanted = [p.strip() for p in phases.split(",") if p.strip()]
+    try:
+        return build_spine(wanted)
+    except SpineConfigError as exc:
+        raise HTTPException(
+            status_code=400,
+            detail={
+                "type": "https://apex.example.com/problems/invalid-spine",
+                "title": "Invalid spine configuration",
+                "status": 400,
+                "detail": str(exc),
+            },
+        ) from exc
+
+
 def _journey() -> dict[str, Any]:
     return run_reference_journey(get_llm_provider()).to_dict()
 
 
-@router.get("/reference", summary="Full reference journey (all phases)")
-async def get_reference_journey(persona: str | None = None) -> dict[str, Any]:
-    """Return the reference project's governed walk through every phase.
+@router.get("/reference", summary="Reference journey (all phases, or a configured spine subset)")
+async def get_reference_journey(
+    persona: str | None = None, phases: str | None = None
+) -> dict[str, Any]:
+    """Return the reference project's governed walk through the configured spine.
 
-    Optionally filter to the phases a ``persona`` owns or contributes to/consumes.
+    ``phases`` is an optional comma-separated subset of the seven catalog phases (e.g.
+    ``requirements,architecture,development``) — the configurable-spine control for orgs that don't want
+    the full model. Absent ⇒ the full seven-phase spine. ``persona`` further filters to the phases a
+    persona owns or contributes to/consumes.
     """
-    data = _journey()
+    spine = _spine_from_query(phases)
+    data = run_reference_journey(get_llm_provider(), spine=spine).to_dict()
     if persona is not None:
         if persona not in PERSONAS:
             raise HTTPException(
@@ -52,16 +82,35 @@ async def get_reference_journey(persona: str | None = None) -> dict[str, Any]:
     return data
 
 
+@router.get("/authority", summary="Authority ladder + per-phase confidence thresholds (gate rule G-5)")
+async def get_authority_model() -> dict[str, Any]:
+    """Return the governance read model: the G-5 rule, the authority ladder, and each phase's
+    confidence-gate threshold (``null`` where the phase can never auto-enforce). Catalog + harness
+    derived — no DB, no LLM run, safe offline.
+    """
+    return authority_model()
+
+
 @router.get("/reference/gates", summary="Evaluate the spine's phase gates across the reference journey")
-async def get_reference_gates(approved: str | None = None) -> dict[str, Any]:
-    """Evaluate every phase gate for the reference journey.
+async def get_reference_gates(
+    approved: str | None = None, phases: str | None = None
+) -> dict[str, Any]:
+    """Evaluate every phase gate for the reference journey (optionally a configured spine subset).
 
     ``approved`` is a comma-separated list of phases whose spec a human has approved (human-review phases
-    stay ``pending`` until approved). The response's ``blocking_phase`` is where the spine halts.
+    stay ``pending`` until approved). ``phases`` optionally restricts the spine to a subset (the same
+    control as ``/reference``), so the gate evaluation matches the configured model. The response's
+    ``blocking_phase`` is where the spine halts.
     """
+    spine = _spine_from_query(phases)
     approvals = {p.strip() for p in approved.split(",")} if approved else set()
-    journey = run_reference_journey(get_llm_provider())
-    return {"project": journey.project, "approved": sorted(approvals), **evaluate_journey(journey, approvals)}
+    journey = run_reference_journey(get_llm_provider(), spine=spine)
+    return {
+        "project": journey.project,
+        "phases": list(spine.phases),
+        "approved": sorted(approvals),
+        **evaluate_journey(journey, approvals, spine=spine),
+    }
 
 
 @router.get("/reference/metrics", summary="Per-persona cost / token / latency for the reference journey")

@@ -9,9 +9,12 @@ missing artifact or a gate bypass makes the gate ``failed``.
 from __future__ import annotations
 
 from dataclasses import asdict, dataclass, field
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 from .criteria import GateCriteria, default_criteria
+
+if TYPE_CHECKING:
+    from app.spine.config import SpineConfig
 
 PASSED = "passed"
 PENDING = "pending"
@@ -87,18 +90,30 @@ def evaluate_gate(
     return GateResult(phase=phase, status=status, checks=checks, reason=reason)
 
 
-def evaluate_journey(journey: Any, approvals: set[str] | None = None) -> dict[str, Any]:
+def evaluate_journey(
+    journey: Any,
+    approvals: set[str] | None = None,
+    *,
+    spine: "SpineConfig | None" = None,
+) -> dict[str, Any]:
     """Evaluate every phase gate across a JourneyResult (or its dict), given approved phases.
 
     Returns ``{"gates": [GateResult...], "blocking_phase": str|None, "all_passed": bool}``. The
     ``blocking_phase`` is the first phase whose gate is not ``passed`` — where the spine halts.
+
+    When a ``spine`` is supplied, only its enabled phases are evaluated and each phase's gate uses the
+    spine's (possibly overridden) criteria; otherwise every journey phase is evaluated with catalog
+    defaults.
     """
     approvals = approvals or set()
     phases = _journey_phases(journey)
+    if spine is not None:
+        phases = [p for p in phases if spine.includes(p["phase"])]
     bypass_total = int(_journey_stats(journey).get("confidence_gate_bypass_total", 0))
 
     gates: list[GateResult] = []
     for ph in phases:
+        criteria = spine.criteria_for(ph["phase"]) if spine is not None else None
         gates.append(
             evaluate_gate(
                 ph["phase"],
@@ -106,6 +121,7 @@ def evaluate_journey(journey: Any, approvals: set[str] | None = None) -> dict[st
                 auto_enforced=bool(ph["auto_enforced"]),
                 approved=ph["phase"] in approvals,
                 bypass_total=bypass_total,
+                criteria=criteria,
             )
         )
 

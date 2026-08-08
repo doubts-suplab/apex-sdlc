@@ -22,6 +22,9 @@ from agent_harness.adapters import (
 from agent_harness.core.harness import BYPASS_COUNTER
 from agent_harness.ports.llm import LlmPort
 
+from app.spine.config import SpineConfig, default_spine
+
+from .authority import confidence_threshold
 from .catalog import PHASE_CATALOG, PhaseSpec, spec_for
 from .context import AgentContext
 from .pricing import cost_usd
@@ -40,6 +43,9 @@ class JourneyPhase:
     authority: str
     action: str
     confidence: float
+    # The confidence the agent had to clear to auto-enforce, or None if this phase can never auto-enforce
+    # (gate rule G-5: SUGGEST/OBSERVE always route to a human). Derived from the harness confidence gate.
+    confidence_threshold: float | None
     auto_enforced: bool
     outcome: str  # "auto-enforced" | "human-review"
     rationale: str
@@ -70,7 +76,8 @@ class JourneyResult:
         # kept in-memory for persistence but excluded here so the committed journey.json stays reproducible.
         stable = {
             "phase", "label", "persona", "stakeholders", "agent_name", "authority", "action",
-            "confidence", "auto_enforced", "outcome", "rationale", "eeik_agent", "summary", "artifacts",
+            "confidence", "confidence_threshold", "auto_enforced", "outcome", "rationale",
+            "eeik_agent", "summary", "artifacts",
         }
         return {
             "project": self.project,
@@ -138,12 +145,25 @@ def run_single_phase(
     return _run_phase(harness, spec_for(phase), project, llm)
 
 
-def run_journey(project: dict[str, Any], llm: LlmPort, *, registry: ToolRegistry | None = None) -> JourneyResult:
-    """Run ``project`` through every phase in ``PHASE_CATALOG`` on one harness; collect the outcomes."""
+def run_journey(
+    project: dict[str, Any],
+    llm: LlmPort,
+    *,
+    registry: ToolRegistry | None = None,
+    spine: SpineConfig | None = None,
+) -> JourneyResult:
+    """Run ``project`` through the configured spine's phases on one harness; collect the outcomes.
+
+    ``spine`` defaults to the full seven-phase catalog (``default_spine()``); pass a trimmed
+    :class:`SpineConfig` to run a lighter model. Phases always run in canonical catalog order.
+    """
+    spine = spine or default_spine()
     harness, audit, obs = _fresh_harness(registry)
 
     phases: list[JourneyPhase] = []
     for spec in PHASE_CATALOG:
+        if not spine.includes(spec.phase):
+            continue
         result = _run_phase(harness, spec, project, llm)
         phases.append(result)
 
@@ -180,6 +200,7 @@ def _run_phase(harness: Any, spec: PhaseSpec, project: dict[str, Any], llm: LlmP
         authority=spec.authority.name,
         action=decision.action.value,
         confidence=decision.confidence,
+        confidence_threshold=confidence_threshold(spec),
         auto_enforced=decision.auto_enforced,
         outcome="auto-enforced" if decision.auto_enforced else "human-review",
         rationale=decision.rationale,
@@ -198,9 +219,9 @@ def _run_phase(harness: Any, spec: PhaseSpec, project: dict[str, Any], llm: LlmP
     )
 
 
-def run_reference_journey(llm: LlmPort) -> JourneyResult:
-    """Convenience: run the built-in REFERENCE_PROJECT through the full lifecycle."""
-    return run_journey(REFERENCE_PROJECT, llm)
+def run_reference_journey(llm: LlmPort, *, spine: SpineConfig | None = None) -> JourneyResult:
+    """Convenience: run the built-in REFERENCE_PROJECT through the configured spine (default: full)."""
+    return run_journey(REFERENCE_PROJECT, llm, spine=spine)
 
 
 def _project_summary(project: dict[str, Any]) -> dict[str, Any]:

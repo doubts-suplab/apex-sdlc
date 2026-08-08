@@ -6,14 +6,20 @@ import {
   ArrowRight,
   CheckCircle2,
   Clock,
+  Gavel,
   Lock,
   ShieldCheck,
   UserCheck,
 } from "lucide-react";
-import { useReferenceJourney, useReferenceGates } from "@/lib/queries/journey";
+import {
+  useReferenceJourney,
+  useReferenceGates,
+  useAuthorityModel,
+} from "@/lib/queries/journey";
 import { usePersona } from "@/lib/persona";
 import { CostDashboard } from "@/components/projects/CostDashboard";
-import { PERSONA_LABELS, PHASE_LABELS, Persona, PhaseType } from "@/types/project";
+import { ArtifactChip } from "@/components/journey/ArtifactChip";
+import { PERSONA_LABELS, PHASE_LABELS, PHASE_ORDER, Persona, PhaseType } from "@/types/project";
 import { GateResult, JourneyPhase } from "@/types/journey";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -47,6 +53,104 @@ function OutcomeBadge({ outcome }: { outcome: string }) {
       {enforced ? <ShieldCheck className="h-3 w-3" /> : <UserCheck className="h-3 w-3" />}
       {enforced ? "Auto-enforced" : "Human review"}
     </Badge>
+  );
+}
+
+/**
+ * Surfaces the confidence gate for a phase: the threshold its confidence had to clear to auto-enforce,
+ * or — for SUGGEST/OBSERVE phases — that it can never auto-enforce (gate rule G-5).
+ */
+function ThresholdBadge({
+  threshold,
+  confidence,
+}: {
+  threshold: number | null | undefined;
+  confidence: number;
+}) {
+  if (threshold === null || threshold === undefined) {
+    return (
+      <Badge
+        variant="outline"
+        className="gap-1 border-amber-200 bg-amber-50 text-xs font-medium text-amber-700"
+        title="SUGGEST/OBSERVE authority can never auto-enforce — always routed to a human (harness gate rule G-5)."
+      >
+        <Lock className="h-3 w-3" />
+        never auto-enforces · G-5
+      </Badge>
+    );
+  }
+  const clears = confidence >= threshold;
+  return (
+    <Badge
+      variant="outline"
+      className={cn(
+        "text-xs font-medium",
+        clears
+          ? "border-green-200 bg-green-50 text-green-700"
+          : "border-slate-200 bg-slate-50 text-slate-600"
+      )}
+      title={`Auto-enforces only when confidence ≥ ${threshold.toFixed(2)}.`}
+    >
+      threshold: {threshold.toFixed(2)} {clears ? "✓" : ""}
+    </Badge>
+  );
+}
+
+/**
+ * The governance read model: the G-5 rule plus each phase's authority and confidence threshold.
+ * Makes "AI drafts; humans approve" visible as a property of the authority ladder, not a claim.
+ */
+function GovernanceModelPanel() {
+  const { data } = useAuthorityModel();
+  const [open, setOpen] = useState(false);
+  if (!data) return null;
+  return (
+    <div className="rounded-lg border border-slate-200 bg-slate-50">
+      <button
+        type="button"
+        onClick={() => setOpen((v) => !v)}
+        className="flex w-full items-center gap-2 px-4 py-3 text-left"
+      >
+        <Gavel className="h-4 w-4 shrink-0 text-slate-500" />
+        <span className="text-sm font-medium text-slate-800">How governance decides</span>
+        <span className="ml-auto text-xs text-slate-500">{open ? "Hide" : "Show"}</span>
+      </button>
+      {open && (
+        <div className="space-y-3 border-t border-slate-200 px-4 py-3">
+          <p className="text-sm text-slate-600">{data.gate_rule}</p>
+          <p className="text-xs text-slate-500">
+            Authority ladder (weakest → strongest):{" "}
+            <span className="font-mono">{data.authority_ladder.join(" < ")}</span>
+          </p>
+          <div className="overflow-x-auto">
+            <table className="w-full text-left text-xs">
+              <thead>
+                <tr className="text-slate-400">
+                  <th className="py-1 pr-4 font-medium uppercase tracking-wide">Phase</th>
+                  <th className="py-1 pr-4 font-medium uppercase tracking-wide">Authority</th>
+                  <th className="py-1 pr-4 font-medium uppercase tracking-wide">Auto-enforce threshold</th>
+                </tr>
+              </thead>
+              <tbody className="text-slate-600">
+                {data.phases.map((p) => (
+                  <tr key={p.phase} className="border-t border-slate-100">
+                    <td className="py-1 pr-4">{phaseLabel(p.phase)}</td>
+                    <td className="py-1 pr-4 font-mono">{p.authority}</td>
+                    <td className="py-1 pr-4">
+                      {p.confidence_threshold === null ? (
+                        <span className="text-amber-700">never (G-5)</span>
+                      ) : (
+                        <span className="tabular-nums">≥ {p.confidence_threshold.toFixed(2)}</span>
+                      )}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
+    </div>
   );
 }
 
@@ -148,6 +252,7 @@ function PhaseCard({
         <Badge variant="outline" className="border-slate-200 text-slate-600">
           confidence: {phase.confidence.toFixed(2)}
         </Badge>
+        <ThresholdBadge threshold={phase.confidence_threshold} confidence={phase.confidence} />
         <OutcomeBadge outcome={phase.outcome} />
       </div>
 
@@ -161,15 +266,7 @@ function PhaseCard({
         </div>
         <div className="flex flex-wrap gap-2">
           {phase.artifacts.map((a) => (
-            <span
-              key={a.name}
-              className="inline-flex items-center gap-1.5 rounded-md border border-slate-200 bg-slate-50 px-2 py-1 text-xs text-slate-700"
-              title={a.title}
-            >
-              <span className="font-mono">{a.name}</span>
-              <span className="text-slate-400">·</span>
-              <span className="text-slate-500">{a.kind}</span>
-            </span>
+            <ArtifactChip key={a.name} artifact={a} />
           ))}
         </div>
       </div>
@@ -189,10 +286,22 @@ function JourneySkeleton() {
 
 export default function JourneyPage() {
   const { persona, mounted } = usePersona();
-  const { data, isLoading, isError, error } = useReferenceJourney();
+  const [enabledPhases, setEnabledPhases] = useState<PhaseType[]>(PHASE_ORDER);
+  // A full spine ⇒ send no `phases` param (identical to the default reference behaviour).
+  const phasesArg = enabledPhases.length === PHASE_ORDER.length ? undefined : enabledPhases;
+  const { data, isLoading, isError, error } = useReferenceJourney(undefined, phasesArg);
   const [onlyMine, setOnlyMine] = useState(false);
   const [approved, setApproved] = useState<string[]>([]);
-  const gatesQuery = useReferenceGates(approved);
+  const gatesQuery = useReferenceGates(approved, phasesArg);
+
+  const togglePhase = (ph: PhaseType) =>
+    setEnabledPhases((prev) =>
+      prev.includes(ph)
+        ? prev.length > 1
+          ? prev.filter((p) => p !== ph)
+          : prev // keep at least one phase enabled
+        : PHASE_ORDER.filter((p) => p === ph || prev.includes(p))
+    );
 
   const gateByPhase = new Map((gatesQuery.data?.gates ?? []).map((g) => [g.phase, g]));
   const toggleApprove = (ph: string) =>
@@ -243,6 +352,9 @@ export default function JourneyPage() {
         )}
       </div>
 
+      {/* How governance decides — the G-5 rule + per-phase confidence thresholds */}
+      <GovernanceModelPanel />
+
       {/* Stats */}
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
         <StatTile label="Phases" value={data.stats.phase_count} />
@@ -272,6 +384,46 @@ export default function JourneyPage() {
 
       {/* Cost / token / latency dashboard, per persona */}
       <CostDashboard selectedPersona={persona} />
+
+      {/* Configurable spine — toggle phases to model a lighter SDLC */}
+      <div className="rounded-lg border border-slate-200 bg-white px-4 py-3">
+        <div className="flex flex-wrap items-center gap-2">
+          <span className="text-sm font-medium text-slate-700">Spine</span>
+          <span className="text-xs text-slate-500">
+            Toggle phases to model a lighter SDLC — {enabledPhases.length}/{PHASE_ORDER.length} enabled.
+          </span>
+          {enabledPhases.length !== PHASE_ORDER.length && (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setEnabledPhases(PHASE_ORDER)}
+              className="ml-auto h-7 text-xs"
+            >
+              Reset to full spine
+            </Button>
+          )}
+        </div>
+        <div className="mt-2 flex flex-wrap gap-2">
+          {PHASE_ORDER.map((ph) => {
+            const on = enabledPhases.includes(ph);
+            return (
+              <button
+                key={ph}
+                type="button"
+                onClick={() => togglePhase(ph)}
+                className={cn(
+                  "rounded-full border px-3 py-1 text-xs font-medium transition-colors",
+                  on
+                    ? "border-slate-900 bg-slate-900 text-white"
+                    : "border-slate-200 bg-slate-50 text-slate-400 line-through"
+                )}
+              >
+                {phaseLabel(ph)}
+              </button>
+            );
+          })}
+        </div>
+      </div>
 
       {/* Spine gate status */}
       {gatesQuery.data && (
