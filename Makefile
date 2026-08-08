@@ -96,6 +96,14 @@ frontend-build: ## Frontend production build
 	cd $(FRONTEND) && npm run build
 
 # ---------------------------------------------------------------------------
+# Smoke test — the one-command offline confidence check
+# ---------------------------------------------------------------------------
+
+.PHONY: smoke
+smoke: ## Regenerate fixtures, assert examples/ byte-identical, run governance tests
+	cd $(BACKEND) && $(PYTHON) scripts/smoke_test.py
+
+# ---------------------------------------------------------------------------
 # Housekeeping
 # ---------------------------------------------------------------------------
 
