@@ -68,6 +68,7 @@ footer{border-top:1px solid var(--border);margin-top:48px;padding:28px 40px;colo
     <a href="apex-framework.html">Framework</a>
     <a href="apex-governance.html">Governance</a>
     <a href="reference-journey.html" class="active">Reference Journey</a>
+    <a href="portal-preview.html">Portal Preview</a>
   </div>
 </nav>
 
@@ -220,10 +221,13 @@ footer{border-top:1px solid var(--border);margin-top:48px;padding:28px 40px;colo
     <div class="ladder">cd platform/backend
 python -m venv .venv &amp;&amp; . .venv/bin/activate &amp;&amp; pip install -e .
 LLM_PROVIDER=stub python -m app.demo.reference_journey   # writes examples/reference-project/artifacts/**</div>
-    <p>Or serve it: <code>GET /api/v1/journey/reference</code> (add <code>?persona=ciso</code> to filter),
-    and see it in the frontend at <code>/journey</code>. Full narrative:
+    <p>Or serve it: <code>GET /api/v1/journey/reference</code> (add <code>?persona=ciso</code> to filter,
+    or <code>?phases=requirements,architecture</code> to run a trimmed spine), and see it in the frontend at
+    <code>/journey</code>. Full narrative:
     <a href="../examples/reference-project/README.md">examples/reference-project/README.md</a> ·
     persona catalog: <a href="personas.md">docs/personas.md</a>.</p>
+    <p>Prefer to click around? The <a href="portal-preview.html">interactive Portal Preview</a> renders this
+    journey with the real portal UI — offline, with mock data.</p>
   </div>
 </div>
 

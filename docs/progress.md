@@ -34,6 +34,28 @@ where the newly-articulated gaps and their priorities now live.
 
 ---
 
+## Increment 26 — Docs: an offline, interactive portal preview + docs refresh ✅
+
+The docs now **show** the portal, not just describe it — an offline replica of the `/journey` UI with mock
+data, in the app's own theme, plus a docs pass so nothing drifts (Theme 2, discoverability).
+
+- ✅ **`docs/portal-preview.html`** — a faithful, interactive offline replica of the portal Journey view in
+  the app's **slate/shadcn theme** (inside the docs' purple nav chrome), driven by mock data pulled from the
+  **real** reference journey (17 artifacts, real confidences/thresholds/rationales). Reproduces every
+  surface built this cycle: the persona switcher, the **"How governance decides"** panel (G-5 + per-phase
+  thresholds), stat tiles, the per-persona **cost/token/latency** dashboard, the **configurable spine**
+  picker, the spec-driven **gate banner**, and phase cards with **threshold badges**, approve-spec toggles,
+  and clickable **artifact content modals** — all live via vanilla JS. Rendered to `docs/portal-preview.png`.
+- ✅ **Docs nav + prose refresh:** Portal Preview added to the nav across all five docs pages (replacing a
+  now-broken `../portal/src/index.html` link in two of them); `index.html` gains a Portal Preview quick-nav
+  card; `apex-governance.html` notes the confidence model is now surfaced in the UI and the spine is
+  configurable; `reference-journey.html` links the preview and the new `?phases=` trimmed-spine param.
+- ✅ **README:** status/tech badges (Apache-2.0, Python, FastAPI, Next.js, 182 tests, agent-harness,
+  offline-demoable), a **"See the portal — offline"** section embedding the snapshot, and Documentation-map
+  rows for the preview + CONTRIBUTING.
+- **Golden rule:** docs are kept updated in lockstep with code — this tracker and the ROADMAP move with the
+  work, and the HTML docs reflect the current UI.
+
 ## Increment 25 — Maturity backlog: DX, docs, and two governance/spine features 🚧
 
 A batch of small, offline backlog items (Themes 2–4, 6) — sharpening discoverability and developer

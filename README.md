@@ -1,5 +1,13 @@
 # APeX SDLC
 
+[![License: Apache-2.0](https://img.shields.io/badge/license-Apache--2.0-blue.svg)](LICENSE)
+[![Python 3.11+](https://img.shields.io/badge/python-3.11%2B-3776AB?logo=python&logoColor=white)](platform/backend/pyproject.toml)
+[![FastAPI](https://img.shields.io/badge/FastAPI-0.115%2B-009688?logo=fastapi&logoColor=white)](platform/backend)
+[![Next.js 14](https://img.shields.io/badge/Next.js-14-000000?logo=nextdotjs&logoColor=white)](platform/frontend)
+[![Backend tests](https://img.shields.io/badge/backend%20tests-182%20passing-2ea44f)](platform/backend/tests)
+[![Governed by agent-harness](https://img.shields.io/badge/governed%20by-agent--harness-6B4FBB)](https://github.com/doubts-suplab/agent-harness)
+[![Status: offline-demoable](https://img.shields.io/badge/status-offline--demoable-informational)](docs/progress.md)
+
 ## AI-Powered Engineering eXperience — Enterprise SDLC Augmentation Plan
 
 APEX is a non-intrusive AI augmentation layer that sits alongside your existing SDLC without replacing any tooling or ceremony. It routes the right AI capability to the right persona at the right stage of delivery — developers get Claude Code and Copilot in their IDEs, BAs and PMs get prompt-powered Confluence and Jira automation, testers get AI-generated test suites, and leadership gets AI-synthesized status reports.
@@ -48,6 +56,24 @@ Prefer raw commands, or want the API/frontend? See [**Try it**](#try-it) below.
 
 ---
 
+## See the portal — offline
+
+The reference journey rendered in the portal UI — the **governance model** (the G-5 rule + per-phase
+confidence thresholds), the per-persona **cost / token / latency** dashboard, the **configurable spine**
+picker, the spec-driven **gates**, and a per-artifact content viewer. The image below is a static snapshot
+of [`docs/portal-preview.html`](docs/portal-preview.html) — an **offline, interactive** replica (mock data,
+no backend). Open that file in a browser to click around, or run the real portal with
+`cd platform/frontend && npm run dev` against a backend on `LLM_PROVIDER=stub`.
+
+<p align="center">
+  <a href="docs/portal-preview.html">
+    <img src="docs/portal-preview.png" width="820"
+         alt="APEX portal — offline Journey view: persona switcher, governance panel, cost dashboard, configurable spine picker, spec-driven gate banner, and phase cards with confidence-threshold badges">
+  </a>
+</p>
+
+---
+
 ## What works today vs. planned
 
 APEX is **demonstrable and governed end-to-end offline**; the production *substance* (real generation,
@@ -79,24 +105,24 @@ is the headline; [`docs/progress.md`](docs/progress.md) is the increment-by-incr
 ## 2. Framework Architecture
 
 ```
-┌───────────────────────────────────────────┐
+┌───────────────────────────────────────────────────────────────────────┐
 │                        APEX FRAMEWORK LAYERS                          │
-├───────────────────────────────────────────┤
+├───────────────────────────────────────────────────────────────────────┤
 │  PERSONA LAYER                                                        │
-│  Dev (IDE)  │  BA/PM (Claude.ai)  │  Tester (CLI)  │  Stakeholder   │
-├───────────────────────────────────────────┤
-│  AI ORCHESTRATION LAYER                                             │
-│  Claude Code CLI  │  Copilot API  │  Claude API (Haiku/Sonnet)      │
-├───────────────────────────────────────────┤
-│  INTEGRATION LAYER                                                  │
-│  Jira  │  Confluence  │  GitHub  │  SonarQube  │  Slack/Teams       │
-├───────────────────────────────────────────┤
+│  Dev (IDE)  │  BA/PM (Claude.ai)  │  Tester (CLI)  │  Stakeholder     │
+├───────────────────────────────────────────────────────────────────────┤
+│  AI ORCHESTRATION LAYER                                               │
+│  Claude Code CLI  │  Copilot API  │  Claude API (Haiku/Sonnet)        │
+├───────────────────────────────────────────────────────────────────────┤
+│  INTEGRATION LAYER                                                    │
+│  Jira  │  Confluence  │  GitHub  │  SonarQube  │  Slack/Teams         │
+├───────────────────────────────────────────────────────────────────────┤
 │  GOVERNANCE LAYER                                                     │
-│  Audit Log  │  Policy Engine  │  PII Guard  │  Approval Gates       │
-├───────────────────────────────────────────┤
+│  Audit Log  │  Policy Engine  │  PII Guard  │  Approval Gates         │
+├───────────────────────────────────────────────────────────────────────┤
 │  DATA LAYER                                                           │
-│  CLAUDE.md files  │  Prompt Library  │  Metrics Store               │
-└───────────────────────────────────────────┘
+│  CLAUDE.md files  │  Prompt Library  │  Metrics Store                 │
+└───────────────────────────────────────────────────────────────────────┘
 ```
 
 ---
@@ -165,7 +191,9 @@ The frontend surfaces the same walk at `/journey`, filtered by the persona switc
 | [`docs/personas.md`](docs/personas.md) | The 7 personas × 7 phases catalog — single source of truth |
 | [`examples/reference-project/`](examples/reference-project/README.md) | The runnable reference journey + committed artifacts |
 | [`docs/reference-journey.html`](docs/reference-journey.html) | The reference journey rendered visually |
+| [`docs/portal-preview.html`](docs/portal-preview.html) | Offline, interactive replica of the portal UI (mock data) |
 | [`docs/APEX-Framework.md`](docs/APEX-Framework.md) | The full framework document |
+| [`CONTRIBUTING.md`](CONTRIBUTING.md) | How to set up, the offline-green workflow, and conventions |
 | [`ROADMAP.md`](ROADMAP.md) | The 5-phase platform build plan |
 | [`platform/CLAUDE.md`](platform/CLAUDE.md) | Platform architecture for AI agents |
 | [`prompts/`](prompts/) | Prompt library per persona (all 7 covered) |
