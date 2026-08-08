@@ -1,0 +1,753 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>APEX — Portal Preview</title>
+<style>
+/* ---- docs brand chrome (purple nav/footer, shared with the other docs pages) ---- */
+:root{
+  --primary:#6B4FBB; --primary-light:#EDE9F7; --border-p:#E5E0F5; --nav-h:60px;
+  /* ---- portal UI palette (slate / shadcn — matches platform/frontend) ---- */
+  --s50:#f8fafc; --s100:#f1f5f9; --s200:#e2e8f0; --s300:#cbd5e1; --s400:#94a3b8;
+  --s500:#64748b; --s600:#475569; --s700:#334155; --s800:#1e293b; --s900:#0f172a;
+  --green50:#f0fdf4; --green200:#bbf7d0; --green600:#16a34a; --green700:#15803d;
+  --amber50:#fffbeb; --amber200:#fde68a; --amber700:#b45309;
+  --blue50:#eff6ff; --blue100:#dbeafe; --blue200:#bfdbfe; --blue700:#1d4ed8; --blue800:#1e40af;
+  --red50:#fef2f2; --red200:#fecaca; --red700:#b91c1c;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','Inter',sans-serif;background:var(--s100);color:var(--s900);font-size:15px;line-height:1.55}
+a{color:var(--primary);text-decoration:none}
+a:hover{text-decoration:underline}
+/* nav (purple brand) */
+nav{position:sticky;top:0;z-index:100;height:var(--nav-h);background:rgba(255,255,255,.92);backdrop-filter:blur(16px);border-bottom:1px solid var(--border-p);display:flex;align-items:center;padding:0 40px}
+.nav-brand{display:flex;align-items:center;gap:10px;text-decoration:none;margin-right:40px;flex-shrink:0}
+.nav-logo{width:34px;height:34px;background:var(--primary);border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:900;color:#fff;letter-spacing:-.5px}
+.nav-name{font-weight:800;color:var(--s900);font-size:17px}
+.nav-links{display:flex;gap:2px;flex:1;flex-wrap:wrap}
+.nav-links a{color:var(--s500);text-decoration:none;font-size:14px;font-weight:600;padding:8px 12px;border-radius:8px}
+.nav-links a:hover{color:var(--primary);background:var(--primary-light)}
+.nav-links a.active{color:var(--primary);background:var(--primary-light);font-weight:700}
+/* preview banner */
+.preview-banner{background:var(--s900);color:var(--s100);font-size:13px;text-align:center;padding:8px 16px}
+.preview-banner code{background:rgba(255,255,255,.12);padding:1px 6px;border-radius:5px;font-family:ui-monospace,Menlo,monospace}
+/* app surface */
+.app{max-width:1000px;margin:0 auto;padding:28px 24px 64px}
+.app h1{font-size:30px;font-weight:800;letter-spacing:-.6px;color:var(--s900)}
+.muted{color:var(--s500)}
+.row{display:flex;flex-wrap:wrap;gap:12px;align-items:center}
+.spread{justify-content:space-between}
+.mt2{margin-top:8px}.mt4{margin-top:16px}.mt6{margin-top:24px}.mt8{margin-top:32px}
+/* selects + buttons */
+select,.btn{font:inherit;font-size:13px;border:1px solid var(--s300);background:#fff;color:var(--s700);border-radius:8px;padding:6px 10px;cursor:pointer}
+.btn:hover{background:var(--s50)}
+.btn-sm{padding:4px 10px;font-size:12px;height:28px}
+/* cards */
+.card{background:#fff;border:1px solid var(--s200);border-radius:12px;box-shadow:0 1px 2px rgba(15,23,42,.04)}
+.pad{padding:16px 18px}
+/* stat tiles */
+.stats{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}
+@media(min-width:640px){.stats{grid-template-columns:repeat(3,1fr)}}
+@media(min-width:1024px){.stats{grid-template-columns:repeat(6,1fr)}}
+.tile{background:#fff;border:1px solid var(--s200);border-radius:10px;padding:12px 14px;box-shadow:0 1px 2px rgba(15,23,42,.04)}
+.tile .n{font-size:24px;font-weight:800;color:var(--s900);font-variant-numeric:tabular-nums}
+.tile .l{font-size:11px;text-transform:uppercase;letter-spacing:.4px;color:var(--s500)}
+/* pills / badges */
+.pill{display:inline-flex;align-items:center;gap:5px;font-size:12px;font-weight:600;padding:2px 9px;border-radius:999px;border:1px solid var(--s200);color:var(--s600);background:#fff;white-space:nowrap}
+.pill-persona{background:var(--s100);border-color:transparent;color:var(--s700)}
+.pill-you{background:var(--blue50);border-color:var(--blue200);color:var(--blue700)}
+.pill-green{background:var(--green50);border-color:var(--green200);color:var(--green700)}
+.pill-amber{background:var(--amber50);border-color:var(--amber200);color:var(--amber700)}
+.pill-red{background:var(--red50);border-color:var(--red200);color:var(--red700)}
+.pill-mono{font-family:ui-monospace,Menlo,monospace}
+.rel-focus{background:var(--blue50);border:1px solid var(--blue100);border-radius:10px;padding:12px 16px;color:var(--blue800);font-size:14px}
+/* governance panel */
+.gov summary{list-style:none}
+.gov summary::-webkit-details-marker{display:none}
+.gov-head{display:flex;align-items:center;gap:8px;padding:12px 16px;cursor:pointer}
+.gov-body{border-top:1px solid var(--s200);padding:14px 16px}
+.ladder{font-family:ui-monospace,Menlo,monospace;font-size:12px;color:var(--s600)}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th{text-align:left;color:var(--s400);font-size:11px;text-transform:uppercase;letter-spacing:.4px;font-weight:600;padding:6px 10px}
+td{padding:6px 10px;border-top:1px solid var(--s100);color:var(--s600)}
+tr.active-row td{background:var(--blue50)}
+.tnum{font-variant-numeric:tabular-nums}
+/* spine picker */
+.spine-pill{border:1px solid var(--s200);background:var(--s50);color:var(--s400);border-radius:999px;padding:5px 13px;font-size:12px;font-weight:600;cursor:pointer;text-decoration:line-through}
+.spine-pill.on{border-color:var(--s900);background:var(--s900);color:#fff;text-decoration:none}
+/* banner */
+.banner{border-radius:10px;padding:12px 16px;font-size:14px}
+.banner-green{background:var(--green50);border:1px solid var(--green200);color:var(--green700)}
+.banner-amber{background:var(--amber50);border:1px solid var(--amber200);color:var(--amber700)}
+/* phase card */
+.phase{background:#fff;border:1px solid var(--s200);border-radius:12px;padding:18px;box-shadow:0 1px 2px rgba(15,23,42,.04)}
+.phase.dim{opacity:.6}
+.phase.ring{box-shadow:0 0 0 1px var(--s200);border-color:var(--s300)}
+.step{flex-shrink:0;width:28px;height:28px;border-radius:50%;background:var(--s900);color:#fff;font-weight:700;font-size:12px;display:flex;align-items:center;justify-content:center}
+.phase h3{font-size:16px;font-weight:700;color:var(--s900)}
+.agent{font-family:ui-monospace,Menlo,monospace;font-size:12px;color:var(--s400)}
+.summary{color:var(--s600);font-size:14px;margin-top:10px}
+.rationale{border-left:2px solid var(--s200);padding-left:12px;color:var(--s500);font-style:italic;font-size:14px;margin-top:12px}
+.arts{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px}
+.chip{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--s200);background:var(--s50);border-radius:8px;padding:4px 9px;font-size:12px;color:var(--s700);cursor:pointer}
+.chip:hover{border-color:var(--s300);background:var(--s100)}
+.chip .k{color:var(--s500)}
+.lbl{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.4px;color:var(--s400)}
+/* modal */
+.overlay{position:fixed;inset:0;background:rgba(15,23,42,.7);display:none;align-items:flex-start;justify-content:center;z-index:200;padding:40px 16px;overflow:auto}
+.overlay.open{display:flex}
+.modal{background:#fff;border-radius:12px;max-width:760px;width:100%;box-shadow:0 20px 50px rgba(15,23,42,.35)}
+.modal-head{padding:18px 20px 12px;border-bottom:1px solid var(--s200);position:relative}
+.modal-head h3{font-size:17px;font-weight:700;color:var(--s900);padding-right:32px}
+.modal-close{position:absolute;right:14px;top:14px;border:none;background:none;font-size:20px;color:var(--s400);cursor:pointer;line-height:1}
+.modal-body{position:relative;padding:16px 20px 20px}
+.modal pre{max-height:56vh;overflow:auto;background:var(--s50);border:1px solid var(--s200);border-radius:8px;padding:16px;font-family:ui-monospace,Menlo,monospace;font-size:12px;line-height:1.5;color:var(--s800);white-space:pre-wrap;word-break:break-word}
+.copy-btn{position:absolute;right:28px;top:24px;z-index:2}
+footer{border-top:1px solid var(--border-p);margin-top:24px;padding:24px 40px;color:var(--s400);font-size:13px;text-align:center;background:#fff}
+</style>
+</head>
+<body>
+
+<nav>
+  <a class="nav-brand" href="index.html">
+    <div class="nav-logo">AX</div>
+    <span class="nav-name">APEX</span>
+  </a>
+  <div class="nav-links">
+    <a href="index.html">Home</a>
+    <a href="adoption-guide.html">Adoption Guide</a>
+    <a href="apex-framework.html">Framework</a>
+    <a href="apex-governance.html">Governance</a>
+    <a href="reference-journey.html">Reference Journey</a>
+    <a href="portal-preview.html" class="active">Portal Preview</a>
+  </div>
+</nav>
+
+<div class="preview-banner">
+  Offline preview of the APEX portal <strong>/journey</strong> view — mock data from the reference project.
+  Run the real thing with <code>cd platform/frontend &amp;&amp; npm run dev</code> against
+  <code>LLM_PROVIDER=stub</code>.
+</div>
+
+<div class="app">
+  <!-- header + persona switcher -->
+  <div class="row spread">
+    <div>
+      <h1>Reference Journey</h1>
+      <p class="muted mt2" id="hdr-sub"></p>
+      <p class="muted" id="hdr-desc" style="font-size:14px"></p>
+    </div>
+    <label class="row" style="gap:8px">
+      <span class="lbl">Persona</span>
+      <select id="persona-select"></select>
+    </label>
+  </div>
+
+  <!-- governance model panel -->
+  <details class="card gov mt6" id="gov">
+    <summary class="gov-head">
+      <span style="font-size:15px">⚖️</span>
+      <span style="font-weight:600;color:var(--s800)">How governance decides</span>
+      <span class="muted" style="margin-left:auto;font-size:12px">Show / hide</span>
+    </summary>
+    <div class="gov-body">
+      <p class="muted" id="gov-rule" style="font-size:14px"></p>
+      <p class="ladder mt2" id="gov-ladder"></p>
+      <div class="mt4" style="overflow-x:auto"><table id="gov-table"></table></div>
+    </div>
+  </details>
+
+  <!-- stats -->
+  <div class="stats mt6" id="stats"></div>
+
+  <!-- persona focus -->
+  <div class="rel-focus mt6 row spread" id="focus"></div>
+
+  <!-- cost dashboard -->
+  <div class="card mt6">
+    <div class="pad">
+      <div class="row spread">
+        <div style="font-weight:600;color:var(--s800)">Cost · tokens · latency <span class="muted" style="font-weight:400;font-size:12px">— per persona (illustrative, priced at claude-opus-4-8)</span></div>
+      </div>
+      <div class="mt4" style="overflow-x:auto"><table id="cost-table"></table></div>
+    </div>
+  </div>
+
+  <!-- configurable spine -->
+  <div class="card mt6 pad">
+    <div class="row">
+      <span style="font-weight:600;color:var(--s800)">Spine</span>
+      <span class="muted" id="spine-count" style="font-size:12px"></span>
+      <button class="btn btn-sm" id="spine-reset" style="margin-left:auto;display:none">Reset to full spine</button>
+    </div>
+    <div class="row mt4" id="spine-pills" style="gap:8px"></div>
+  </div>
+
+  <!-- gate banner -->
+  <div class="mt6" id="gate-banner"></div>
+
+  <!-- phase walk -->
+  <div class="mt6" id="phases" style="display:flex;flex-direction:column;gap:16px"></div>
+</div>
+
+<!-- artifact modal -->
+<div class="overlay" id="overlay">
+  <div class="modal">
+    <div class="modal-head">
+      <button class="modal-close" id="modal-close">×</button>
+      <h3 id="modal-title"></h3>
+      <div class="row mt2" id="modal-badges"></div>
+    </div>
+    <div class="modal-body">
+      <button class="btn btn-sm copy-btn" id="modal-copy">Copy</button>
+      <pre id="modal-content"></pre>
+    </div>
+  </div>
+</div>
+
+<footer>
+  APEX SDLC · Offline portal preview (mock data) · the real portal lives in
+  <code>platform/frontend</code> · <a href="index.html">Home</a> ·
+  <a href="reference-journey.html">Reference Journey</a> ·
+  <a href="apex-governance.html">Governance</a>
+</footer>
+
+<script id="apex-data" type="application/json">
+{
+  "project": {
+    "name": "Customer Refunds Service",
+    "stack": "Spring Boot 3.x / Java 21 / PostgreSQL",
+    "description": "A Spring Boot microservice that lets customers self-serve refunds on eligible orders."
+  },
+  "personaOrder": [
+    "developer",
+    "ba",
+    "qa",
+    "pm",
+    "lead",
+    "architect",
+    "ciso"
+  ],
+  "personaLabel": {
+    "developer": "Developer",
+    "ba": "Business Analyst",
+    "qa": "QA Engineer",
+    "pm": "Program Manager",
+    "lead": "Tech Lead",
+    "architect": "Architect",
+    "ciso": "CISO"
+  },
+  "gateRule": "G-5 — SUGGEST and OBSERVE authority can never auto-enforce: those phases always route to a human, regardless of confidence. Higher authorities (ALERT, RATE_LIMIT, BLOCK) auto-enforce only when the agent's confidence clears the harness confidence-gate threshold for that authority.",
+  "ladder": [
+    "OBSERVE",
+    "SUGGEST",
+    "ALERT",
+    "RATE_LIMIT",
+    "BLOCK"
+  ],
+  "stats": {
+    "phase_count": 7,
+    "auto_enforced_count": 2,
+    "human_review_count": 5,
+    "artifact_count": 17,
+    "audit_entries": 7,
+    "confidence_gate_bypass_total": 0
+  },
+  "metrics": [
+    {
+      "persona": "ba",
+      "runs": 1,
+      "tin": 1180,
+      "tout": 920,
+      "cost": 0.088,
+      "ms": 1420
+    },
+    {
+      "persona": "architect",
+      "runs": 1,
+      "tin": 1610,
+      "tout": 1490,
+      "cost": 0.136,
+      "ms": 1880
+    },
+    {
+      "persona": "developer",
+      "runs": 2,
+      "tin": 2240,
+      "tout": 1710,
+      "cost": 0.19,
+      "ms": 1650
+    },
+    {
+      "persona": "qa",
+      "runs": 1,
+      "tin": 1390,
+      "tout": 1280,
+      "cost": 0.118,
+      "ms": 1510
+    },
+    {
+      "persona": "lead",
+      "runs": 1,
+      "tin": 1120,
+      "tout": 1010,
+      "cost": 0.092,
+      "ms": 1240
+    },
+    {
+      "persona": "ciso",
+      "runs": 1,
+      "tin": 1480,
+      "tout": 830,
+      "cost": 0.101,
+      "ms": 1330
+    }
+  ],
+  "phases": [
+    {
+      "phase": "requirements",
+      "label": "Requirements",
+      "persona": "ba",
+      "personaLabel": "Business Analyst",
+      "agent": "RequirementsAgent",
+      "authority": "SUGGEST",
+      "action": "SUGGEST",
+      "confidence": 0.86,
+      "threshold": null,
+      "autoEnforced": false,
+      "rationale": "Scope is clear enough to draft stories; four gaps remain for the BA to resolve.",
+      "summary": "BA turns the brief into Gherkin stories + a gap analysis; a human approves.",
+      "stakeholders": [
+        "ba",
+        "pm",
+        "architect"
+      ],
+      "artifacts": [
+        {
+          "name": "user-stories.md",
+          "kind": "gherkin",
+          "title": "Customer Refunds — User Stories",
+          "content": "# Customer Refunds — User Stories\n\n> Drafted by the Requirements Analyst agent from the project brief. Status: **[AI-Draft]** — awaiting BA approval (harness routed to human review).\n\n```gherkin\nFeature: Customer Refunds\n  As a customer\n  I want to request a refund for an eligible order\n  So that I am reimbursed without contacting support\n\n  Scenario: Eligible order is refunded\n    Given an order that was delivered within the refund window\n    And the order has not already been refunded\n    When the customer requests a refund\n    Then a refund is initiated for the order total\n    And the customer is notified the refund is in progress\n\n  Scenario: Refund window has expired\n    Given an order delivered outside the refund window\n    When the customer requests a refund\n    Then the request is rejected with reason \"window_expired\""
+        },
+        {
+          "name": "gap-analysis.md",
+          "kind": "analysis",
+          "title": "Customer Refunds — Requirements Gap Analysis",
+          "content": "# Customer Refunds — Requirements Gap Analysis\n\nBrief analysed:\n\n> Let customers request a refund on a delivered order without contacting support. Refunds must be eligibility-checked server-side, auditable, idempotent, and must never leak customer PII.\n\n| Area | Covered by brief | Gap flagged for the BA |\n|---|---|---|\n| Happy-path refund | Yes | — |\n| Refund window rules | Partially | Exact window length not specified |\n| Partial refunds | No | Is a partial refund in scope for v1? |\n| Idempotency | No | Define behaviour on duplicate refund requests |\n| Downstream ledger | No | Which system of record posts the credit? |\n\n**Recommendation:** resolve the four gaps above before the Architecture phase."
+        }
+      ]
+    },
+    {
+      "phase": "architecture",
+      "label": "Architecture",
+      "persona": "architect",
+      "personaLabel": "Architect",
+      "agent": "ArchitectureAgent",
+      "authority": "SUGGEST",
+      "action": "SUGGEST",
+      "confidence": 0.84,
+      "threshold": null,
+      "autoEnforced": false,
+      "rationale": "A standalone hexagonal service with idempotent refunds and an outbox to the ledger is the sound choice.",
+      "summary": "Architect proposes an ADR + component diagram; a human signs it off.",
+      "stakeholders": [
+        "architect",
+        "lead",
+        "developer"
+      ],
+      "artifacts": [
+        {
+          "name": "ADR-0001-refund-service.md",
+          "kind": "adr",
+          "title": "ADR-0001 — Customer Refunds bounded context",
+          "content": "# ADR-0001 — Customer Refunds bounded context\n\nStatus: **Proposed** (awaiting architect sign-off — harness routed to human review)\n\n## Context\nCustomer Refunds must evaluate refund eligibility server-side, initiate a credit, and remain auditable. It integrates with the orders read-model and a downstream ledger.\n\n## Decision\n- Implement as a standalone Spring Boot service (Spring Boot 3.x / Java 21 / PostgreSQL) with a hexagonal layering (domain / application / infrastructure / web).\n- Own a `refunds` bounded context; read order state via an anti-corruption port, never a cross-context DB join.\n- Enforce idempotency with a client-supplied `refund_request_id` unique key.\n- Post the credit to the ledger through an outbox + async publisher (no dual-write).\n\n## Consequences\n- (+) Clear ownership, auditable decisions, no distributed transaction.\n- (−) Eventual consistency between refund initiation and ledger posting; surfaced to the customer as \"in progress\"."
+        },
+        {
+          "name": "component-diagram.mmd",
+          "kind": "diagram",
+          "title": "graph LR",
+          "content": "graph LR\n  Client[Customer app] -->|POST /refunds| API[Refund API]\n  API --> Domain[Refund domain]\n  Domain -->|eligibility| Orders[(Orders read-model)]\n  Domain --> Outbox[(Outbox)]\n  Outbox -->|async| Ledger[Ledger service]\n  Domain --> Audit[(Audit log)]"
+        },
+        {
+          "name": "tech-debt.md",
+          "kind": "register",
+          "title": "Tech-Debt Register",
+          "content": "# Tech-Debt Register\n\n| Item | Priority | Target sprint |\n|---|---|---|\n| Outbox publisher lacks dead-letter handling | High | Next |\n| Orders read-model polled, not event-driven | Medium | +2 |"
+        }
+      ]
+    },
+    {
+      "phase": "development",
+      "label": "Development",
+      "persona": "developer",
+      "personaLabel": "Developer",
+      "agent": "PRReviewerAgent",
+      "authority": "ALERT",
+      "action": "ALERT",
+      "confidence": 0.88,
+      "threshold": 0.8,
+      "autoEnforced": true,
+      "rationale": "The change works but has a SQL-injection risk and PII in logs — an advisory review is warranted.",
+      "summary": "PR reviewer flags issues (advisory ALERT); a human still merges.",
+      "stakeholders": [
+        "developer",
+        "lead"
+      ],
+      "artifacts": [
+        {
+          "name": "pr-review.md",
+          "kind": "review",
+          "title": "Customer Refunds — PR Review",
+          "content": "# Customer Refunds — PR Review\n\n> Advisory review by the PR Reviewer agent (harness authority: ALERT). Auto-enforced advisory posting when confident; a human still merges.\n\n- **[MAJOR]** RefundService.initiate() builds SQL by string concatenation — use a parameterised query.\n- **[MAJOR]** Customer email is logged at INFO in RefundController — PII must not be logged.\n- **[MAJOR]** No test covers the 'already_refunded' rejection path."
+        },
+        {
+          "name": "quality-report.md",
+          "kind": "report",
+          "title": "Code Quality Report",
+          "content": "# Code Quality Report\n\n- Findings: **3**\n- Golden-rule checks: parameterised-queries **FAIL**, no-PII-in-logs **FAIL**, test-coverage **WARN**\n- Risk areas: refund initiation path, logging in the web layer"
+        }
+      ]
+    },
+    {
+      "phase": "testing",
+      "label": "Testing",
+      "persona": "qa",
+      "personaLabel": "QA Engineer",
+      "agent": "QAAnalystAgent",
+      "authority": "SUGGEST",
+      "action": "SUGGEST",
+      "confidence": 0.85,
+      "threshold": null,
+      "autoEnforced": false,
+      "rationale": "The plan covers the happy path and all rejection branches; add the missing idempotency test.",
+      "summary": "QA drafts a test plan + BDD cases + coverage gaps; a human approves.",
+      "stakeholders": [
+        "qa",
+        "developer"
+      ],
+      "artifacts": [
+        {
+          "name": "test-plan.md",
+          "kind": "plan",
+          "title": "Customer Refunds — Test Plan",
+          "content": "# Customer Refunds — Test Plan\n\nStatus: **[AI-Draft]** — awaiting QA sign-off (harness routed to human review).\n\n| Aspect | Approach |\n|---|---|\n| Scope | Refund eligibility, initiation, idempotency, rejection paths |\n| Levels | Unit (domain), slice (web), integration (Testcontainers Postgres) |\n| Entry | Stories approved, ADR signed off |\n| Exit | 80% line / 70% branch, all rejection paths covered |\n| Environments | Ephemeral Testcontainers; no production data |"
+        },
+        {
+          "name": "test-cases.md",
+          "kind": "cases",
+          "title": "Customer Refunds — Test Cases (mapped to stories)",
+          "content": "# Customer Refunds — Test Cases (mapped to stories)\n\n| ID | Story | Given → When → Then | Type |\n|---|---|---|---|\n| TC-1 | Eligible refund | delivered in window → request → refund initiated | integration |\n| TC-2 | Window expired | delivered out of window → request → rejected(window_expired) | unit |\n| TC-3 | Already refunded | refunded order → request → rejected(already_refunded) | unit |\n| TC-4 | Idempotency | same refund_request_id twice → one refund | integration |"
+        },
+        {
+          "name": "coverage-gaps.md",
+          "kind": "analysis",
+          "title": "Coverage Gap Analysis",
+          "content": "# Coverage Gap Analysis\n\n- Uncovered: `already_refunded` rejection branch (flagged by PR review too).\n- Uncovered: outbox publisher failure/retry path.\n- Suggested: add TC-3 (unit) and an outbox retry integration test."
+        }
+      ]
+    },
+    {
+      "phase": "cicd",
+      "label": "CI/CD",
+      "persona": "lead",
+      "personaLabel": "Tech Lead",
+      "agent": "ReleaseEngineerAgent",
+      "authority": "RATE_LIMIT",
+      "action": "ALLOW",
+      "confidence": 0.88,
+      "threshold": 0.85,
+      "autoEnforced": true,
+      "rationale": "Checks are green and the rollback is safe; the release can proceed.",
+      "summary": "Release engineer assembles release artifacts; auto-approves when checks are green.",
+      "stakeholders": [
+        "lead",
+        "developer"
+      ],
+      "artifacts": [
+        {
+          "name": "release-notes.md",
+          "kind": "notes",
+          "title": "Customer Refunds — Release Notes (v1.0.0)",
+          "content": "# Customer Refunds — Release Notes (v1.0.0)\n\n## Features\n- Customer-initiated refunds for eligible orders.\n\n## Fixes\n- Reject refunds outside the window and on already-refunded orders.\n\n## Notes\n- Idempotent via `refund_request_id`. Ledger posting is asynchronous."
+        },
+        {
+          "name": "deployment-checklist.md",
+          "kind": "checklist",
+          "title": "Deployment Checklist",
+          "content": "# Deployment Checklist\n\n1. Run DB migration `V1__refunds.sql` (additive, no downtime).\n2. Deploy service (blue/green); verify `/health` green.\n3. Smoke test: eligible refund + rejection paths.\n4. Confirm outbox publisher draining to the ledger."
+        },
+        {
+          "name": "rollback-plan.md",
+          "kind": "plan",
+          "title": "Rollback Plan (v1.0.0)",
+          "content": "# Rollback Plan (v1.0.0)\n\n- Repoint the router to the previous colour (no data loss; migration is additive).\n- Refunds are idempotent, so in-flight retries are safe after rollback.\n- If the ledger already posted, no compensating action is required."
+        }
+      ]
+    },
+    {
+      "phase": "docs",
+      "label": "Docs",
+      "persona": "developer",
+      "personaLabel": "Developer",
+      "agent": "TechWriterAgent",
+      "authority": "SUGGEST",
+      "action": "SUGGEST",
+      "confidence": 0.83,
+      "threshold": null,
+      "autoEnforced": false,
+      "rationale": "The API reference and onboarding guide are ready for a human to publish.",
+      "summary": "Technical writer drafts API + onboarding docs; a human publishes.",
+      "stakeholders": [
+        "developer",
+        "ba"
+      ],
+      "artifacts": [
+        {
+          "name": "api-reference.md",
+          "kind": "reference",
+          "title": "Customer Refunds — API Reference",
+          "content": "# Customer Refunds — API Reference\n\n## POST /api/v1/refunds\nInitiate a refund for an eligible order.\n\n**Request**\n```json\n{ \"order_id\": \"ord_123\", \"refund_request_id\": \"rrq_abc\" }\n```\n\n**Responses**\n- `202 Accepted` — refund initiated (asynchronous ledger posting).\n- `409 Conflict` — `already_refunded`.\n- `422 Unprocessable` — `window_expired`.\n\nAll responses use RFC 7807 Problem Details on error."
+        },
+        {
+          "name": "onboarding-guide.md",
+          "kind": "guide",
+          "title": "Customer Refunds — Onboarding Guide",
+          "content": "# Customer Refunds — Onboarding Guide\n\n1. `docker compose up` (Postgres + service).\n2. Run migrations; seed a delivered order.\n3. `POST /api/v1/refunds` with an eligible `order_id`.\n4. Observe the outbox draining to the ledger and the audit entry written."
+        }
+      ]
+    },
+    {
+      "phase": "governance",
+      "label": "Governance",
+      "persona": "ciso",
+      "personaLabel": "CISO",
+      "agent": "ComplianceOfficerAgent",
+      "authority": "BLOCK",
+      "action": "ALERT",
+      "confidence": 0.6,
+      "threshold": 0.95,
+      "autoEnforced": false,
+      "rationale": "Two golden-rule breaches at moderate risk — material but not certain; a human should decide.",
+      "summary": "Compliance officer assesses risk; a confident material breach can auto-block.",
+      "stakeholders": [
+        "ciso",
+        "lead",
+        "architect"
+      ],
+      "artifacts": [
+        {
+          "name": "governance-report.md",
+          "kind": "report",
+          "title": "Customer Refunds — Governance & Audit Report",
+          "content": "# Customer Refunds — Governance & Audit Report\n\n- Policy violations: **2**\n- Composite risk score: **0.60**\n- Confidence gate: BLOCK auto-enforces only at ≥ 0.95; below that a human decides.\n- Every phase decision in this project was recorded in the append-only audit log."
+        },
+        {
+          "name": "risk-register.md",
+          "kind": "register",
+          "title": "Risk Register",
+          "content": "# Risk Register\n\n| Risk | Likelihood | Impact | Mitigation |\n|---|---|---|---|\n| PII in logs (flagged in PR review) | Medium | High | Redact in web layer; PII guard |\n| SQL injection (flagged in PR review) | Low | Critical | Parameterised queries only |\n| Ledger posting lag | Medium | Medium | Outbox + retry; surface \"in progress\" |"
+        }
+      ]
+    }
+  ]
+}
+</script>
+<script>
+const DATA = JSON.parse(document.getElementById('apex-data').textContent);
+const PHASE_ORDER = DATA.phases.map(p => p.phase);
+const state = {
+  persona: 'lead',
+  onlyMine: false,
+  enabled: new Set(PHASE_ORDER),
+  approved: new Set(),
+};
+const esc = s => String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+const byPhase = Object.fromEntries(DATA.phases.map(p => [p.phase, p]));
+
+function isRelevant(p){ return p.persona === state.persona || p.stakeholders.includes(state.persona); }
+function enabledPhases(){ return DATA.phases.filter(p => state.enabled.has(p.phase)); }
+function gateStatus(p){ return (p.autoEnforced || state.approved.has(p.phase)) ? 'passed' : 'pending'; }
+function blockingPhase(){ for (const p of enabledPhases()) if (gateStatus(p) !== 'passed') return p.phase; return null; }
+
+/* ---- header + persona switcher ---- */
+function renderHeader(){
+  document.getElementById('hdr-sub').textContent =
+    DATA.project.name + ' — one project walking the SDLC spine. The confidence gate, not the agent, decides what auto-enforces.';
+  document.getElementById('hdr-desc').textContent = DATA.project.description || '';
+  const sel = document.getElementById('persona-select');
+  sel.innerHTML = DATA.personaOrder.map(k => `<option value="${k}">${esc(DATA.personaLabel[k])}</option>`).join('');
+  sel.value = state.persona;
+  sel.onchange = () => { state.persona = sel.value; renderFocus(); renderCost(); renderPhases(); };
+}
+
+/* ---- governance panel ---- */
+function renderGovernance(){
+  document.getElementById('gov-rule').textContent = DATA.gateRule;
+  document.getElementById('gov-ladder').textContent = 'Authority ladder (weakest → strongest): ' + DATA.ladder.join(' < ');
+  const rows = DATA.phases.map(p => {
+    const t = p.threshold === null
+      ? '<span style="color:var(--amber700)">never (G-5)</span>'
+      : `<span class="tnum">≥ ${p.threshold.toFixed(2)}</span>`;
+    return `<tr><td>${esc(p.label)}</td><td class="pill-mono">${esc(p.authority)}</td><td>${t}</td></tr>`;
+  }).join('');
+  document.getElementById('gov-table').innerHTML =
+    '<thead><tr><th>Phase</th><th>Authority</th><th>Auto-enforce threshold</th></tr></thead><tbody>' + rows + '</tbody>';
+}
+
+/* ---- stats ---- */
+function renderStats(){
+  const ep = enabledPhases();
+  const auto = ep.filter(p => p.autoEnforced).length;
+  const arts = ep.reduce((n,p) => n + p.artifacts.length, 0);
+  const tiles = [
+    ['Phases', ep.length], ['Artifacts', arts], ['Auto-enforced', auto],
+    ['Human review', ep.length - auto], ['Audit entries', ep.length], ['Gate bypasses', 0],
+  ];
+  document.getElementById('stats').innerHTML =
+    tiles.map(([l,n]) => `<div class="tile"><div class="n">${n}</div><div class="l">${l}</div></div>`).join('');
+}
+
+/* ---- persona focus ---- */
+function renderFocus(){
+  const rel = DATA.phases.filter(isRelevant).length;
+  document.getElementById('focus').innerHTML =
+    `<span>Viewing as <strong>${esc(DATA.personaLabel[state.persona])}</strong> — ${rel} of ${DATA.phases.length} phases involve you.</span>` +
+    `<button class="btn btn-sm" id="only-mine">${state.onlyMine ? 'Show all phases' : 'Only my phases'}</button>`;
+  document.getElementById('only-mine').onclick = () => { state.onlyMine = !state.onlyMine; renderFocus(); renderPhases(); };
+}
+
+/* ---- cost dashboard ---- */
+function renderCost(){
+  const rows = DATA.metrics.map(m => {
+    const active = m.persona === state.persona ? ' class="active-row"' : '';
+    return `<tr${active}><td>${esc(DATA.personaLabel[m.persona])}</td><td class="tnum">${m.runs}</td>` +
+      `<td class="tnum">${m.tin.toLocaleString()}</td><td class="tnum">${m.tout.toLocaleString()}</td>` +
+      `<td class="tnum">$${m.cost.toFixed(3)}</td><td class="tnum">${m.ms} ms</td></tr>`;
+  }).join('');
+  const T = DATA.metrics.reduce((a,m) => ({runs:a.runs+m.runs, tin:a.tin+m.tin, tout:a.tout+m.tout, cost:a.cost+m.cost}), {runs:0,tin:0,tout:0,cost:0});
+  const total = `<tr style="font-weight:700;color:var(--s800)"><td>Total</td><td class="tnum">${T.runs}</td>` +
+    `<td class="tnum">${T.tin.toLocaleString()}</td><td class="tnum">${T.tout.toLocaleString()}</td>` +
+    `<td class="tnum">$${T.cost.toFixed(3)}</td><td></td></tr>`;
+  document.getElementById('cost-table').innerHTML =
+    '<thead><tr><th>Persona</th><th>Runs</th><th>Tokens in</th><th>Tokens out</th><th>Est. cost</th><th>Avg latency</th></tr></thead><tbody>' +
+    rows + total + '</tbody>';
+}
+
+/* ---- spine picker ---- */
+function renderSpine(){
+  document.getElementById('spine-count').textContent =
+    `Toggle phases to model a lighter SDLC — ${state.enabled.size}/${PHASE_ORDER.length} enabled.`;
+  const reset = document.getElementById('spine-reset');
+  reset.style.display = state.enabled.size === PHASE_ORDER.length ? 'none' : '';
+  reset.onclick = () => { state.enabled = new Set(PHASE_ORDER); renderAll(); };
+  document.getElementById('spine-pills').innerHTML = PHASE_ORDER.map(ph => {
+    const on = state.enabled.has(ph);
+    return `<button class="spine-pill ${on ? 'on' : ''}" data-ph="${ph}">${esc(byPhase[ph].label)}</button>`;
+  }).join('');
+  document.querySelectorAll('.spine-pill').forEach(b => b.onclick = () => {
+    const ph = b.dataset.ph;
+    if (state.enabled.has(ph)) { if (state.enabled.size > 1) state.enabled.delete(ph); }
+    else state.enabled.add(ph);
+    renderStats(); renderSpine(); renderGate(); renderPhases();
+  });
+}
+
+/* ---- gate banner ---- */
+function renderGate(){
+  const b = blockingPhase();
+  const el = document.getElementById('gate-banner');
+  if (b === null) {
+    el.className = 'mt6 banner banner-green';
+    el.innerHTML = '<strong>Spine clear</strong> — every phase gate passed. The project can flow end to end.';
+  } else {
+    el.className = 'mt6 banner banner-amber';
+    el.innerHTML = `<strong>Spine blocked at ${esc(byPhase[b].label)}</strong> — a phase can't advance until its spec is approved. Approve the pending specs below.`;
+  }
+}
+
+/* ---- phase cards ---- */
+function thresholdBadge(p){
+  if (p.threshold === null)
+    return '<span class="pill pill-amber" title="SUGGEST/OBSERVE never auto-enforce (G-5)">🔒 never auto-enforces · G-5</span>';
+  const clears = p.confidence >= p.threshold;
+  const cls = clears ? 'pill-green' : 'pill';
+  return `<span class="${'pill ' + (clears ? 'pill-green' : '')}">threshold: ${p.threshold.toFixed(2)}${clears ? ' ✓' : ''}</span>`;
+}
+function outcomeBadge(p){
+  return p.autoEnforced
+    ? '<span class="pill pill-green">🛡 Auto-enforced</span>'
+    : '<span class="pill pill-amber">👤 Human review</span>';
+}
+function gateBadge(st){
+  if (st === 'passed') return '<span class="pill pill-green">✓ Gate passed</span>';
+  if (st === 'failed') return '<span class="pill pill-red">Gate failed</span>';
+  return '<span class="pill pill-amber">◷ Gate pending</span>';
+}
+function renderPhases(){
+  let phases = enabledPhases();
+  if (state.onlyMine) phases = phases.filter(isRelevant);
+  document.getElementById('phases').innerHTML = phases.map(p => {
+    const idx = PHASE_ORDER.indexOf(p.phase) + 1;
+    const rel = isRelevant(p), owns = p.persona === state.persona;
+    const st = gateStatus(p);
+    const canApprove = st === 'pending' && !p.autoEnforced;
+    const appr = state.approved.has(p.phase);
+    const youBadge = rel ? `<span class="pill pill-you">${owns ? 'Your step' : 'You contribute'}</span>` : '';
+    const approveBtn = canApprove
+      ? `<button class="btn btn-sm approve" data-ph="${p.phase}" ${appr ? 'style="border-color:var(--green200);background:var(--green50);color:var(--green700)"' : ''}>${appr ? 'Approved ✓' : 'Approve spec'}</button>`
+      : (appr ? `<button class="btn btn-sm approve" data-ph="${p.phase}">Un-approve</button>` : '');
+    const chips = p.artifacts.map(a =>
+      `<button class="chip" data-ph="${p.phase}" data-name="${esc(a.name)}"><span>📄</span><span class="pill-mono">${esc(a.name)}</span><span class="k">· ${esc(a.kind)}</span></button>`
+    ).join('');
+    return `<div class="phase ${rel ? 'ring' : 'dim'}">
+      <div class="row" style="gap:12px">
+        <span class="step">${idx}</span>
+        <h3>${esc(p.label)}</h3>
+        <span class="pill pill-persona">${esc(p.personaLabel)}</span>
+        ${youBadge}
+        <span style="margin-left:auto" class="row">${gateBadge(st)}${approveBtn}<span class="agent">${esc(p.agent)}</span></span>
+      </div>
+      <p class="summary">${esc(p.summary)}</p>
+      <div class="row mt4" style="gap:8px">
+        <span class="pill">authority: ${esc(p.authority)}</span>
+        <span class="pill">decision: ${esc(p.action)}</span>
+        <span class="pill">confidence: ${p.confidence.toFixed(2)}</span>
+        ${thresholdBadge(p)}
+        ${outcomeBadge(p)}
+      </div>
+      <p class="rationale">${esc(p.rationale)}</p>
+      <div class="mt4"><div class="lbl">Artifacts (${p.artifacts.length})</div><div class="arts">${chips}</div></div>
+    </div>`;
+  }).join('');
+  document.querySelectorAll('.approve').forEach(b => b.onclick = () => {
+    const ph = b.dataset.ph;
+    state.approved.has(ph) ? state.approved.delete(ph) : state.approved.add(ph);
+    renderGate(); renderPhases();
+  });
+  document.querySelectorAll('.chip').forEach(c => c.onclick = () => openArtifact(c.dataset.ph, c.dataset.name));
+}
+
+/* ---- artifact modal ---- */
+function openArtifact(phase, name){
+  const a = byPhase[phase].artifacts.find(x => x.name === name);
+  document.getElementById('modal-title').textContent = a.title;
+  document.getElementById('modal-badges').innerHTML =
+    `<span class="pill pill-mono">${esc(a.name)}</span><span class="pill">${esc(a.kind)}</span><span class="pill">markdown</span>`;
+  document.getElementById('modal-content').textContent = a.content + '\n\n… excerpt — regenerate the journey for the full artifact.';
+  const copy = document.getElementById('modal-copy');
+  copy.textContent = 'Copy';
+  copy.onclick = async () => { try { await navigator.clipboard.writeText(a.content); copy.textContent = 'Copied'; } catch(e){} };
+  document.getElementById('overlay').classList.add('open');
+}
+function closeModal(){ document.getElementById('overlay').classList.remove('open'); }
+document.getElementById('modal-close').onclick = closeModal;
+document.getElementById('overlay').onclick = e => { if (e.target.id === 'overlay') closeModal(); };
+document.addEventListener('keydown', e => { if (e.key === 'Escape') closeModal(); });
+
+function renderAll(){ renderStats(); renderFocus(); renderCost(); renderSpine(); renderGate(); renderPhases(); }
+renderHeader(); renderGovernance(); renderAll();
+</script>
+</body>
+</html>
