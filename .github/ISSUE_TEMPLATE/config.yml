@@ -1,8 +1,8 @@
 blank_issues_enabled: true
 contact_links:
   - name: Try the reference journey
-    url: https://github.com/suplab/apex-sdlc/blob/main/examples/reference-project/README.md
+    url: https://github.com/doubts-suplab/apex-sdlc/blob/main/examples/reference-project/README.md
     about: Walk one project through all seven governed SDLC phases offline before filing an issue.
   - name: Roadmap & progress
-    url: https://github.com/suplab/apex-sdlc/blob/main/docs/progress.md
+    url: https://github.com/doubts-suplab/apex-sdlc/blob/main/docs/progress.md
     about: Check what's built vs. planned — your idea may already be on the backlog.
