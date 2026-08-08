@@ -22,6 +22,7 @@ from agent_harness.adapters import (
 from agent_harness.core.harness import BYPASS_COUNTER
 from agent_harness.ports.llm import LlmPort
 
+from .authority import confidence_threshold
 from .catalog import PHASE_CATALOG, PhaseSpec, spec_for
 from .context import AgentContext
 from .pricing import cost_usd
@@ -40,6 +41,9 @@ class JourneyPhase:
     authority: str
     action: str
     confidence: float
+    # The confidence the agent had to clear to auto-enforce, or None if this phase can never auto-enforce
+    # (gate rule G-5: SUGGEST/OBSERVE always route to a human). Derived from the harness confidence gate.
+    confidence_threshold: float | None
     auto_enforced: bool
     outcome: str  # "auto-enforced" | "human-review"
     rationale: str
@@ -70,7 +74,8 @@ class JourneyResult:
         # kept in-memory for persistence but excluded here so the committed journey.json stays reproducible.
         stable = {
             "phase", "label", "persona", "stakeholders", "agent_name", "authority", "action",
-            "confidence", "auto_enforced", "outcome", "rationale", "eeik_agent", "summary", "artifacts",
+            "confidence", "confidence_threshold", "auto_enforced", "outcome", "rationale",
+            "eeik_agent", "summary", "artifacts",
         }
         return {
             "project": self.project,
@@ -180,6 +185,7 @@ def _run_phase(harness: Any, spec: PhaseSpec, project: dict[str, Any], llm: LlmP
         authority=spec.authority.name,
         action=decision.action.value,
         confidence=decision.confidence,
+        confidence_threshold=confidence_threshold(spec),
         auto_enforced=decision.auto_enforced,
         outcome="auto-enforced" if decision.auto_enforced else "human-review",
         rationale=decision.rationale,

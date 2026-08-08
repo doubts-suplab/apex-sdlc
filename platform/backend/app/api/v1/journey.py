@@ -12,6 +12,7 @@ from typing import Any
 
 from fastapi import APIRouter, HTTPException
 
+from app.agents.authority import authority_model
 from app.agents.catalog import PERSONAS, phases_for_persona
 from app.agents.metrics import metrics_by_persona
 from app.agents.orchestrator import run_reference_journey
@@ -50,6 +51,15 @@ async def get_reference_journey(persona: str | None = None) -> dict[str, Any]:
         wanted = {s.phase for s in phases_for_persona(persona)}
         data = {**data, "phases": [p for p in data["phases"] if p["phase"] in wanted], "persona": persona}
     return data
+
+
+@router.get("/authority", summary="Authority ladder + per-phase confidence thresholds (gate rule G-5)")
+async def get_authority_model() -> dict[str, Any]:
+    """Return the governance read model: the G-5 rule, the authority ladder, and each phase's
+    confidence-gate threshold (``null`` where the phase can never auto-enforce). Catalog + harness
+    derived — no DB, no LLM run, safe offline.
+    """
+    return authority_model()
 
 
 @router.get("/reference/gates", summary="Evaluate the spine's phase gates across the reference journey")

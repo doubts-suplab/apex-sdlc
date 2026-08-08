@@ -19,6 +19,8 @@ export const JourneyPhaseSchema = z.object({
   authority: z.string(),
   action: z.string(),
   confidence: z.number(),
+  // The confidence bar this phase had to clear to auto-enforce; null ⇒ never auto-enforces (gate rule G-5).
+  confidence_threshold: z.number().nullable().optional(),
   auto_enforced: z.boolean(),
   outcome: z.string(), // "auto-enforced" | "human-review"
   rationale: z.string(),
@@ -78,3 +80,21 @@ export const ReferenceGatesSchema = z.object({
   all_passed: z.boolean(),
 });
 export type ReferenceGates = z.infer<typeof ReferenceGatesSchema>;
+
+// mirrors backend app/agents/authority.py (authority_model) + app/api/v1/journey.py /journey/authority
+export const AuthorityPhaseSchema = z.object({
+  phase: z.string(),
+  label: z.string(),
+  authority: z.string(),
+  auto_enforces: z.boolean(),
+  confidence_threshold: z.number().nullable(),
+  note: z.string(),
+});
+export type AuthorityPhase = z.infer<typeof AuthorityPhaseSchema>;
+
+export const AuthorityModelSchema = z.object({
+  gate_rule: z.string(),
+  authority_ladder: z.array(z.string()),
+  phases: z.array(AuthorityPhaseSchema),
+});
+export type AuthorityModel = z.infer<typeof AuthorityModelSchema>;

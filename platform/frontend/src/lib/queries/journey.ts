@@ -1,6 +1,13 @@
 import { useQuery } from "@tanstack/react-query";
 import { apiFetch } from "@/lib/api";
-import { Journey, JourneySchema, ReferenceGates, ReferenceGatesSchema } from "@/types/journey";
+import {
+  AuthorityModel,
+  AuthorityModelSchema,
+  Journey,
+  JourneySchema,
+  ReferenceGates,
+  ReferenceGatesSchema,
+} from "@/types/journey";
 
 /**
  * The reference journey — one project's governed walk through all seven SDLC phases.
@@ -32,5 +39,20 @@ export function useReferenceGates(approved: string[]) {
       return ReferenceGatesSchema.parse(data);
     },
     staleTime: 60_000,
+  });
+}
+
+/**
+ * The authority ladder + per-phase confidence thresholds and the G-5 rule.
+ * Catalog + harness derived (no LLM run). Backed by GET /api/v1/journey/authority.
+ */
+export function useAuthorityModel() {
+  return useQuery<AuthorityModel>({
+    queryKey: ["journey", "authority"],
+    queryFn: async () => {
+      const data = await apiFetch<unknown>("/journey/authority");
+      return AuthorityModelSchema.parse(data);
+    },
+    staleTime: 5 * 60_000,
   });
 }
