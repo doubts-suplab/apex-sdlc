@@ -70,22 +70,22 @@ For an honest, increment-by-increment view of what is built vs. planned, see
 │  ┌──────────────────────────────────────────────────────────┐   │
 │  │              Next.js 14 Portal (App Router)              │   │
 │  │   Persona views: Dev | BA | PM | QA | Lead | Architect   │   │
-│  │                    | CISO                                 │   │
+│  │                    | CISO                                │   │
 │  └─────────────────────────┬────────────────────────────────┘   │
 │                            │  REST / SSE                        │
 │  ┌─────────────────────────▼────────────────────────────────┐   │
-│  │              FastAPI Backend  (/api/v1/)                  │   │
-│  │   ┌──────────┐  ┌──────────┐  ┌──────────────────────┐  │   │
-│  │   │ Services │  │  Agents  │  │     Middleware        │  │   │
-│  │   │ layer    │  │ (Celery) │  │ PII Guard | Audit     │  │   │
-│  │   └──────────┘  └──────────┘  └──────────────────────┘  │   │
-│  └───┬──────┬──────────┬────────────┬────────┬─────────────┘   │
+│  │              FastAPI Backend  (/api/v1/)                 │   │
+│  │   ┌──────────┐  ┌──────────┐  ┌──────────────────────┐   │   │
+│  │   │ Services │  │  Agents  │  │     Middleware       │   │   │
+│  │   │ layer    │  │ (Celery) │  │ PII Guard | Audit    │   │   │
+│  │   └──────────┘  └──────────┘  └──────────────────────┘   │   │
+│  └───┬──────┬──────────┬────────────┬────────┬──────────────┘   │
 │      │      │          │            │        │                  │
-│  ┌───▼──┐ ┌─▼────┐ ┌──▼───────┐ ┌──▼──┐ ┌──▼───────────────┐  │
-│  │ PG   │ │Redis │ │Claude API│ │ S3  │ │  External APIs   │  │
-│  │  16  │ │+Clry │ │opus-4-8  │ │Artf │ │ GitHub | Jira    │  │
-│  │      │ │      │ │          │ │     │ │ Confluence       │  │
-│  └──────┘ └──────┘ └──────────┘ └─────┘ └──────────────────┘  │
+│  ┌───▼──┐ ┌─▼────┐ ┌───▼──────┐ ┌───▼──┐ ┌───▼──────────────┐   │
+│  │ PG   │ │Redis │ │Claude API│ │ S3   │ │  External APIs   │   │
+│  │  16  │ │+Clry │ │opus-4-8  │ │Artf  │ │ GitHub | Jira    │   │
+│  │      │ │      │ │          │ │      │ │ Confluence       │   │
+│  └──────┘ └──────┘ └──────────┘ └──────┘ └──────────────────┘   │
 │                                                                 │
 └─────────────────────────────────────────────────────────────────┘
 ```
@@ -424,6 +424,11 @@ no dead scripts.
 | Single navigable docs site / better GitHub Pages experience for the HTML docs | P2 | offline |
 | Make the runtime source-of-truth for prompts/templates more prominent (vs. the reference libraries) | P2 | offline |
 
+> **✅ Built (Increments 25–26):** README Quick Start + "what works today vs. planned" table; stale
+> eeik-bootstrap links cleaned across `platform/README`, the HTML docs, and the manifest; and an offline,
+> interactive **[Portal Preview](../docs/portal-preview.html)** page (slate UI, mock data) linked from the
+> docs nav — a step toward the "single navigable docs site" item.
+
 ### Theme 3 — Developer experience & operational maturity
 
 | Item | Priority | Feasibility |
@@ -435,6 +440,10 @@ no dead scripts.
 | Richer observability metrics (agent cost, gate latency, confidence distribution) surfaced in the PM view earlier | P1 | offline |
 | AWS CDK / production deployment (ECS Fargate, RDS Aurora, S3, Secrets Manager) — the main enterprise-trial blocker | P1 | infra-gated |
 
+> **✅ Built (Increment 25):** the one-command **smoke test** (`make smoke`), a root **`Makefile`** for the
+> offline demos/tests/checks, and the frontend **per-artifact content view**. Still pending: live SSE
+> progress, the webhook-activity feed (needs event persistence), and the CDK deploy.
+
 ### Theme 4 — Architecture & design
 
 | Item | Priority | Feasibility |
@@ -444,6 +453,12 @@ no dead scripts.
 | Keep the catalog-as-source-of-truth discipline (docs + backend + frontend updated together) | P1 | offline |
 | Make the phase spine **configurable** — optional phases, custom gates — for orgs not wanting the full 7-phase model | P1 | offline |
 | PII guard: planned Comprehend/NLP layer (names/addresses) + stronger persistence for regulated environments | P2 | infra-gated |
+
+> **✅ Built (Increment 25):** **confidence thresholds + the G-5 rule** are now surfaced in the UI
+> (`GET /journey/authority` + the "How governance decides" panel + per-phase threshold badges) and in the
+> generated `journey.json`; and the **phase spine is configurable** (`SpineConfig` — optional phases +
+> per-phase gate overrides, exposed via `?phases=` and a UI spine picker). The catalog-as-source-of-truth
+> discipline (docs ↔ backend ↔ frontend) was kept throughout.
 
 ### Theme 5 — Product / adoption surface
 
