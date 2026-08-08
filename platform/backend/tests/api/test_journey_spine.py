@@ -25,9 +25,9 @@ async def test_reference_journey_full_when_no_phases(client: AsyncClient):
 async def test_reference_journey_invalid_phase_is_400(client: AsyncClient):
     resp = await client.get("/api/v1/journey/reference?phases=requirements,bogus")
     assert resp.status_code == 400
-    body = resp.json()
-    assert body["status"] == 400  # RFC-7807
-    assert "bogus" in body["detail"]
+    problem = resp.json()["detail"]  # RFC-7807 problem detail (under `detail`, like the auth 401/403)
+    assert problem["status"] == 400
+    assert "bogus" in problem["detail"]
 
 
 async def test_reference_gates_respect_the_spine_subset(client: AsyncClient):
