@@ -19,7 +19,7 @@ import {
 import { usePersona } from "@/lib/persona";
 import { CostDashboard } from "@/components/projects/CostDashboard";
 import { ArtifactChip } from "@/components/journey/ArtifactChip";
-import { PERSONA_LABELS, PHASE_LABELS, Persona, PhaseType } from "@/types/project";
+import { PERSONA_LABELS, PHASE_LABELS, PHASE_ORDER, Persona, PhaseType } from "@/types/project";
 import { GateResult, JourneyPhase } from "@/types/journey";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -286,10 +286,22 @@ function JourneySkeleton() {
 
 export default function JourneyPage() {
   const { persona, mounted } = usePersona();
-  const { data, isLoading, isError, error } = useReferenceJourney();
+  const [enabledPhases, setEnabledPhases] = useState<PhaseType[]>(PHASE_ORDER);
+  // A full spine ⇒ send no `phases` param (identical to the default reference behaviour).
+  const phasesArg = enabledPhases.length === PHASE_ORDER.length ? undefined : enabledPhases;
+  const { data, isLoading, isError, error } = useReferenceJourney(undefined, phasesArg);
   const [onlyMine, setOnlyMine] = useState(false);
   const [approved, setApproved] = useState<string[]>([]);
-  const gatesQuery = useReferenceGates(approved);
+  const gatesQuery = useReferenceGates(approved, phasesArg);
+
+  const togglePhase = (ph: PhaseType) =>
+    setEnabledPhases((prev) =>
+      prev.includes(ph)
+        ? prev.length > 1
+          ? prev.filter((p) => p !== ph)
+          : prev // keep at least one phase enabled
+        : PHASE_ORDER.filter((p) => p === ph || prev.includes(p))
+    );
 
   const gateByPhase = new Map((gatesQuery.data?.gates ?? []).map((g) => [g.phase, g]));
   const toggleApprove = (ph: string) =>
@@ -372,6 +384,46 @@ export default function JourneyPage() {
 
       {/* Cost / token / latency dashboard, per persona */}
       <CostDashboard selectedPersona={persona} />
+
+      {/* Configurable spine — toggle phases to model a lighter SDLC */}
+      <div className="rounded-lg border border-slate-200 bg-white px-4 py-3">
+        <div className="flex flex-wrap items-center gap-2">
+          <span className="text-sm font-medium text-slate-700">Spine</span>
+          <span className="text-xs text-slate-500">
+            Toggle phases to model a lighter SDLC — {enabledPhases.length}/{PHASE_ORDER.length} enabled.
+          </span>
+          {enabledPhases.length !== PHASE_ORDER.length && (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setEnabledPhases(PHASE_ORDER)}
+              className="ml-auto h-7 text-xs"
+            >
+              Reset to full spine
+            </Button>
+          )}
+        </div>
+        <div className="mt-2 flex flex-wrap gap-2">
+          {PHASE_ORDER.map((ph) => {
+            const on = enabledPhases.includes(ph);
+            return (
+              <button
+                key={ph}
+                type="button"
+                onClick={() => togglePhase(ph)}
+                className={cn(
+                  "rounded-full border px-3 py-1 text-xs font-medium transition-colors",
+                  on
+                    ? "border-slate-900 bg-slate-900 text-white"
+                    : "border-slate-200 bg-slate-50 text-slate-400 line-through"
+                )}
+              >
+                {phaseLabel(ph)}
+              </button>
+            );
+          })}
+        </div>
+      </div>
 
       {/* Spine gate status */}
       {gatesQuery.data && (

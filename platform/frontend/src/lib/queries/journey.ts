@@ -13,11 +13,15 @@ import {
  * The reference journey — one project's governed walk through all seven SDLC phases.
  * Optionally filter to a persona's phases. Backed by GET /api/v1/journey/reference.
  */
-export function useReferenceJourney(persona?: string) {
+export function useReferenceJourney(persona?: string, phases?: string[]) {
+  const phasesCsv = phases && phases.length > 0 ? [...phases].sort().join(",") : undefined;
   return useQuery<Journey>({
-    queryKey: ["journey", "reference", { persona }],
+    queryKey: ["journey", "reference", { persona, phasesCsv }],
     queryFn: async () => {
-      const query = persona ? `?persona=${encodeURIComponent(persona)}` : "";
+      const params = new URLSearchParams();
+      if (persona) params.set("persona", persona);
+      if (phasesCsv) params.set("phases", phasesCsv);
+      const query = params.toString() ? `?${params.toString()}` : "";
       const data = await apiFetch<unknown>(`/journey/reference${query}`);
       return JourneySchema.parse(data);
     },
@@ -29,12 +33,16 @@ export function useReferenceJourney(persona?: string) {
  * Phase-gate evaluation across the reference journey, given approved phases.
  * Backed by GET /api/v1/journey/reference/gates?approved=<csv>.
  */
-export function useReferenceGates(approved: string[]) {
+export function useReferenceGates(approved: string[], phases?: string[]) {
   const csv = [...approved].sort().join(",");
+  const phasesCsv = phases && phases.length > 0 ? [...phases].sort().join(",") : undefined;
   return useQuery<ReferenceGates>({
-    queryKey: ["journey", "reference", "gates", csv],
+    queryKey: ["journey", "reference", "gates", csv, phasesCsv],
     queryFn: async () => {
-      const query = csv ? `?approved=${encodeURIComponent(csv)}` : "";
+      const params = new URLSearchParams();
+      if (csv) params.set("approved", csv);
+      if (phasesCsv) params.set("phases", phasesCsv);
+      const query = params.toString() ? `?${params.toString()}` : "";
       const data = await apiFetch<unknown>(`/journey/reference/gates${query}`);
       return ReferenceGatesSchema.parse(data);
     },
