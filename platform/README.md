@@ -56,7 +56,7 @@ The harness is declared as a backend dependency in `backend/pyproject.toml` and 
 
 ## eeik-bootstrap usage
 
-This project is scaffolded and extended using [eeik-bootstrap](https://github.com/your-org/eeik-bootstrap). The `project-manifest.yaml` in this directory drives code generation.
+This project is scaffolded and extended using [eeik-bootstrap](https://github.com/doubts-suplab/eeik-bootstrap). The `project-manifest.yaml` in this directory drives code generation.
 
 Key commands (run from repo root with eeik CLI installed):
 
