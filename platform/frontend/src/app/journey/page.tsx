@@ -18,6 +18,7 @@ import {
 } from "@/lib/queries/journey";
 import { usePersona } from "@/lib/persona";
 import { CostDashboard } from "@/components/projects/CostDashboard";
+import { ArtifactChip } from "@/components/journey/ArtifactChip";
 import { PERSONA_LABELS, PHASE_LABELS, Persona, PhaseType } from "@/types/project";
 import { GateResult, JourneyPhase } from "@/types/journey";
 import { Badge } from "@/components/ui/badge";
@@ -265,15 +266,7 @@ function PhaseCard({
         </div>
         <div className="flex flex-wrap gap-2">
           {phase.artifacts.map((a) => (
-            <span
-              key={a.name}
-              className="inline-flex items-center gap-1.5 rounded-md border border-slate-200 bg-slate-50 px-2 py-1 text-xs text-slate-700"
-              title={a.title}
-            >
-              <span className="font-mono">{a.name}</span>
-              <span className="text-slate-400">·</span>
-              <span className="text-slate-500">{a.kind}</span>
-            </span>
+            <ArtifactChip key={a.name} artifact={a} />
           ))}
         </div>
       </div>
