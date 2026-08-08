@@ -9,7 +9,8 @@
 
 BACKEND  := platform/backend
 FRONTEND := platform/frontend
-VENV_PY  := $(BACKEND)/.venv/bin/python
+# Absolute so it still resolves after a target `cd`s into $(BACKEND).
+VENV_PY  := $(CURDIR)/$(BACKEND)/.venv/bin/python
 PYTHON   ?= $(shell [ -x $(VENV_PY) ] && echo $(VENV_PY) || echo python3)
 # Run demos from the backend dir so `-m app.demo.*` resolves; stub provider = offline.
 RUN      := cd $(BACKEND) && LLM_PROVIDER=stub $(PYTHON)
