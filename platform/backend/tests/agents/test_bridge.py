@@ -9,15 +9,15 @@ round-trip. These tests are self-contained (no DB / FastAPI) — run with
 from __future__ import annotations
 
 import pytest
-from agent_harness import AuthorityLevel, Decision, DecisionAction, ToolRegistry
-from agent_harness.adapters import (
+from halo_agent_harness import AuthorityLevel, Decision, DecisionAction, ToolRegistry
+from halo_agent_harness.adapters import (
     InMemoryAudit,
     InMemoryHumanReview,
     InMemoryKillSwitch,
     InMemoryObservability,
     StubLlm,
 )
-from agent_harness.core.agent import ToolInvoker
+from halo_agent_harness.core.agent import ToolInvoker
 
 from app.agents import (
     AgentContext,
@@ -130,7 +130,7 @@ class _CapturingLogger:
 def test_structlog_audit_redacts_pii():
     from datetime import datetime, timezone
 
-    from agent_harness.ports.governance import AuditEntry
+    from halo_agent_harness.ports.governance import AuditEntry
 
     log = _CapturingLogger()
     audit = StructlogAudit(logger=log)

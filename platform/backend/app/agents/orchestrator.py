@@ -12,15 +12,15 @@ from __future__ import annotations
 from dataclasses import asdict, dataclass, field
 from typing import Any
 
-from agent_harness import ToolRegistry
-from agent_harness.adapters import (
+from halo_agent_harness import ToolRegistry
+from halo_agent_harness.adapters import (
     InMemoryAudit,
     InMemoryHumanReview,
     InMemoryKillSwitch,
     InMemoryObservability,
 )
-from agent_harness.core.harness import BYPASS_COUNTER
-from agent_harness.ports.llm import LlmPort
+from halo_agent_harness.core.harness import BYPASS_COUNTER
+from halo_agent_harness.ports.llm import LlmPort
 
 from .catalog import PHASE_CATALOG, PhaseSpec
 from .context import AgentContext

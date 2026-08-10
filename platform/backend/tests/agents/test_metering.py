@@ -5,8 +5,8 @@ Self-contained: ``pytest --noconftest tests/agents/test_metering.py``.
 
 from __future__ import annotations
 
-from agent_harness import ToolRegistry
-from agent_harness.adapters import StubLlm
+from halo_agent_harness import ToolRegistry
+from halo_agent_harness.adapters import StubLlm
 
 from app.agents import RequirementsAgent, build_apex_harness, run_agent
 from app.agents.context import AgentContext

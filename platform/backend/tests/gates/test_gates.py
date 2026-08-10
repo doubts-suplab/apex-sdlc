@@ -5,7 +5,7 @@ Run with ``pytest --noconftest tests/gates/test_gates.py``.
 
 from __future__ import annotations
 
-from agent_harness.adapters import StubLlm
+from halo_agent_harness.adapters import StubLlm
 
 from app.agents.orchestrator import run_reference_journey
 from app.gates.criteria import default_criteria

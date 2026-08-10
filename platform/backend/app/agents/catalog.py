@@ -15,7 +15,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 
-from agent_harness import AuthorityLevel
+from halo_agent_harness import AuthorityLevel
 
 from .architecture import ArchitectureAgent
 from .base import PhaseAgent

@@ -10,7 +10,7 @@ from __future__ import annotations
 import uuid
 from typing import Any
 
-from agent_harness import ToolRegistry
+from halo_agent_harness import ToolRegistry
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel, Field
 

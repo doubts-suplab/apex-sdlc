@@ -8,7 +8,7 @@ gate is never bypassed. Self-contained (no DB / FastAPI) — run with
 
 from __future__ import annotations
 
-from agent_harness.adapters import StubLlm
+from halo_agent_harness.adapters import StubLlm
 
 from app.agents import PHASE_ORDER, phases_for_persona, run_reference_journey
 from app.agents.catalog import PERSONAS

@@ -7,7 +7,7 @@ from __future__ import annotations
 
 from collections.abc import AsyncIterator
 
-from agent_harness.ports.llm import CompletionResult, Message, ToolDefinition
+from halo_agent_harness.ports.llm import CompletionResult, Message, ToolDefinition
 
 from app.agents.base import PhaseAgent
 from app.middleware.pii_guard import PiiGuard

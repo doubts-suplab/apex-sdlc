@@ -9,15 +9,15 @@ FastAPI) — run with ``pytest --noconftest tests/agents/test_phase_agents.py``.
 from __future__ import annotations
 
 import pytest
-from agent_harness import AuthorityLevel, DecisionAction, ToolRegistry
-from agent_harness.adapters import (
+from halo_agent_harness import AuthorityLevel, DecisionAction, ToolRegistry
+from halo_agent_harness.adapters import (
     InMemoryAudit,
     InMemoryHumanReview,
     InMemoryKillSwitch,
     InMemoryObservability,
     StubLlm,
 )
-from agent_harness.core.harness import BYPASS_COUNTER
+from halo_agent_harness.core.harness import BYPASS_COUNTER
 
 from app.agents import (
     AgentContext,

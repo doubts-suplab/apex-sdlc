@@ -16,9 +16,9 @@ from abc import ABC, abstractmethod
 from collections.abc import Awaitable
 from typing import Any, TypeVar
 
-from agent_harness import AgentInput, AuthorityLevel, Decision, DecisionAction
-from agent_harness.core.agent import ToolInvoker
-from agent_harness.ports.llm import LlmPort, Message
+from halo_agent_harness import AgentInput, AuthorityLevel, Decision, DecisionAction
+from halo_agent_harness.core.agent import ToolInvoker
+from halo_agent_harness.ports.llm import LlmPort, Message
 
 from app.middleware.pii_guard import PiiGuard
 

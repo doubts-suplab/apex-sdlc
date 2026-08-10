@@ -11,8 +11,8 @@ from __future__ import annotations
 from typing import Any
 
 import structlog
-from agent_harness.adapters import redact
-from agent_harness.ports.governance import (
+from halo_agent_harness.adapters import redact
+from halo_agent_harness.ports.governance import (
     AuditEntry,
     InvocationMetric,
     ReviewItem,
