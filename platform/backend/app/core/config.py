@@ -24,6 +24,12 @@ class Settings(BaseSettings):
     # When true, the global auth middleware requires a valid bearer token on every route except the
     # allowlist (health/docs/auth). Off by default so the offline demo endpoints stay open.
     AUTH_REQUIRED: bool = Field(default=False, description="Enforce JWT auth on all non-allowlisted routes")
+    # When true, project-scoped writes additionally require the token subject to be a Member of the
+    # project (persona reconciled against the members table). Off by default so the demo stays open.
+    MEMBERSHIP_REQUIRED: bool = Field(
+        default=False,
+        description="Require the token subject to be a project Member for project writes",
+    )
     LOG_LEVEL: str = Field(default="INFO", description="Logging level")
     APP_VERSION: str = Field(default="1.0.0", description="Application version")
 

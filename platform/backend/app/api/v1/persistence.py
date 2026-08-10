@@ -14,6 +14,7 @@ from pydantic import BaseModel, Field
 
 from app.agents.catalog import PHASE_ORDER
 from app.agents.orchestrator import run_reference_journey, run_single_phase
+from app.api.deps import require_project_member
 from app.core.security import Principal, require_persona
 from app.db.session import DbSession
 from app.integrations.llm.factory import get_llm_provider
@@ -116,6 +117,7 @@ async def approve_phase(
     db: DbSession,
     svc: Svc,
     principal: Annotated[Principal, Depends(require_persona(*_APPROVER_PERSONAS))],
+    _member: Annotated[Principal, Depends(require_project_member)],
     body: ApprovalRequest | None = None,
 ) -> dict[str, Any]:
     """Approve/reject a phase's spec as the authenticated approver; persisted + attributable."""

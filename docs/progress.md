@@ -6,6 +6,14 @@ write-back, persistence, gates) so the [ROADMAP](../ROADMAP.md) and the code nev
 
 Legend: ✅ done · 🚧 partial · ❌ not started · 📋 planned (scoped, not started)
 
+**Status convention.** ✅ means an increment's **offline scope is complete** — everything buildable and
+verifiable without credentials or cloud infra is done. Some ✅ increments carry a *"gated remainder"* — a
+tail that genuinely needs a live LLM key, real third-party credentials, or AWS (e.g. real generation
+quality, live write-backs, S3, OIDC). That remainder is **not unfinished offline work**; it's tracked in
+the [First Production Slice + backlog](../ROADMAP.md#priority-initiative--first-production-slice-vertical-v1)
+and only closes when the environment provides those inputs. 🚧 is reserved for increments that still have
+**offline** work left to do.
+
 ---
 
 ## 📋 Planning note — external maturity review folded into the roadmap
@@ -33,6 +41,25 @@ The capability table at the foot of this file remains the per-capability truth; 
 where the newly-articulated gaps and their priorities now live.
 
 ---
+
+## Increment 28 — Completion sweep A: identity (closes Increments 8, 16, 17) ✅
+
+A **completion** increment, not a new feature — it finishes the identity story that three earlier
+increments each left a tail of, so they now read as done to their offline scope.
+
+- ✅ **Members + Teams CRUD API** (`app/api/v1/members.py` + `MemberService`): `POST/GET
+  /organisations/{id}/teams` and `POST/GET /projects/{id}/members` (writes Lead/CISO-gated). Closes
+  Increment 16's "members CRUD API" tail.
+- ✅ **Token→Member binding at request time** (`app/api/deps.py::require_project_member`): reconciles the
+  bearer token `sub` against the project's members; **opt-in** via `MEMBERSHIP_REQUIRED` (default off so
+  the offline demo/tests are unaffected), wired onto the approve write. Closes Increment 17's and
+  Increment 8's "persona↔Member binding" tails.
+- ✅ **Onboarding seeds a default `core` team** for the org when a project is persisted. Closes Increment
+  16's "onboarding seeding a default team" tail.
+- ✅ 6 tests (`tests/api/test_members.py`): team + member CRUD, admin-persona gating (403), enforcement
+  off-by-default vs on (non-member 403 → add member → 200), and onboarding seeding. **195 total green;**
+  `examples/` byte-identical; migration drift-guard green (no new tables — reuses `teams`/`members`).
+- **Gated remainder (not offline, tracked in V1):** a real credential/OIDC store + refresh tokens.
 
 ## Increment 27 — Durable, identity-bound gate approvals (V1 P0) 🚧
 
@@ -248,7 +275,7 @@ Phase 0 deliverable.
 - ❌ **Not yet:** actually creating the GitHub repo (credential-gated), and the eeik LLM-driven
   `repository-generator` for richer, input-tailored source (this is the deterministic stand-in).
 
-## Increment 17 — Global auth middleware (opt-in, allowlist-based) 🚧
+## Increment 17 — Global auth middleware (opt-in, allowlist-based) ✅
 
 Closes Increment 8's "global auth enforcement" gap without breaking the offline demo.
 
@@ -261,8 +288,9 @@ Closes Increment 8's "global auth enforcement" gap without breaking the offline 
 - ✅ 4 tests (`tests/api/test_auth_middleware.py`): default-off leaves routes open; enforced → 401 without
   a token, 200 with, 401 on a bad token; health + `/auth/token` stay open under enforcement. **133 total
   green;** `examples/` byte-identical.
-- ❌ **Not yet:** binding the token's persona to a project `Member` at request time (the mapping exists —
-  Increment 16 — but isn't enforced), and refresh tokens.
+- ✅ **Token→Member binding now built** (Increment 28): `require_project_member` binds the token subject
+  to a project `Member` at request time, opt-in via `MEMBERSHIP_REQUIRED` (default off). **Gated remainder
+  (not offline):** refresh tokens + a real credential/OIDC store — tracked in the V1 slice.
 
 ## Increment 16 — Team & Member models (the last missing data-model tables) ✅
 
@@ -276,8 +304,9 @@ Adds the final two entities from the core data model, closing Increment 1's "mis
   `0001 → 0002` and still matches `Base.metadata` exactly.
 - ✅ 2 model tests (`tests/models/test_team_member.py`): team + members persist with personas and the
   `(project, subject)` uniqueness constraint is enforced. **129 total green.**
-- ❌ **Not yet:** a members CRUD API + onboarding seeding a default team, and enforcing that a token's
-  persona matches a project member at request time (the mapping exists; wiring it into RBAC is the follow-on).
+- ✅ **All follow-ons now built** (Increment 28): a members/teams CRUD API, onboarding seeds a default
+  `core` team, and `require_project_member` enforces the token↔member binding at request time
+  (opt-in via `MEMBERSHIP_REQUIRED`). This increment's scope is fully complete.
 
 ## Increment 15 — Alembic baseline migration (schema versioning) ✅
 
@@ -447,8 +476,9 @@ persona-scoped RBAC guards a sensitive write.
 - ✅ 11 tests (`tests/api/test_auth.py`): token round-trip, tampered/expired/malformed rejection, unknown
   persona rejected, token endpoint + `/me`, and the persist write's 401/403/200 RBAC matrix. **95 total
   green;** `examples/` byte-identical.
-- ❌ **Not yet:** a real credential/user store (password/OIDC), **global** auth middleware on every route
-  (only the persist write is guarded today), persona↔`Member` mapping, and token refresh.
+- ✅ **Global auth middleware** built (Increment 17); **persona↔`Member` binding** built (Increment 28,
+  opt-in). **Gated remainder (not offline):** a real credential/user store (password/OIDC) + token refresh
+  — tracked in the V1 slice, not buildable in the offline environment.
 
 ## Increment 7 — PII guard on agent I/O (ROADMAP Phase 5, golden-rule gap) 🚧
 
@@ -602,7 +632,7 @@ The running shell exists; most of the data model and cross-cutting middleware do
 | **Phase-gate engine** — enforce the spec-driven spine's phase transitions | Phase 5 | 🚧 pure engine + API + UI built offline; DB persistence + approval store pending |
 | **PII guard on agent I/O** — regex scrub outgoing / scan+log incoming on every LLM call | Phase 5 | 🚧 middleware built + wired (Increment 7); `pii_events` persistence + Comprehend NLP layer pending |
 | **Governance persistence** — audit_log, pii_events, policy_violations tables + CISO view + ARB | Phase 5 | 🚧 tables + population during persist + CISO-gated read API built (Increment 14) + CISO/Lead frontend governance panel (Increment 23); append-only DB enforcement + ARB workflow pending |
-| **Auth & RBAC** — JWT, persona-scoped access | Phase 5 | 🚧 HS256 JWT + `require_persona` built (Increment 8), guarding the journey-persist write; global auth middleware built opt-in (Increment 17); credential store + refresh + member-binding pending |
+| **Auth & RBAC** — JWT, persona-scoped access | Phase 5 | ✅ *offline scope* — HS256 JWT + `require_persona` (Increment 8), global auth middleware opt-in (Increment 17), members/teams API + token↔`Member` binding opt-in (Increment 28). Gated remainder: credential/OIDC store + refresh tokens |
 | **AWS deploy** — CDK (ECS Fargate, RDS Aurora, ElastiCache, S3) | Phase 5 | ❌ |
 
 **One-line status:** the framework is *demonstrable and governed end-to-end offline*, but the substance —

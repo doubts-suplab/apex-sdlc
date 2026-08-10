@@ -12,6 +12,7 @@ from app.api.v1 import (
     gates,
     integrations,
     journey,
+    members,
     onboarding,
     organisations,
     persistence,
@@ -37,6 +38,7 @@ api_router.include_router(gates.router)
 api_router.include_router(persistence.router)
 api_router.include_router(devops.router)
 api_router.include_router(webhooks.router)
+api_router.include_router(members.router)
 
 
 @api_router.get(
