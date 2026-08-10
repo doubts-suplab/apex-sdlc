@@ -24,9 +24,10 @@ dependencies = [
     "python-dotenv>=1.0.0",
     # Onboarding reads vendored eeik manifests / capability matrix / question sets (YAML).
     "pyyaml>=6.0",
-    # Generic agent runtime — apex runs its phase agents on the harness rather than hand-rolling
-    # agent execution. See app/agents/ and github.com/doubts-suplab/agent-harness.
-    "agent-harness @ git+https://github.com/doubts-suplab/agent-harness@claude/agent-harness-architecture-y33wmy",
+    # Generic agent runtime — apex runs its phase agents on HALO rather than hand-rolling agent
+    # execution. See app/agents/ and github.com/doubts-suplab/agent-harness. Renamed to
+    # halo-agent-harness (agent-harness ADR-0013); the Python binding lives under bindings/python.
+    "halo-agent-harness @ git+https://github.com/doubts-suplab/agent-harness@main#subdirectory=bindings/python",
 ]
 
 [project.optional-dependencies]

@@ -17,15 +17,15 @@ from __future__ import annotations
 import json
 from typing import Any
 
-from agent_harness import (
+from halo_agent_harness import (
     AuthorityLevel,
     ConfidenceGate,
     Decision,
     DecisionAction,
     Harness,
 )
-from agent_harness.core.agent import ToolInvoker
-from agent_harness.ports.llm import LlmPort
+from halo_agent_harness.core.agent import ToolInvoker
+from halo_agent_harness.ports.llm import LlmPort
 
 from app.agents.base import PhaseAgent
 from app.agents.context import AgentContext, AgentResult
@@ -73,7 +73,7 @@ class DevOpsAgent(PhaseAgent):
         will_execute = fully_resolved and confidence >= threshold
 
         if will_execute:
-            results = self._execute(plan, tools)
+            results = self._execute(plan, tools, confidence)
             self._emit_plan("devops-execution-log.md", intent, plan, executed=True, results=results)
             return Decision(
                 DecisionAction.ALLOW,
@@ -92,11 +92,19 @@ class DevOpsAgent(PhaseAgent):
             ),
         )
 
-    def _execute(self, plan: list[PlannedCall], tools: ToolInvoker) -> list[dict[str, Any]]:
-        """Run each planned call through the harness ToolInvoker (default-deny enforced per call)."""
+    def _execute(
+        self, plan: list[PlannedCall], tools: ToolInvoker, confidence: float
+    ) -> list[dict[str, Any]]:
+        """Run each planned call through the harness ToolInvoker (default-deny enforced per call).
+
+        Write/external tools are gated by the harness side-effect policy, which requires the
+        invocation to carry a ``confidence`` clearing the side-effect threshold. We pass the flow's
+        own vetted confidence — execution only reaches here when it already cleared the auto-enforce
+        bar for this authority (``will_execute``).
+        """
         results: list[dict[str, Any]] = []
         for call in plan:
-            outcome = tools.call(call.tool, call.arguments)
+            outcome = tools.call(call.tool, call.arguments, confidence=confidence)
             results.append({"tool": call.tool, "arguments": call.arguments, "result": outcome})
         return results
 

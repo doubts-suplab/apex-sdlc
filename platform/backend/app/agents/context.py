@@ -10,7 +10,7 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from typing import Any
 
-from agent_harness import AgentInput, AgentOutput, Decision
+from halo_agent_harness import AgentInput, AgentOutput, Decision
 
 
 @dataclass

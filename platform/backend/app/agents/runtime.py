@@ -9,8 +9,8 @@ from __future__ import annotations
 
 import time
 
-from agent_harness import Harness, ToolRegistry
-from agent_harness.ports.governance import (
+from halo_agent_harness import Harness, ToolRegistry
+from halo_agent_harness.ports.governance import (
     AuditPort,
     HumanReviewPort,
     KillSwitchPort,

@@ -8,8 +8,8 @@ from __future__ import annotations
 import json
 
 import pytest
-from agent_harness import ToolNotAuthorizedError, ToolRegistry
-from agent_harness.adapters import StubLlm
+from halo_agent_harness import ToolNotAuthorizedError, ToolRegistry
+from halo_agent_harness.adapters import StubLlm
 
 from app.agents.tools import DEVOPS_AGENT_NAME, build_tool_registry
 from app.agents.tools.adapters import OFFLINE_ADAPTERS, ToolArgumentError, open_pull_request

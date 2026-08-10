@@ -7,9 +7,9 @@ borderline ALERT is routed to a human. The agent never decides its own enforceme
 
 from __future__ import annotations
 
-from agent_harness import AuthorityLevel, Decision, DecisionAction
-from agent_harness.core.agent import ToolInvoker
-from agent_harness.ports.llm import Message
+from halo_agent_harness import AuthorityLevel, Decision, DecisionAction
+from halo_agent_harness.core.agent import ToolInvoker
+from halo_agent_harness.ports.llm import Message
 
 from .base import PhaseAgent
 from .context import AgentContext

@@ -10,7 +10,7 @@ from __future__ import annotations
 
 from typing import Any
 
-from agent_harness import ToolRegistry
+from halo_agent_harness import ToolRegistry
 
 from app.agents.tools.adapters import OFFLINE_ADAPTERS
 from app.agents.tools.catalog import TOOL_CATALOG
