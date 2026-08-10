@@ -20,9 +20,11 @@ from app.agents.pricing import cost_usd
 from app.core.logging import get_logger
 from app.gates.engine import evaluate_journey
 from app.models.agent_run import AgentRun
+from app.models.approval import GateApproval
 from app.models.artifact import Artifact, ArtifactVersion
 from app.models.audit import AuditLog, PiiEvent, PolicyViolation
 from app.models.phase import Phase, PhaseGate
+from app.models.team import Member
 
 logger = get_logger(__name__)
 
@@ -353,6 +355,69 @@ class PersistenceService:
             .where(Phase.project_id == project_id)
         )
         return [{"phase": phase_type, "status": status} for phase_type, status in result.all()]
+
+    # -- gate approvals (durable, identity-bound) ------------------------------------------------
+    async def record_approval(
+        self,
+        project_id: uuid.UUID,
+        phase: str,
+        approver_subject: str,
+        approver_persona: str,
+        *,
+        decision: str = "approved",
+        note: str | None = None,
+    ) -> GateApproval:
+        """Persist a human approval/rejection of a phase spec, bound to the Member if one exists.
+
+        Append-only: each call is a new row (an audit trail of who decided what, when). The current
+        state of a phase is the latest row (see :meth:`approved_phases`).
+        """
+        member_id = await self._member_id_for(project_id, approver_subject)
+        approval = GateApproval(
+            project_id=project_id,
+            phase=phase,
+            approver_subject=approver_subject,
+            approver_persona=approver_persona,
+            member_id=member_id,
+            decision=decision,
+            note=note,
+        )
+        self._db.add(approval)
+        await self._db.flush()
+        await self._db.refresh(approval)
+        logger.info(
+            "gate.approval.recorded",
+            project_id=str(project_id),
+            phase=phase,
+            decision=decision,
+            subject=approver_subject,
+            member_bound=member_id is not None,
+        )
+        return approval
+
+    async def _member_id_for(self, project_id: uuid.UUID, subject: str) -> uuid.UUID | None:
+        result = await self._db.execute(
+            select(Member.id).where(
+                Member.project_id == project_id, Member.subject == subject
+            )
+        )
+        return result.scalar_one_or_none()
+
+    async def list_approvals(self, project_id: uuid.UUID) -> list[GateApproval]:
+        result = await self._db.execute(
+            select(GateApproval)
+            .where(GateApproval.project_id == project_id)
+            .order_by(GateApproval.created_at)
+        )
+        return list(result.scalars().all())
+
+    async def approved_phases(self, project_id: uuid.UUID) -> set[str]:
+        """Phases whose *latest* decision is ``approved`` (a later ``rejected`` withdraws it)."""
+        approvals = await self.list_approvals(project_id)
+        latest: dict[str, str] = {}
+        for a in approvals:  # ordered by created_at → last write wins
+            latest[a.phase] = a.decision
+        return {phase for phase, decision in latest.items() if decision == "approved"}
 
     async def list_audit_log(self, project_id: uuid.UUID) -> list[AuditLog]:
         result = await self._db.execute(

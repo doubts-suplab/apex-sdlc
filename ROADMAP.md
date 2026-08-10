@@ -158,7 +158,8 @@ runs on the credentialed path behind config.
 - A configured LLM provider yields **input-driven** Requirements + Architecture artifacts, with quality
   evaluation and robust fallbacks for short/failed replies (no silent empty artifacts).
 - Onboarding creates a real GitHub repo and a persisted `Project` row (Phase 0 credentialed path).
-- A gate approval is **durable** (stored, identity-bound to a project `Member`), not in-memory.
+- A gate approval is **durable** (stored, identity-bound to a project `Member`), not in-memory. ✅ **built
+  (Increment 27):** `GateApproval` model + `POST .../approve` + spine reads stored approvals.
 - Exactly one live write-back fires under the harness confidence gate, default-deny tool registry, and
   an append-only audit entry — idempotently (event de-dup so a retry does not double-post).
 - A lightweight metrics path records the run (cost, tokens, latency, gate outcome) so early adopters can
@@ -410,7 +411,7 @@ no dead scripts.
 | Onboarding: real GitHub repo creation + full DB persistence of onboarded projects | 0 | P0 | credential-gated |
 | Onboarding: richer LLM-driven repository-generator (beyond the deterministic scaffold) | 0/3 | P1 | credential-gated |
 | Reconcile the Pydantic onboarding manifest with eeik's canonical schema | 0 | P1 | offline |
-| S3 artifact storage + durable gate evaluations + approval/identity store | 4/5 | P0 (approvals) / P1 (S3) | offline (approvals via DB) + infra-gated (S3) |
+| S3 artifact storage + durable gate evaluations + approval/identity store | 4/5 | P0 (approvals) / P1 (S3) | offline (approvals via DB) + infra-gated (S3) — ✅ **durable approval/identity store built (Increment 27)**; S3 + durable gate-eval snapshots still pending |
 | Full spine enforcement in production + ARB workflow | 5 | P1 | offline (spine) + credential-gated (ARB write) |
 | Auth/RBAC completion: bind token persona → project `Member`, credential store, refresh tokens, prod-hardening | 5 | P0 (member-binding) / P1 (rest) | offline |
 

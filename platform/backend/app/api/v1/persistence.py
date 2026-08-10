@@ -10,6 +10,7 @@ import uuid
 from typing import Annotated, Any
 
 from fastapi import APIRouter, Depends, HTTPException, Query
+from pydantic import BaseModel, Field
 
 from app.agents.catalog import PHASE_ORDER
 from app.agents.orchestrator import run_reference_journey, run_single_phase
@@ -55,6 +56,26 @@ async def _require_project(db: DbSession, project_id: uuid.UUID) -> None:
     await _load_project(db, project_id)
 
 
+def _require_known_phase(phase: str) -> None:
+    if phase not in PHASE_ORDER:
+        raise HTTPException(
+            status_code=404,
+            detail={
+                "type": "https://apex.example.com/problems/unknown-phase",
+                "title": "Unknown Phase",
+                "status": 404,
+                "detail": f"Phase {phase!r} is not one of {list(PHASE_ORDER)}.",
+            },
+        )
+
+
+class ApprovalRequest(BaseModel):
+    """Body for approving/rejecting a phase spec."""
+
+    decision: str = Field(default="approved", pattern="^(approved|rejected)$")
+    note: str | None = Field(default=None, max_length=2000)
+
+
 def _project_dict(project: Project, inputs: dict[str, Any] | None = None) -> dict[str, Any]:
     """Build the agent-facing project dict from the stored project, enriched with per-run inputs."""
     base: dict[str, Any] = {
@@ -76,9 +97,73 @@ async def persist_journey(
     approved: Annotated[str | None, Query()] = None,
 ) -> dict[str, Any]:
     await _require_project(db, project_id)
-    approvals = {p.strip() for p in approved.split(",")} if approved else set()
+    # Durable approvals recorded via POST .../approve are authoritative; the ad-hoc ?approved= query
+    # param still works and is unioned on top (handy for one-off runs / demos).
+    approvals = await svc.approved_phases(project_id)
+    if approved:
+        approvals |= {p.strip() for p in approved.split(",")}
     journey = run_reference_journey(get_llm_provider())
     return await svc.persist_journey(project_id, journey, approvals)
+
+
+@router.post(
+    "/{project_id}/phases/{phase}/approve",
+    summary="Record a durable, identity-bound approval of a phase spec",
+)
+async def approve_phase(
+    project_id: uuid.UUID,
+    phase: str,
+    db: DbSession,
+    svc: Svc,
+    principal: Annotated[Principal, Depends(require_persona(*_APPROVER_PERSONAS))],
+    body: ApprovalRequest | None = None,
+) -> dict[str, Any]:
+    """Approve/reject a phase's spec as the authenticated approver; persisted + attributable."""
+    _require_known_phase(phase)
+    await _require_project(db, project_id)
+    req = body or ApprovalRequest()
+    approval = await svc.record_approval(
+        project_id,
+        phase,
+        approver_subject=principal.subject,
+        approver_persona=principal.persona,
+        decision=req.decision,
+        note=req.note,
+    )
+    return {
+        "id": str(approval.id),
+        "project_id": str(approval.project_id),
+        "phase": approval.phase,
+        "decision": approval.decision,
+        "approver_subject": approval.approver_subject,
+        "approver_persona": approval.approver_persona,
+        "member_bound": approval.member_id is not None,
+        "note": approval.note,
+    }
+
+
+@router.get("/{project_id}/approvals", summary="Stored gate approvals for a project (history)")
+async def list_approvals(project_id: uuid.UUID, db: DbSession, svc: Svc) -> dict[str, Any]:
+    await _require_project(db, project_id)
+    items = await svc.list_approvals(project_id)
+    current = await svc.approved_phases(project_id)
+    return {
+        "total": len(items),
+        "approved_phases": sorted(current),
+        "items": [
+            {
+                "id": str(a.id),
+                "phase": a.phase,
+                "decision": a.decision,
+                "approver_subject": a.approver_subject,
+                "approver_persona": a.approver_persona,
+                "member_bound": a.member_id is not None,
+                "note": a.note,
+                "created_at": a.created_at.isoformat() if a.created_at else None,
+            }
+            for a in items
+        ],
+    }
 
 
 @router.post(

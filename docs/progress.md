@@ -34,6 +34,28 @@ where the newly-articulated gaps and their priorities now live.
 
 ---
 
+## Increment 27 — Durable, identity-bound gate approvals (V1 P0) 🚧
+
+The first build against the [First Production Slice](../ROADMAP.md#priority-initiative--first-production-slice-vertical-v1):
+the "durable human approval" leg. A phase approval was ephemeral — a `?approved=<phase>` query param
+evaluated in-memory and never recorded. It is now **stored, attributable, and authoritative**.
+
+- ✅ **`GateApproval` model + migration `0003`** (append-only history): who approved (JWT subject +
+  persona), when, decision (`approved`/`rejected`), optional note, **bound to the project `Member`** when
+  the subject maps to one (`member_id`, SET NULL). Migration matches the models (drift-guard green).
+- ✅ **`PersistenceService.record_approval` / `approved_phases` / `list_approvals`:** a phase's current
+  state is the *latest* decision (a later `rejected` withdraws an earlier `approved`), so the spine reads
+  a consistent, audited approval set.
+- ✅ **API:** `POST /projects/{id}/phases/{phase}/approve` (approver-persona gated — 403 otherwise, 404 on
+  unknown phase/project) records the durable approval; `GET /projects/{id}/approvals` returns the history
+  + current `approved_phases`. `journey/persist` now **unions stored approvals** (the `?approved=` param
+  still works and stacks on top), so a durable approval unblocks the spine on the next run without re-passing it.
+- ✅ 7 tests (member-bound vs null, latest-wins reject, approver-gating 403, unknown-phase 404, and a
+  full "approve → re-persist → spine advances past requirements" flow) via aiosqlite. **189 total green;**
+  `examples/` byte-identical.
+- ❌ **Not yet (V1 continues):** an approval action in the frontend that hits this endpoint, and tying the
+  approval into the live write-back gate (a write-back fires only for an approved phase).
+
 ## Increment 26 — Docs: an offline, interactive portal preview + docs refresh ✅
 
 The docs now **show** the portal, not just describe it — an offline replica of the `/journey` UI with mock
