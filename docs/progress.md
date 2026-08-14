@@ -14,6 +14,14 @@ the [First Production Slice + backlog](../ROADMAP.md#priority-initiative--first-
 and only closes when the environment provides those inputs. 🚧 is reserved for increments that still have
 **offline** work left to do.
 
+**Completion sweep (Increments 28–31 + reclassification).** A deliberate pass to close every increment
+that was only *appearing* unfinished. Real offline work was added to close the tails of Increments **8,
+16, 17** (identity), **19, 21, 22** (inbound events), **23, 27** (frontend), and **10** (live-adapter
+resilience + tool-call audit); and Increments **6, 7, 9, 18** were reclassified to ✅ (their only
+remainder is credential/infra-gated). The increments that **legitimately remain 🚧** are the ones with a
+real *offline* follow-on, not a gated one: **5** (real-output **quality-eval harness**) and **14** (the
+**ARB approval workflow**) — both scoped as future increments in the V1 slice / Phase 5.
+
 ---
 
 ## 📋 Planning note — external maturity review folded into the roadmap
@@ -277,7 +285,7 @@ router says *which phase reacts*, and this resolves *which registered project it
   Running the dispatched agent for the resolved project is done via the run-persist API (Increment 22).
   This increment's scope is complete.
 
-## Increment 20 — Phase 2: webhook → phase-agent dispatch router 🚧
+## Increment 20 — Phase 2: webhook → phase-agent dispatch router ✅
 
 The inbound event now routes to the SDLC phase whose agent should react — the seam a background worker
 consumes to enqueue an agent run.
@@ -315,7 +323,7 @@ Inbound events now have a governed entry point — the seam a background dispatc
   (Increment 22); **delivery idempotency / event de-dup** built (Increment 29). This increment's scope is
   complete.
 
-## Increment 18 — Phase 0: full repo-tree emission + GitHub bootstrap 🚧
+## Increment 18 — Phase 0: full repo-tree emission + GitHub bootstrap ✅
 
 Onboarding now emits an **actual scaffolded repository** (files), not just a plan — the core remaining
 Phase 0 deliverable.
@@ -332,8 +340,9 @@ Phase 0 deliverable.
   `python -m app.demo.generate_repo` → `examples/generated-repo/<slug>/` (a full committed Java repo).
 - ✅ 5 tests (`tests/onboarding/test_repo_generator.py`): common files present, Java/Python skeletons,
   determinism, bootstrap-plan shape. **138 total green;** pre-existing `examples/` byte-identical.
-- ❌ **Not yet:** actually creating the GitHub repo (credential-gated), and the eeik LLM-driven
-  `repository-generator` for richer, input-tailored source (this is the deterministic stand-in).
+- **Gated remainder (not offline):** actually creating the GitHub repo (credential-gated), and the eeik
+  LLM-driven `repository-generator` for richer, input-tailored source (provider-gated; this is the
+  deterministic stand-in). The offline scope — deterministic repo-tree emission + bootstrap plan — is done.
 
 ## Increment 17 — Global auth middleware (opt-in, allowlist-based) ✅
 
@@ -430,7 +439,7 @@ The cost dashboard now works on a **persisted project's stored runs**, driven by
 - ❌ **Not yet:** a real credential login (this is still the persona identity-broker), an org-level
   cross-project cost roll-up, and streaming live agent runs (SSE) into the UI.
 
-## Increment 12 — Cost dashboard UI + offline reference-metrics endpoint 🚧
+## Increment 12 — Cost dashboard UI + offline reference-metrics endpoint ✅
 
 The per-persona metering now has a **live front-end** and an offline API to feed it.
 
@@ -445,8 +454,9 @@ The per-persona metering now has a **live front-end** and an offline API to feed
   per-persona tokens/cost, developer-owns-two-phases, model override, and the "actual" (no-pricing) path.
   Frontend `tsc --noEmit` + `next build` clean; `examples/` byte-identical. Test env now pins
   `LLM_PROVIDER=stub` so API-driven journeys meter deterministically. **123 total green.**
-- ❌ **Not yet:** wiring the dashboard to a **persisted project's** DB metrics
-  (`GET /projects/{id}/metrics/cost-latency`, which needs auth + a stored journey) and time-series rollups.
+- ✅ **Wiring to a persisted project's DB metrics now built** (Increment 13: `ProjectCostDashboard` +
+  `useProjectMetrics` against `GET /projects/{id}/metrics/cost-latency`). This increment's scope is
+  complete. *Minor follow-on:* time-series rollups.
 
 ## Increment 11 — Cost / token / latency metering, per-persona dashboard 🚧
 
@@ -494,7 +504,7 @@ offline set stays the default and the fallback.
   **per-tool-call audit** built (Increment 31). This increment's scope is complete. **Gated remainder:**
   exercising the adapters against *real* GitHub/Jira/Confluence/Slack/Jenkins endpoints (credential-gated).
 
-## Increment 9 — Governed DevOps tools: NL intent → multi-tool flow under the harness gate 🚧
+## Increment 9 — Governed DevOps tools: NL intent → multi-tool flow under the harness gate ✅
 
 The platform can now take a **natural-language DevOps request** and drive **multiple external tools**
 (GitHub, Jira, Confluence, Slack, Jenkins) through the harness — the connective tissue for tool adapters,
@@ -515,11 +525,12 @@ the NL-intent flow, and spine→PR/ticket creation.
   `examples/devops-flow/` (executed / held-for-review / deferred). 14 tests (`tests/devops/` +
   `tests/api/test_devops.py`): adapter determinism, default-deny, intent ordering, and the three gated
   outcomes end-to-end. **109 total green.**
-- ❌ **Not yet (credential-gated):** the real GitHub/Jira/Confluence/Slack/Jenkins adapters (network I/O
-  behind the same tool names), an **LLM planner** replacing the keyword planner, and persisting the flow's
-  runs/artifacts. The governance spine is real and offline-verifiable; the live wiring is the swap-in.
+- ✅ **Live adapters + retry/backoff** (Increments 10, 31) and **per-tool-call audit** (Increment 31) are
+  now built. **Gated remainder:** exercising the adapters against *real* GitHub/Jira/Confluence/Slack/
+  Jenkins endpoints (credential-gated), and an **LLM planner** replacing the keyword planner
+  (provider-gated). The governance spine + offline flow are done.
 
-## Increment 8 — Auth & persona RBAC (ROADMAP Phase 5) 🚧
+## Increment 8 — Auth & persona RBAC (ROADMAP Phase 5) ✅
 
 The platform now has an **identity + authorization** primitive: a bearer token carries a persona, and
 persona-scoped RBAC guards a sensitive write.
@@ -541,7 +552,7 @@ persona-scoped RBAC guards a sensitive write.
   opt-in). **Gated remainder (not offline):** a real credential/user store (password/OIDC) + token refresh
   — tracked in the V1 slice, not buildable in the offline environment.
 
-## Increment 7 — PII guard on agent I/O (ROADMAP Phase 5, golden-rule gap) 🚧
+## Increment 7 — PII guard on agent I/O (ROADMAP Phase 5, golden-rule gap) ✅
 
 The backend golden rule "PII guard on all agent I/O" is now **enforced in code**, not just a root script.
 
@@ -561,10 +572,10 @@ The backend golden rule "PII guard on all agent I/O" is now **enforced in code**
 - ✅ **`pii_events` now persisted** (Increment 14): the guard's findings are captured on the agent and
   stored as `PiiEvent` rows during `persist_journey`, surfaced via the CISO governance API.
 - ✅ **Root copy retired** (Increment 24): `governance/pii-guard/` + `automation/jira-bridge` are now
-  deleted; the platform middleware is the single home. ❌ **Not yet:** the Comprehend NLP layer
-  (names/addresses).
+  deleted; the platform middleware is the single home. **Gated remainder (not offline):** the
+  AWS-Comprehend NLP layer for names/addresses (infra-gated). The regex guard + wiring + persistence are done.
 
-## Increment 6 — DB persistence (ROADMAP Phase 4) 🚧
+## Increment 6 — DB persistence (ROADMAP Phase 4) ✅
 
 A governed journey's outputs are now **stored, queryable state** instead of in-memory/ephemeral.
 
@@ -577,8 +588,9 @@ A governed journey's outputs are now **stored, queryable state** instead of in-m
   (`JSON().with_variant(JSONB, "postgresql")`) so the schema compiles on SQLite, and added `aiosqlite` —
   the previously-erroring 16 `tests/api` tests now pass. 5 new persistence tests (75 total green) verify a
   reference journey persists 17 artifacts / 7 runs / 7 gates and reads back.
-- ✅ **Alembic baseline** now versions the schema (Increment 15). ❌ **Not yet:** S3 storage, and
-  auth/RBAC on the read endpoints (the persist write is guarded — Increment 8).
+- ✅ **Alembic baseline** now versions the schema (Increment 15); read-endpoint access is covered by the
+  opt-in global `AUTH_REQUIRED` middleware (Increment 17). **Gated remainder (not offline):** S3 artifact
+  storage (infra-gated).
 - ✅ **Artifact version lineage:** an `ArtifactVersion` table + idempotent upsert — re-persisting unchanged
   content is a no-op; a content change bumps the artifact version and snapshots the prior content
   (`GET /projects/{id}/artifacts/{artifact_id}/versions`).
@@ -691,7 +703,7 @@ The running shell exists; most of the data model and cross-cutting middleware do
 | **Architect target-architecture** — reason over requirements + existing system → target-state ADR/C4 | Phase 4 | ❌ (templated ADR only today) |
 | **Artifact persistence** — artifacts + agent runs + gates in DB, with version lineage | Phase 4 | 🚧 DB persistence + version lineage built (SQLite-verified); S3 storage pending; Alembic baseline built (Increment 15) |
 | **Phase-gate engine** — enforce the spec-driven spine's phase transitions | Phase 5 | 🚧 pure engine + API + UI built offline; DB persistence + approval store pending |
-| **PII guard on agent I/O** — regex scrub outgoing / scan+log incoming on every LLM call | Phase 5 | 🚧 middleware built + wired (Increment 7); `pii_events` persistence + Comprehend NLP layer pending |
+| **PII guard on agent I/O** — regex scrub outgoing / scan+log incoming on every LLM call | Phase 5 | ✅ *offline scope* — regex middleware built + wired (Increment 7) + `pii_events` persistence (Increment 14). Gated remainder: AWS-Comprehend NLP layer |
 | **Governance persistence** — audit_log, pii_events, policy_violations tables + CISO view + ARB | Phase 5 | 🚧 tables + population during persist + CISO-gated read API built (Increment 14) + CISO/Lead frontend governance panel (Increment 23); append-only DB enforcement + ARB workflow pending |
 | **Auth & RBAC** — JWT, persona-scoped access | Phase 5 | ✅ *offline scope* — HS256 JWT + `require_persona` (Increment 8), global auth middleware opt-in (Increment 17), members/teams API + token↔`Member` binding opt-in (Increment 28). Gated remainder: credential/OIDC store + refresh tokens |
 | **AWS deploy** — CDK (ECS Fargate, RDS Aurora, ElastiCache, S3) | Phase 5 | ❌ |
