@@ -44,6 +44,8 @@ class AgentResult:
     model: str = ""
     provider: str = ""
     pii_findings: list[dict[str, Any]] = field(default_factory=list)
+    # Executed governed tool calls (DevOps flow) — carried for per-call audit persistence.
+    tool_calls: list[dict[str, Any]] = field(default_factory=list)
     error: str | None = None
 
 

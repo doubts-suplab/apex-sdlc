@@ -52,6 +52,15 @@ class Settings(BaseSettings):
     HUGGINGFACE_TOKEN: str = Field(default="", description="HuggingFace Hub token")
 
     # ------------------------------------------------------------------
+    # Tool adapters — resilience
+    # ------------------------------------------------------------------
+    # Live tool adapters retry transient failures (timeout / 429 / 5xx) with exponential backoff.
+    TOOL_RETRY_ATTEMPTS: int = Field(default=3, description="Max attempts per live tool call")
+    TOOL_RETRY_BASE_DELAY: float = Field(
+        default=0.5, description="Base backoff seconds (delay = base * 2**n); 0 disables the wait"
+    )
+
+    # ------------------------------------------------------------------
     # GitHub
     # ------------------------------------------------------------------
     GITHUB_TOKEN: str = Field(default="", description="GitHub personal access token")

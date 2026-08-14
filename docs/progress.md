@@ -42,6 +42,23 @@ where the newly-articulated gaps and their priorities now live.
 
 ---
 
+## Increment 31 — Completion sweep D: live-adapter resilience + tool-call audit (closes 10) ✅
+
+A **completion** increment — hardens the live tool path and audits its side effects.
+
+- ✅ **Retry + exponential backoff** (`app/agents/tools/retry.py`): `retry_async` re-runs a live tool
+  call on transient failures (timeout / connection reset / HTTP 429 / 5xx) up to `TOOL_RETRY_ATTEMPTS`
+  with `TOOL_RETRY_BASE_DELAY` backoff; a real 4xx (non-429) is raised immediately, never retried. Every
+  live adapter's network call now runs through it (`_resilient`). `base_delay=0` keeps tests wall-clock-free.
+- ✅ **Per-tool-call audit** (`ToolCallAudit` model + migration `0005`): the DevOps flow surfaces each
+  executed governed call (`AgentResult.tool_calls`), and `POST /devops/flow` writes one append-only audit
+  row per call (actor, tool, target system); `GET /devops/tool-calls` reads them back. A dry-run
+  (under-specified intent, not executed) records nothing.
+- ✅ 6 tests: retry succeeds-after-transient / exhausts / skips-non-transient; flow carries 5 calls;
+  API persists 5 rows attributed to the actor; dry-run persists 0. **210 total green;** drift-guard
+  green; `examples/` byte-identical.
+- **Gated remainder:** exercising the adapters against *real* third-party endpoints (credential-gated).
+
 ## Increment 30 — Completion sweep C: frontend approve + artifact content + webhook feed (closes 23, 27) ✅
 
 A **completion** increment — surfaces the last unfinished offline pieces of the frontend so two more
@@ -453,7 +470,7 @@ Every agent run is now **metered**, and the platform aggregates cost, tokens, an
 - ❌ **Not yet:** real per-run pricing eval (needs a live provider), a frontend dashboard view, and time-
   series/rollup storage.
 
-## Increment 10 — Live, config-driven tool adapters (credentialed swap-in) 🚧
+## Increment 10 — Live, config-driven tool adapters (credentialed swap-in) ✅
 
 The DevOps tools can now run **against real systems**, selected per tool by configured credentials — the
 offline set stays the default and the fallback.
@@ -473,8 +490,9 @@ offline set stays the default and the fallback.
   flipping to live when configured, and a **live GitHub PR driven against an in-process mock transport**
   proving the configurable base URL is honoured (no real network). Test env is now **hermetic** —
   conftest clears ambient integration creds so no test reaches a live system. **112 total green.**
-- ✅ **Webhook receivers now built** (Increment 19). ❌ **Not yet:** retry/backoff + rate-limit handling
-  in the live adapters, and persisting each tool call to an audit table.
+- ✅ **Webhook receivers** built (Increment 19); **retry/backoff + rate-limit handling** and
+  **per-tool-call audit** built (Increment 31). This increment's scope is complete. **Gated remainder:**
+  exercising the adapters against *real* GitHub/Jira/Confluence/Slack/Jenkins endpoints (credential-gated).
 
 ## Increment 9 — Governed DevOps tools: NL intent → multi-tool flow under the harness gate 🚧
 
@@ -668,7 +686,7 @@ The running shell exists; most of the data model and cross-cutting middleware do
 | **Real LLM generation** — model-generated specs from real input | Phase 3–4 | 🚧 path wired via `PhaseAgent.generate()` + prompts; real output needs a configured provider; quality-eval is the follow-on |
 | **Live integrations** — GitHub/Jira/Confluence live data + background refresh | Phase 2 | ✅ *offline scope* — config-driven live adapters (Increment 10), signature-verified webhooks (19), dispatch router (20), event→project resolution for GitHub + Jira (21, 29), single-phase run+persist (22), delivery idempotency (29). Gated remainder: background refresh + Celery auto-invocation + live data |
 | **Agent write-back** — create Jira epics/stories, post GitHub PR reviews, publish Confluence | Phase 3 | 🚧 governed tool-call path built (Increment 9): default-deny registry + offline adapters, gated execution; real credentialed adapters pending |
-| **DevOps tool flow** — NL intent → multi-tool pipeline (GitHub/Jira/Confluence/Slack/Jenkins) under the harness gate | Phase 3 | 🚧 offline flow built + verified (Increment 9); LLM planner + live adapters pending |
+| **DevOps tool flow** — NL intent → multi-tool pipeline (GitHub/Jira/Confluence/Slack/Jenkins) under the harness gate | Phase 3 | 🚧 offline flow (Increment 9) + config-driven live adapters with retry/backoff (Increments 10, 31) + per-tool-call audit (31); LLM planner + real credentialed endpoints pending |
 | **Dev repo bootstrap** — scaffold the actual service (eeik `repository-generator`) | Phase 0 / 3 | 🚧 deterministic repo-tree emission built (Increment 18); real GitHub repo creation + LLM generator pending |
 | **Architect target-architecture** — reason over requirements + existing system → target-state ADR/C4 | Phase 4 | ❌ (templated ADR only today) |
 | **Artifact persistence** — artifacts + agent runs + gates in DB, with version lineage | Phase 4 | 🚧 DB persistence + version lineage built (SQLite-verified); S3 storage pending; Alembic baseline built (Increment 15) |
