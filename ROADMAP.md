@@ -407,7 +407,7 @@ no dead scripts.
 | Real LLM generation quality: quality-eval harness, streaming into artifacts, robust fallbacks for short/failed replies (no silent empty artifacts) | 3 | P0 | offline (eval harness) + credential-gated (real output) |
 | Real input-driven artifacts: requirements→Gherkin, architecture→reasoned C4/target-state | 3 | P0 | credential-gated |
 | Live write-back side-effects: create Jira story · post inline GitHub PR review · publish Confluence · cut releases | 2/3 | P0 (one) / P1 (rest) | credential-gated |
-| Celery auto-invocation of the dispatched run + event de-dup / idempotency | 2 | P1 | offline (idempotency) + infra-gated (broker) |
+| Celery auto-invocation of the dispatched run + event de-dup / idempotency | 2 | P1 | offline (idempotency) + infra-gated (broker) — ✅ **event de-dup/idempotency built (Increment 29)**; Celery auto-invoke still infra-gated |
 | Onboarding: real GitHub repo creation + full DB persistence of onboarded projects | 0 | P0 | credential-gated |
 | Onboarding: richer LLM-driven repository-generator (beyond the deterministic scaffold) | 0/3 | P1 | credential-gated |
 | Reconcile the Pydantic onboarding manifest with eeik's canonical schema | 0 | P1 | offline |

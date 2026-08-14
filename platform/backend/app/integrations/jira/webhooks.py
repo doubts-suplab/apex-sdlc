@@ -24,9 +24,12 @@ def parse_event(payload: dict[str, Any]) -> dict[str, Any]:
     issue = payload.get("issue") or {}
     fields = issue.get("fields") or {}
     key = issue.get("key")
+    # Project key = the issue-key prefix ("APEX" in "APEX-42"); resolves the owning APEX project.
+    project_key = key.split("-", 1)[0] if key and "-" in key else None
     return {
         "event": event,
         "issue_key": key,
+        "project_key": project_key,
         "issue_type": (fields.get("issuetype") or {}).get("name"),
         "status": (fields.get("status") or {}).get("name"),
         "summary": f"{event}: {key or '(no issue)'} — {fields.get('summary', '')}".strip(),

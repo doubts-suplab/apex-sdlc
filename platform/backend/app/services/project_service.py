@@ -64,6 +64,19 @@ class ProjectService:
         )
         return result.scalars().first()
 
+    async def get_by_jira_project_key(self, key: str) -> Project | None:
+        """Return the project registered for a Jira project key (e.g. ``APEX``), or None.
+
+        Resolves an inbound Jira webhook to its APEX project. Case-insensitive; an empty key returns
+        None rather than matching the many projects with no key configured.
+        """
+        if not key:
+            return None
+        result = await self._db.execute(
+            select(Project).where(func.lower(Project.jira_project_key) == key.lower())
+        )
+        return result.scalars().first()
+
     async def list_paginated(
         self,
         limit: int = 20,

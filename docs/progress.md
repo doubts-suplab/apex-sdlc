@@ -42,6 +42,24 @@ where the newly-articulated gaps and their priorities now live.
 
 ---
 
+## Increment 29 — Completion sweep B: webhook idempotency + Jira resolution (closes 19, 21, 22) ✅
+
+A **completion** increment — finishes the inbound-event chain so three Phase-2 increments read as done.
+
+- ✅ **Event idempotency** (`WebhookEvent` model + `WebhookEventService`): every delivery is recorded by
+  `(source, delivery_id)` — GitHub's `X-GitHub-Delivery` header, or a content hash for Jira (no header) /
+  GitHub without one. A redelivered webhook returns `{duplicate: true}` and **skips dispatch**, so a
+  provider retry can't double-invoke. Closes Increment 19's and 22's "event de-dup" tails.
+- ✅ **Jira project resolution** (`jira_project_key` column + `ProjectService.get_by_jira_project_key`):
+  the Jira receiver derives the project key from the issue-key prefix (`APEX` in `APEX-42`) and resolves
+  the owning project — the Jira receiver now returns a real `project` ref, mirroring the GitHub one.
+  Closes Increment 21's "Jira project resolution" tail.
+- ✅ Migration `0004` adds the column + `webhook_events` table (drift-guard green). 6 tests
+  (`tests/api/test_webhooks_idempotency.py`): project-key extraction, GitHub dedup by header + body-hash
+  fallback, Jira resolve + dedup, unknown key → null. **201 total green;** `examples/` byte-identical.
+- **Gated remainder (not offline):** the Celery worker that turns a dispatch into an auto-run + a live LLM
+  provider — tracked in the V1 slice.
+
 ## Increment 28 — Completion sweep A: identity (closes Increments 8, 16, 17) ✅
 
 A **completion** increment, not a new feature — it finishes the identity story that three earlier
@@ -181,7 +199,7 @@ page surfaces the run trigger and the stored governed state that Increments 14/1
 - ❌ **Not yet:** per-artifact content/diff view, live SSE progress during a run, and a webhook-activity
   feed (inbound events don't yet stream to the UI).
 
-## Increment 22 — Phase 2/3: run + persist a single dispatched phase-agent 🚧
+## Increment 22 — Phase 2/3: run + persist a single dispatched phase-agent ✅
 
 The event-driven loop now *executes*: a resolved trigger (project + phase) runs that one phase agent on
 the governed harness and stores the run — closing **event → project → run → persisted state**.
@@ -199,10 +217,11 @@ the governed harness and stores the run — closing **event → project → run 
   persists. The in-memory `agents.py` run endpoint stays as the keyless-offline demo path.
 - ✅ 4 tests (service persists one run + one audit entry; API run-persist then read-back; unknown-phase
   404; non-approver 403), DB-verified via aiosqlite. **166 total green;** `examples/` byte-identical.
-- ❌ **Not yet:** the webhook auto-invoking this (still returns the dispatch plan for a worker to act on),
-  the Celery task wrapper, and a real LLM provider for non-stub artifact bodies.
+- ✅ **Event idempotency now built** (Increment 29): duplicate deliveries are de-duped so a retried
+  webhook can't double-invoke. **Gated remainder (not offline):** the webhook *auto*-invoking this via a
+  Celery worker + a real LLM provider for non-stub bodies — tracked in the V1 slice.
 
-## Increment 21 — Phase 2: resolve an inbound event to the owning APEX project 🚧
+## Increment 21 — Phase 2: resolve an inbound event to the owning APEX project ✅
 
 The event → project → phase-agent chain is now complete: a webhook says *what happened*, the dispatch
 router says *which phase reacts*, and this resolves *which registered project it concerns*.
@@ -215,8 +234,10 @@ router says *which phase reacts*, and this resolves *which registered project it
   pending), so a consumer treats both uniformly.
 - ✅ 3 DB-backed tests (seeded project resolved, case-insensitive match, unknown repo → `null`), verified
   offline via aiosqlite. **162 total green;** `examples/` byte-identical.
-- ❌ **Not yet:** Jira project resolution (needs a jira-project-key column), and actually enqueuing the
-  dispatched agent run for the resolved project.
+- ✅ **Jira project resolution now built** (Increment 29): a `jira_project_key` column +
+  `get_by_jira_project_key`; the Jira receiver resolves the owning project from the issue-key prefix.
+  Running the dispatched agent for the resolved project is done via the run-persist API (Increment 22).
+  This increment's scope is complete.
 
 ## Increment 20 — Phase 2: webhook → phase-agent dispatch router 🚧
 
@@ -233,10 +254,11 @@ consumes to enqueue an agent run.
   effects; the mapping is transparent so the routing is auditable (structlog `dispatch=<phase>`).
 - ✅ Both webhook endpoints now return `dispatch` alongside the parsed event.
 - ✅ 9 dispatch tests + endpoint assertion. **159 total green;** `examples/` byte-identical.
-- ❌ **Not yet:** actually enqueuing/running the dispatched agent (needs the Celery path + a configured
-  provider), and event de-dup/idempotency.
+- ✅ **Running the dispatched agent** is built via the run-persist API (Increment 22); **event
+  idempotency** is built (Increment 29). **Gated remainder:** the Celery auto-invoke path + a configured
+  LLM provider.
 
-## Increment 19 — Phase 2: signature-verified webhook receivers (GitHub + Jira) 🚧
+## Increment 19 — Phase 2: signature-verified webhook receivers (GitHub + Jira) ✅
 
 Inbound events now have a governed entry point — the seam a background dispatcher/agent reacts to.
 
@@ -251,9 +273,9 @@ Inbound events now have a governed entry point — the seam a background dispatc
   `integrations/jira/webhooks.py`; config gains `GITHUB_WEBHOOK_SECRET` + `JIRA_WEBHOOK_SECRET`.
 - ✅ 12 tests (`tests/api/test_webhooks.py`): valid/tampered/malformed signatures, event parsing for all
   three GitHub events + Jira, endpoint 200/401 paths. **150 total green;** `examples/` byte-identical.
-- ✅ **Event → agent routing now built** (Increment 20: `pull_request` → PR-review, `release` → CI/CD,
-  Jira Story → Requirements). ❌ **Not yet:** actually running the dispatched agent, and delivery
-  retry/idempotency (event de-dup).
+- ✅ **Event → agent routing** built (Increment 20); **running the dispatched agent** via run-persist
+  (Increment 22); **delivery idempotency / event de-dup** built (Increment 29). This increment's scope is
+  complete.
 
 ## Increment 18 — Phase 0: full repo-tree emission + GitHub bootstrap 🚧
 
@@ -623,7 +645,7 @@ The running shell exists; most of the data model and cross-cutting middleware do
 |---|---|---|
 | **Onboarding via eeik** — resolve packs + scaffold (`CLAUDE.md` + plan), enter the spine | [Phase 0](../ROADMAP.md#phase-0--onboarding-the-eeik-front-door) | 🚧 deterministic bridge built; full repo-tree emission + GitHub repo + DB persistence pending |
 | **Real LLM generation** — model-generated specs from real input | Phase 3–4 | 🚧 path wired via `PhaseAgent.generate()` + prompts; real output needs a configured provider; quality-eval is the follow-on |
-| **Live integrations** — GitHub/Jira/Confluence live data + background refresh | Phase 2 | 🚧 clients + config-driven live adapters (Increment 10) + signature-verified inbound webhooks (Increment 19) + event→phase-agent dispatch router (Increment 20) + event→owning-project resolution (Increment 21) + single-phase run+persist (Increment 22) built; background refresh + webhook auto-invocation (Celery) pending |
+| **Live integrations** — GitHub/Jira/Confluence live data + background refresh | Phase 2 | ✅ *offline scope* — config-driven live adapters (Increment 10), signature-verified webhooks (19), dispatch router (20), event→project resolution for GitHub + Jira (21, 29), single-phase run+persist (22), delivery idempotency (29). Gated remainder: background refresh + Celery auto-invocation + live data |
 | **Agent write-back** — create Jira epics/stories, post GitHub PR reviews, publish Confluence | Phase 3 | 🚧 governed tool-call path built (Increment 9): default-deny registry + offline adapters, gated execution; real credentialed adapters pending |
 | **DevOps tool flow** — NL intent → multi-tool pipeline (GitHub/Jira/Confluence/Slack/Jenkins) under the harness gate | Phase 3 | 🚧 offline flow built + verified (Increment 9); LLM planner + live adapters pending |
 | **Dev repo bootstrap** — scaffold the actual service (eeik `repository-generator`) | Phase 0 / 3 | 🚧 deterministic repo-tree emission built (Increment 18); real GitHub repo creation + LLM generator pending |
