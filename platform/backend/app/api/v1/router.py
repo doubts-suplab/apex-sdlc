@@ -7,6 +7,7 @@ from sqlalchemy import text
 
 from app.api.v1 import (
     agents,
+    arb,
     auth,
     devops,
     gates,
@@ -39,6 +40,7 @@ api_router.include_router(persistence.router)
 api_router.include_router(devops.router)
 api_router.include_router(webhooks.router)
 api_router.include_router(members.router)
+api_router.include_router(arb.router)
 
 
 @api_router.get(

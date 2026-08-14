@@ -18,9 +18,9 @@ and only closes when the environment provides those inputs. 🚧 is reserved for
 that was only *appearing* unfinished. Real offline work was added to close the tails of Increments **8,
 16, 17** (identity), **19, 21, 22** (inbound events), **23, 27** (frontend), and **10** (live-adapter
 resilience + tool-call audit); and Increments **6, 7, 9, 18** were reclassified to ✅ (their only
-remainder is credential/infra-gated). Increment **5** was then closed too (its **quality-eval harness**,
-Increment 32). The increment that most notably **remains 🚧** with a real *offline* follow-on is **14**
-(the **ARB approval workflow**), scoped as a future Phase-5 increment.
+remainder is credential/infra-gated). Increments **5** (quality-eval harness, Increment 32) and **14**
+(ARB workflow, Increment 33) were then closed too. The remaining 🚧 with a real *offline* follow-on is
+**4**'s **mainframe-gate policy** check — scoped as a future Phase-5 increment.
 
 ---
 
@@ -49,6 +49,25 @@ The capability table at the foot of this file remains the per-capability truth; 
 where the newly-articulated gaps and their priorities now live.
 
 ---
+
+## Increment 33 — ARB approval workflow (closes Increment 14/4's ARB tail) ✅
+
+The Architecture Review Board sign-off the spec-driven spine's Governance phase gates on — a durable,
+attributable submit → review → decide flow.
+
+- ✅ **`ArbSubmission` model + migration `0006`**: a review request carries the architecture-change + risk
+  prep summary, its `status` (`pending`/`approved`/`rejected`/`changes_requested`), and who submitted /
+  decided it.
+- ✅ **`ArbService`**: `submit` records a pending request; `decide` sets the outcome **and writes an
+  append-only `AuditLog` row** (`agent_name="arb"`, `action="arb-<status>"`, actor = the reviewer) — an
+  ARB decision without an audit trail would be a governance gap.
+- ✅ **API** (`app/api/v1/arb.py`): `POST /projects/{id}/arb` (Architect/Lead submit), `GET .../arb` +
+  `GET .../arb/{id}` (read), `POST .../arb/{id}/decision` (ARB board — CISO/Lead/Architect — approve /
+  reject / request-changes). RBAC-gated: 403 off-persona, 404 unknown project/submission.
+- ✅ 6 tests (`tests/api/test_arb.py`): submit→pending, submit RBAC, approve → status + one audit row
+  attributed to the reviewer, reject / request-changes, decision RBAC, unknown-ARB 404. **222 total
+  green;** drift-guard green; `examples/` byte-identical.
+- Closes the **ARB workflow** tail of Increments 14 and 4.
 
 ## Increment 32 — Artifact quality-eval harness (closes Increment 5's offline tail) ✅
 
@@ -430,8 +449,9 @@ Completes a long-standing gap from Increments 1, 7, and 8: the governance tables
 - ✅ Tests: the reference journey persists **7 audit rows**, **1 policy violation** (governance ALERT),
   and deterministic PII events; the governance API's 401/403/200 RBAC matrix. **126 total green;**
   `examples/` byte-identical.
-- ❌ **Not yet:** append-only enforcement at the DB level (a trigger/permission blocking UPDATE/DELETE on
-  `audit_log`), the AWS-Comprehend PII layer, and an ARB approval workflow.
+- ✅ **ARB approval workflow now built** (Increment 33): submit → decide → append-only `audit_log`.
+  **Gated remainder (not offline):** DB-level append-only *enforcement* (a Postgres trigger/permission
+  blocking UPDATE/DELETE on `audit_log` — can't be exercised on SQLite) and the AWS-Comprehend PII layer.
 
 ## Increment 13 — Project cost dashboard wired to DB + frontend persona-login 🚧
 
@@ -647,8 +667,10 @@ The spec-driven spine is now **enforceable**: a phase can't advance until its ga
 - ✅ Frontend: gate badge per phase on `/journey` + an "Approve spec" toggle that unblocks the spine live.
 - 🚧 Shows the spine blocking at **Requirements** with no approvals; clears once the human-review specs are
   approved.
-- ❌ **Not yet:** DB persistence of gate evaluations (the `phase_gates` model is the target), a real
-  approval/identity store, and the rest of Phase 5 (ARB workflow, mainframe-gate policy, CISO view, CDK).
+- ✅ **Gate evaluations persist** as `PhaseGate` during `persist_journey` (Increment 6); the **durable
+  approval/identity store** is built (Increment 27); the **ARB workflow** is built (Increment 33); the
+  **CISO view** is built (Increments 14/23). ❌ **Offline follow-on remaining:** the mainframe-gate policy
+  check (block a deployment artifact when a mainframe change lacks a signed-off gate doc). **Gated:** CDK.
 
 ## Increment 3 — Onboarding front door (eeik bridge, Phase 0) 🚧
 
@@ -726,7 +748,7 @@ The running shell exists; most of the data model and cross-cutting middleware do
 | **Artifact persistence** — artifacts + agent runs + gates in DB, with version lineage | Phase 4 | 🚧 DB persistence + version lineage built (SQLite-verified); S3 storage pending; Alembic baseline built (Increment 15) |
 | **Phase-gate engine** — enforce the spec-driven spine's phase transitions | Phase 5 | 🚧 pure engine + API + UI built offline; DB persistence + approval store pending |
 | **PII guard on agent I/O** — regex scrub outgoing / scan+log incoming on every LLM call | Phase 5 | ✅ *offline scope* — regex middleware built + wired (Increment 7) + `pii_events` persistence (Increment 14). Gated remainder: AWS-Comprehend NLP layer |
-| **Governance persistence** — audit_log, pii_events, policy_violations tables + CISO view + ARB | Phase 5 | 🚧 tables + population during persist + CISO-gated read API built (Increment 14) + CISO/Lead frontend governance panel (Increment 23); append-only DB enforcement + ARB workflow pending |
+| **Governance persistence** — audit_log, pii_events, policy_violations tables + CISO view + ARB | Phase 5 | ✅ *offline scope* — tables + population during persist + CISO-gated read API (14) + frontend governance panel (23) + **ARB approval workflow (33)**. Gated remainder: DB-level append-only enforcement (Postgres trigger) |
 | **Auth & RBAC** — JWT, persona-scoped access | Phase 5 | ✅ *offline scope* — HS256 JWT + `require_persona` (Increment 8), global auth middleware opt-in (Increment 17), members/teams API + token↔`Member` binding opt-in (Increment 28). Gated remainder: credential/OIDC store + refresh tokens |
 | **AWS deploy** — CDK (ECS Fargate, RDS Aurora, ElastiCache, S3) | Phase 5 | ❌ |
 

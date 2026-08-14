@@ -413,7 +413,7 @@ no dead scripts.
 | Onboarding: richer LLM-driven repository-generator (beyond the deterministic scaffold) | 0/3 | P1 | credential-gated |
 | Reconcile the Pydantic onboarding manifest with eeik's canonical schema | 0 | P1 | offline |
 | S3 artifact storage + durable gate evaluations + approval/identity store | 4/5 | P0 (approvals) / P1 (S3) | offline (approvals via DB) + infra-gated (S3) — ✅ **durable approval/identity store built (Increment 27)**; S3 + durable gate-eval snapshots still pending |
-| Full spine enforcement in production + ARB workflow | 5 | P1 | offline (spine) + credential-gated (ARB write) |
+| Full spine enforcement in production + ARB workflow | 5 | P1 | offline (spine) + credential-gated (ARB write) — ✅ **ARB approval workflow built (Increment 33)**: submit → decide → append-only audit; full production spine enforcement still pending |
 | Auth/RBAC completion: bind token persona → project `Member`, credential store, refresh tokens, prod-hardening | 5 | P0 (member-binding) / P1 (rest) | offline — ✅ **member-binding + members/teams API built (Increment 28)**; credential/OIDC store + refresh tokens pending (credential-gated) |
 
 ### Theme 2 — Documentation & discoverability
