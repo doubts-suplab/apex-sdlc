@@ -156,7 +156,8 @@ runs on the credentialed path behind config.
 
 **Definition of done (V1):**
 - A configured LLM provider yields **input-driven** Requirements + Architecture artifacts, with quality
-  evaluation and robust fallbacks for short/failed replies (no silent empty artifacts).
+  evaluation and robust fallbacks for short/failed replies (no silent empty artifacts). ✅ **quality-eval
+  harness + fallbacks built (Increment 32 / 5)**; the input-driven output itself is credential-gated.
 - Onboarding creates a real GitHub repo and a persisted `Project` row (Phase 0 credentialed path).
 - A gate approval is **durable** (stored, identity-bound to a project `Member`), not in-memory. ✅ **built
   (Increment 27):** `GateApproval` model + `POST .../approve` + spine reads stored approvals.
@@ -404,7 +405,7 @@ no dead scripts.
 
 | Item | Phase | Priority | Feasibility |
 |---|---|---|---|
-| Real LLM generation quality: quality-eval harness, streaming into artifacts, robust fallbacks for short/failed replies (no silent empty artifacts) | 3 | P0 | offline (eval harness) + credential-gated (real output) |
+| Real LLM generation quality: quality-eval harness, streaming into artifacts, robust fallbacks for short/failed replies (no silent empty artifacts) | 3 | P0 | offline (eval harness) + credential-gated (real output) — ✅ **quality-eval harness + fallbacks built (Increment 32 / 5)**; scores on real output + streaming still credential-gated |
 | Real input-driven artifacts: requirements→Gherkin, architecture→reasoned C4/target-state | 3 | P0 | credential-gated |
 | Live write-back side-effects: create Jira story · post inline GitHub PR review · publish Confluence · cut releases | 2/3 | P0 (one) / P1 (rest) | credential-gated |
 | Celery auto-invocation of the dispatched run + event de-dup / idempotency | 2 | P1 | offline (idempotency) + infra-gated (broker) — ✅ **event de-dup/idempotency built (Increment 29)**; Celery auto-invoke still infra-gated |

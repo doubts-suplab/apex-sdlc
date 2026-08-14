@@ -18,9 +18,9 @@ and only closes when the environment provides those inputs. 🚧 is reserved for
 that was only *appearing* unfinished. Real offline work was added to close the tails of Increments **8,
 16, 17** (identity), **19, 21, 22** (inbound events), **23, 27** (frontend), and **10** (live-adapter
 resilience + tool-call audit); and Increments **6, 7, 9, 18** were reclassified to ✅ (their only
-remainder is credential/infra-gated). The increments that **legitimately remain 🚧** are the ones with a
-real *offline* follow-on, not a gated one: **5** (real-output **quality-eval harness**) and **14** (the
-**ARB approval workflow**) — both scoped as future increments in the V1 slice / Phase 5.
+remainder is credential/infra-gated). Increment **5** was then closed too (its **quality-eval harness**,
+Increment 32). The increment that most notably **remains 🚧** with a real *offline* follow-on is **14**
+(the **ARB approval workflow**), scoped as a future Phase-5 increment.
 
 ---
 
@@ -49,6 +49,23 @@ The capability table at the foot of this file remains the per-capability truth; 
 where the newly-articulated gaps and their priorities now live.
 
 ---
+
+## Increment 32 — Artifact quality-eval harness (closes Increment 5's offline tail) ✅
+
+The *measurement* side of generation quality — a V1 P0 offline item. The `generate()` path already fails
+safe (short/empty/failed reply → deterministic template); this scores what it produces.
+
+- ✅ **`app/eval/quality.py`**: `evaluate_artifact` / `evaluate_artifacts` score each artifact 0–1 on a
+  transparent rubric — **structural** checks (non-empty, substantive length, markdown heading, no
+  TODO/TBD/placeholder/unresolved-template markers) plus **kind-specific** ones (gherkin →
+  Feature+Scenario+Given/When/Then; ADR → Decision+Context/Consequences; mermaid → diagram declaration).
+  A degenerate (empty) artifact is always flagged; below-threshold artifacts are flagged for review.
+- ✅ **`GET /api/v1/journey/reference/quality`** returns per-artifact checks + scores + the flagged set.
+  The deterministic reference journey scores **0.988 mean, 0 flagged** (17 artifacts); pure + offline, so
+  the same yardstick measures a configured provider's real output.
+- ✅ 6 tests (`tests/eval/test_quality.py`): reference scores high + unflagged, empty → flagged, placeholder
+  → flagged, gherkin/ADR structure checks, endpoint. **216 total green;** `examples/` byte-identical.
+- **Gated remainder:** quality *scores on real input-driven output* need a configured LLM provider.
 
 ## Increment 31 — Completion sweep D: live-adapter resilience + tool-call audit (closes 10) ✅
 
@@ -595,7 +612,7 @@ A governed journey's outputs are now **stored, queryable state** instead of in-m
   content is a no-op; a content change bumps the artifact version and snapshots the prior content
   (`GET /projects/{id}/artifacts/{artifact_id}/versions`).
 
-## Increment 5 — Real LLM generation path (ROADMAP Phase 3–4) 🚧
+## Increment 5 — Real LLM generation path (ROADMAP Phase 3–4) ✅
 
 The phase agents now **generate their artifact bodies through the LLM port** instead of hard-coding them.
 
@@ -607,9 +624,14 @@ The phase agents now **generate their artifact bodies through the LLM port** ins
   short reply falls back; 38 total green.
 - ✅ **Offline is byte-identical.** With the `stub` provider the fallback templates are used, so the
   committed reference journey / gate report don't churn.
-- 🚧 **Provider-gated:** real, input-driven artifacts require a configured provider
-  (`LLM_PROVIDER=anthropic` + key). That path is wired and tested via a generative stub; **eval of real
-  output quality** (and streaming into artifacts) is the follow-on.
+- ✅ **Quality-eval harness now built** (Increment 32): `app/eval/quality.py` scores every artifact
+  against a transparent rubric (structural: non-empty, substantive, heading, no-placeholder; kind-specific:
+  gherkin/ADR/mermaid), flags degenerate output, and aggregates a mean score — exposed at
+  `GET /api/v1/journey/reference/quality`. The reference journey scores **0.99 mean, 0 flagged**; the same
+  yardstick measures a real provider's output. The `generate()` **fallback** already prevents silent-empty
+  artifacts. This increment's offline scope is complete.
+- **Gated remainder (not offline):** the *scores on real input-driven output* need a configured provider
+  (`LLM_PROVIDER=anthropic` + key), and streaming generation into artifacts — tracked in the V1 slice.
 
 ## Increment 4 — Phase-gate engine (ROADMAP Phase 5) 🚧
 
