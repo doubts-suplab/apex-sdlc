@@ -4,6 +4,11 @@ import { PhaseType } from "@/types/project";
 import {
   AgentRun,
   AgentRunListSchema,
+  ApprovalResult,
+  ApprovalResultSchema,
+  ApprovalsListSchema,
+  ArtifactContent,
+  ArtifactContentSchema,
   GateStatus,
   GateStatusListSchema,
   RunPersistResult,
@@ -73,5 +78,55 @@ export function useRunPhase(projectId: string) {
       qc.invalidateQueries({ queryKey: ["projects", projectId, "gate-status"] });
       qc.invalidateQueries({ queryKey: ["projects", projectId, "metrics"] });
     },
+  });
+}
+
+/** Currently-approved phases for a project. Backed by GET /api/v1/projects/{id}/approvals. */
+export function useApprovedPhases(projectId: string) {
+  return useQuery<string[]>({
+    queryKey: ["projects", projectId, "approvals"],
+    queryFn: async () => {
+      const data = await apiFetch<unknown>(`/projects/${projectId}/approvals`);
+      return ApprovalsListSchema.parse(data).approved_phases;
+    },
+    enabled: !!projectId,
+    staleTime: 15_000,
+  });
+}
+
+/**
+ * Approve (or reject) a phase spec — an approver-persona write, durable + identity-bound.
+ * On success, refresh approvals + gate status (the gate reads stored approvals).
+ * Backed by POST /api/v1/projects/{id}/phases/{phase}/approve.
+ */
+export function useApprovePhase(projectId: string) {
+  const qc = useQueryClient();
+  return useMutation<ApprovalResult, Error, { phase: PhaseType; decision?: string }>({
+    mutationFn: async ({ phase, decision }) => {
+      const data = await apiFetch<unknown>(
+        `/projects/${projectId}/phases/${phase}/approve`,
+        { method: "POST", body: JSON.stringify({ decision: decision ?? "approved" }) }
+      );
+      return ApprovalResultSchema.parse(data);
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["projects", projectId, "approvals"] });
+      qc.invalidateQueries({ queryKey: ["projects", projectId, "gate-status"] });
+    },
+  });
+}
+
+/** A single stored artifact with its content. Backed by GET /api/v1/projects/{id}/artifacts/{id}. */
+export function useArtifactContent(projectId: string, artifactId: string | null) {
+  return useQuery<ArtifactContent>({
+    queryKey: ["projects", projectId, "artifact", artifactId],
+    queryFn: async () => {
+      const data = await apiFetch<unknown>(
+        `/projects/${projectId}/artifacts/${artifactId}`
+      );
+      return ArtifactContentSchema.parse(data);
+    },
+    enabled: !!projectId && !!artifactId,
+    staleTime: 30_000,
   });
 }

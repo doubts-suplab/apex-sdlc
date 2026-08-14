@@ -42,6 +42,25 @@ where the newly-articulated gaps and their priorities now live.
 
 ---
 
+## Increment 30 — Completion sweep C: frontend approve + artifact content + webhook feed (closes 23, 27) ✅
+
+A **completion** increment — surfaces the last unfinished offline pieces of the frontend so two more
+increments read as done.
+
+- ✅ **Per-phase Approve button** in `PhaseRunnerPanel` (approver-gated) hits
+  `POST /projects/{id}/phases/{phase}/approve` and reflects approved state from `GET .../approvals`; the
+  gate reads stored approvals, so approving unblocks the spine. Closes Increment 27's frontend tail.
+- ✅ **Per-artifact content view**: clicking a phase's artifact opens its stored content in a dialog,
+  backed by a new `GET /projects/{id}/artifacts/{artifact_id}` (returns content). Closes the primary part
+  of Increment 23's tail.
+- ✅ **Webhook-activity feed** (`WebhookActivityFeed` + `GET /webhooks/events`): recent inbound,
+  signature-verified, de-duped deliveries. Closes Increment 23's "webhook feed" tail.
+- ✅ New hooks (`useApprovePhase`/`useApprovedPhases`/`useArtifactContent`/`useWebhookEvents`) + Zod
+  schemas; 3 backend tests (`tests/api/test_batch_c_reads.py`). **204 backend green;** `tsc` + `build`
+  clean; `examples/` byte-identical.
+- **Gated remainder:** live **SSE** run progress (needs the async/Celery path). *Minor follow-on:* a
+  version-diff view.
+
 ## Increment 29 — Completion sweep B: webhook idempotency + Jira resolution (closes 19, 21, 22) ✅
 
 A **completion** increment — finishes the inbound-event chain so three Phase-2 increments read as done.
@@ -79,7 +98,7 @@ increments each left a tail of, so they now read as done to their offline scope.
   `examples/` byte-identical; migration drift-guard green (no new tables — reuses `teams`/`members`).
 - **Gated remainder (not offline, tracked in V1):** a real credential/OIDC store + refresh tokens.
 
-## Increment 27 — Durable, identity-bound gate approvals (V1 P0) 🚧
+## Increment 27 — Durable, identity-bound gate approvals (V1 P0) ✅
 
 The first build against the [First Production Slice](../ROADMAP.md#priority-initiative--first-production-slice-vertical-v1):
 the "durable human approval" leg. A phase approval was ephemeral — a `?approved=<phase>` query param
@@ -98,8 +117,9 @@ evaluated in-memory and never recorded. It is now **stored, attributable, and au
 - ✅ 7 tests (member-bound vs null, latest-wins reject, approver-gating 403, unknown-phase 404, and a
   full "approve → re-persist → spine advances past requirements" flow) via aiosqlite. **189 total green;**
   `examples/` byte-identical.
-- ❌ **Not yet (V1 continues):** an approval action in the frontend that hits this endpoint, and tying the
-  approval into the live write-back gate (a write-back fires only for an approved phase).
+- ✅ **Frontend approve action now built** (Increment 30): a per-phase Approve button on the project page
+  hits this endpoint and reflects approved state. **Gated remainder (not offline):** tying approval to a
+  *live* write-back (fire only for an approved phase) — needs the credentialed write-back path.
 
 ## Increment 26 — Docs: an offline, interactive portal preview + docs refresh ✅
 
@@ -179,7 +199,7 @@ exit gate.
   byte-identical. Root now holds only `platform/ docs/ examples/ prompts/ claude-templates/
   governance/policies/` + standard repo files.
 
-## Increment 23 — Frontend catches up: phase-run trigger + governance view 🚧
+## Increment 23 — Frontend catches up: phase-run trigger + governance view ✅
 
 The portal now *drives* the newer backend, not just reads a couple of metrics endpoints. The project
 page surfaces the run trigger and the stored governed state that Increments 14/19–22 produce.
@@ -196,8 +216,9 @@ page surfaces the run trigger and the stored governed state that Increments 14/1
   (`useAuditLog`/`usePiiEvents`/`usePolicyViolations`), with `types/agentRun.ts` + `types/governance.ts`.
 - ✅ Approver/persona gating reuses `useAuthToken()` (mints the JWT) so writes carry the persona for RBAC.
   `npm run type-check` + `npm run build` clean.
-- ❌ **Not yet:** per-artifact content/diff view, live SSE progress during a run, and a webhook-activity
-  feed (inbound events don't yet stream to the UI).
+- ✅ **Per-artifact content view + webhook-activity feed now built** (Increment 30): clicking a phase's
+  artifact opens its stored content; a feed shows recent inbound deliveries. **Gated remainder:** live SSE
+  progress during a run (needs the async/Celery run path). *Minor follow-on:* a version-diff view.
 
 ## Increment 22 — Phase 2/3: run + persist a single dispatched phase-agent ✅
 

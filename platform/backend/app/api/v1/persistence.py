@@ -215,6 +215,34 @@ async def list_artifacts(project_id: uuid.UUID, db: DbSession, svc: Svc) -> dict
     }
 
 
+@router.get("/{project_id}/artifacts/{artifact_id}", summary="A stored artifact with its content")
+async def get_artifact(
+    project_id: uuid.UUID, artifact_id: uuid.UUID, db: DbSession, svc: Svc
+) -> dict[str, Any]:
+    await _require_project(db, project_id)
+    art = await svc.get_artifact(project_id, artifact_id)
+    if art is None:
+        raise HTTPException(
+            status_code=404,
+            detail={
+                "type": "https://apex.example.com/problems/artifact-not-found",
+                "title": "Artifact Not Found",
+                "status": 404,
+                "detail": f"No artifact {artifact_id} in project {project_id}.",
+            },
+        )
+    return {
+        "id": str(art.id),
+        "phase": art.phase,
+        "name": art.name,
+        "title": art.title,
+        "kind": art.kind,
+        "version": art.version,
+        "content_sha256": art.content_sha256,
+        "content": art.content,
+    }
+
+
 @router.get(
     "/{project_id}/artifacts/{artifact_id}/versions",
     summary="Version lineage for a stored artifact",

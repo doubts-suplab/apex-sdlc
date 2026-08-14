@@ -340,6 +340,15 @@ class PersistenceService:
         )
         return list(result.scalars().all())
 
+    async def get_artifact(self, project_id: uuid.UUID, artifact_id: uuid.UUID) -> Artifact | None:
+        """Return a stored artifact (with its latest content), scoped to the project, or None."""
+        result = await self._db.execute(
+            select(Artifact).where(
+                Artifact.id == artifact_id, Artifact.project_id == project_id
+            )
+        )
+        return result.scalar_one_or_none()
+
     async def list_agent_runs(self, project_id: uuid.UUID) -> list[AgentRun]:
         result = await self._db.execute(
             select(AgentRun)

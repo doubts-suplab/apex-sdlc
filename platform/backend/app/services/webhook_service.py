@@ -38,3 +38,10 @@ class WebhookEventService:
         )
         await self._db.flush()
         return True
+
+    async def list_recent(self, limit: int = 20) -> list[WebhookEvent]:
+        """Most-recent handled deliveries, newest first — the inbound activity feed."""
+        result = await self._db.execute(
+            select(WebhookEvent).order_by(WebhookEvent.created_at.desc()).limit(limit)
+        )
+        return list(result.scalars().all())

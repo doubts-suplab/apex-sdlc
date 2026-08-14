@@ -9,6 +9,7 @@ import { LiveMetricsBar } from "@/components/projects/LiveMetricsBar";
 import { ProjectCostDashboard } from "@/components/projects/ProjectCostDashboard";
 import { PhaseRunnerPanel } from "@/components/projects/PhaseRunnerPanel";
 import { GovernancePanel } from "@/components/projects/GovernancePanel";
+import { WebhookActivityFeed } from "@/components/projects/WebhookActivityFeed";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -212,6 +213,9 @@ export default function ProjectDetailPage() {
 
       {/* CISO/Lead governance view: audit log, PII events, policy violations */}
       <GovernancePanel projectId={projectId} />
+
+      {/* Recent inbound webhook deliveries (signature-verified, de-duped) */}
+      <WebhookActivityFeed />
 
       {/* Reference journey link */}
       <div className="flex flex-wrap items-center justify-between gap-3 rounded-lg border bg-slate-50 px-6 py-4">

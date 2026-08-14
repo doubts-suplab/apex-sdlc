@@ -65,3 +65,42 @@ export const RunPersistResultSchema = z.object({
   pii_events: z.number(),
 });
 export type RunPersistResult = z.infer<typeof RunPersistResultSchema>;
+
+// GET /projects/{id}/artifacts/{artifact_id} — the stored artifact with its content.
+export const ArtifactContentSchema = z.object({
+  id: z.string(),
+  phase: PhaseTypeSchema,
+  name: z.string(),
+  title: z.string(),
+  kind: z.string(),
+  version: z.number(),
+  content_sha256: z.string(),
+  content: z.string(),
+});
+export type ArtifactContent = z.infer<typeof ArtifactContentSchema>;
+
+// GET /projects/{id}/approvals — durable gate approvals (history + current).
+export const ApprovalItemSchema = z.object({
+  id: z.string(),
+  phase: PhaseTypeSchema,
+  decision: z.string(),
+  approver_subject: z.string(),
+  approver_persona: z.string(),
+  member_bound: z.boolean(),
+  note: z.string().nullable(),
+  created_at: z.string().nullable(),
+});
+export const ApprovalsListSchema = z.object({
+  total: z.number(),
+  approved_phases: z.array(PhaseTypeSchema),
+  items: z.array(ApprovalItemSchema),
+});
+
+// POST /projects/{id}/phases/{phase}/approve
+export const ApprovalResultSchema = z.object({
+  id: z.string(),
+  phase: PhaseTypeSchema,
+  decision: z.string(),
+  member_bound: z.boolean(),
+});
+export type ApprovalResult = z.infer<typeof ApprovalResultSchema>;

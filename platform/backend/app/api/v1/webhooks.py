@@ -47,6 +47,26 @@ def _project_ref(project: Any) -> dict[str, str] | None:
     return {"id": str(project.id), "slug": project.slug, "name": project.name}
 
 
+@router.get("/events", summary="Recent inbound webhook deliveries (activity feed)")
+async def recent_events(
+    limit: Annotated[int, Query(ge=1, le=100)] = 20,
+    db: AsyncSession = Depends(get_db),
+) -> dict[str, Any]:
+    items = await WebhookEventService(db).list_recent(limit)
+    return {
+        "total": len(items),
+        "items": [
+            {
+                "source": e.source,
+                "event_type": e.event_type,
+                "delivery_id": e.delivery_id,
+                "received_at": e.created_at.isoformat() if e.created_at else None,
+            }
+            for e in items
+        ],
+    }
+
+
 @router.post("/github", summary="GitHub webhook receiver (HMAC-SHA256 verified)")
 async def github_webhook(
     request: Request,
