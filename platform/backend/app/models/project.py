@@ -41,6 +41,8 @@ class Project(Base, TimestampMixin):
     project_type: Mapped[str] = mapped_column(String(50), nullable=False, default="generic")
     github_repo: Mapped[str | None] = mapped_column(String(255), nullable=True)
     jira_board_id: Mapped[str | None] = mapped_column(String(100), nullable=True)
+    # Jira project key (issue-key prefix, e.g. "APEX" in "APEX-42") — resolves Jira webhooks.
+    jira_project_key: Mapped[str | None] = mapped_column(String(50), nullable=True)
     confluence_space_key: Mapped[str | None] = mapped_column(String(100), nullable=True)
     current_phase: Mapped[str] = mapped_column(
         String(50), nullable=False, default="requirements"

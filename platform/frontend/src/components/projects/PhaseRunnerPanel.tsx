@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import {
   CheckCircle2,
   CircleDashed,
@@ -8,6 +8,7 @@ import {
   Loader2,
   Play,
   ShieldCheck,
+  ThumbsUp,
   UserCheck,
   XCircle,
 } from "lucide-react";
@@ -15,11 +16,14 @@ import { useAuthToken } from "@/lib/auth";
 import { usePersona } from "@/lib/persona";
 import {
   useAgentRuns,
+  useApprovedPhases,
+  useApprovePhase,
   useArtifacts,
   useGateStatus,
   useRunPhase,
 } from "@/lib/queries/phases";
 import { AgentRun, GateStatus, StoredArtifact } from "@/types/agentRun";
+import { ArtifactContentDialog } from "@/components/projects/ArtifactContentDialog";
 import {
   PHASE_ORDER,
   PHASE_LABELS,
@@ -80,9 +84,10 @@ function personaLabel(key: string): string {
 }
 
 /**
- * Per-phase run trigger + stored governed state. Each SDLC phase has an approver-gated "Run" button
- * that runs its agent on the harness and persists the run — the UI surface of the dispatch execution
- * path — then reflects the stored agent run, its gate status, and its artifact count.
+ * Per-phase run trigger + approve + stored governed state. Each SDLC phase has an approver-gated "Run"
+ * button (runs its agent on the harness and persists the run) and an "Approve" button (durable,
+ * identity-bound spec approval that unblocks the gate). Artifact counts expand to the phase's stored
+ * artifacts, each opening its content.
  */
 export function PhaseRunnerPanel({ projectId }: { projectId: string }) {
   const { persona } = usePersona();
@@ -91,6 +96,11 @@ export function PhaseRunnerPanel({ projectId }: { projectId: string }) {
   const artifacts = useArtifacts(projectId);
   const gates = useGateStatus(projectId);
   const runPhase = useRunPhase(projectId);
+  const approvedPhases = useApprovedPhases(projectId);
+  const approvePhase = useApprovePhase(projectId);
+
+  const [expandedPhase, setExpandedPhase] = useState<PhaseType | null>(null);
+  const [selected, setSelected] = useState<{ id: string; name: string } | null>(null);
 
   const runByPhase = useMemo(() => {
     const map = new Map<PhaseType, AgentRun>();
@@ -104,15 +114,23 @@ export function PhaseRunnerPanel({ projectId }: { projectId: string }) {
     return map;
   }, [gates.data]);
 
-  const artifactCountByPhase = useMemo(() => {
-    const map = new Map<PhaseType, number>();
-    (artifacts.data ?? []).forEach((a: StoredArtifact) =>
-      map.set(a.phase, (map.get(a.phase) ?? 0) + 1)
-    );
+  const artifactsByPhase = useMemo(() => {
+    const map = new Map<PhaseType, StoredArtifact[]>();
+    (artifacts.data ?? []).forEach((a: StoredArtifact) => {
+      const list = map.get(a.phase) ?? [];
+      list.push(a);
+      map.set(a.phase, list);
+    });
     return map;
   }, [artifacts.data]);
 
+  const approvedSet = useMemo(
+    () => new Set(approvedPhases.data ?? []),
+    [approvedPhases.data]
+  );
+
   const pendingPhase = runPhase.isPending ? runPhase.variables : undefined;
+  const approvingPhase = approvePhase.isPending ? approvePhase.variables?.phase : undefined;
   const totalRuns = runs.data?.length ?? 0;
 
   return (
@@ -136,47 +154,100 @@ export function PhaseRunnerPanel({ projectId }: { projectId: string }) {
         {PHASE_ORDER.map((phase) => {
           const run = runByPhase.get(phase);
           const gate = gateByPhase.get(phase);
-          const artifactCount = artifactCountByPhase.get(phase) ?? 0;
+          const phaseArtifacts = artifactsByPhase.get(phase) ?? [];
+          const artifactCount = phaseArtifacts.length;
           const isRunning = pendingPhase === phase;
+          const isApproving = approvingPhase === phase;
+          const approved = approvedSet.has(phase);
+          const isExpanded = expandedPhase === phase;
           return (
-            <div
-              key={phase}
-              className="flex flex-wrap items-center gap-x-4 gap-y-2 px-6 py-3.5"
-            >
-              <div className="w-32 shrink-0">
-                <span className="text-sm font-medium text-slate-800">
-                  {PHASE_LABELS[phase]}
-                </span>
-              </div>
-              <div className="w-28 shrink-0">
-                <GateBadge status={gate} />
-              </div>
-              <div className="min-w-0 flex-1">
-                <OutcomeBadge run={run} />
-              </div>
-              <div className="flex w-24 shrink-0 items-center gap-1 text-xs text-slate-500">
-                <FileText className="h-3.5 w-3.5" />
-                {artifactCount} {artifactCount === 1 ? "artifact" : "artifacts"}
-              </div>
-              <Button
-                size="sm"
-                variant="outline"
-                className="shrink-0 gap-1.5 bg-white"
-                disabled={!ready || !isApprover || runPhase.isPending}
-                onClick={() => runPhase.mutate(phase)}
-                title={
-                  isApprover
-                    ? `Run the ${PHASE_LABELS[phase]} agent and persist the run`
-                    : "Approver persona required (Lead / BA / Architect / CISO)"
-                }
-              >
-                {isRunning ? (
-                  <Loader2 className="h-3.5 w-3.5 animate-spin" />
+            <div key={phase} className="px-6 py-3.5">
+              <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
+                <div className="w-32 shrink-0">
+                  <span className="text-sm font-medium text-slate-800">
+                    {PHASE_LABELS[phase]}
+                  </span>
+                </div>
+                <div className="w-28 shrink-0">
+                  <GateBadge status={gate} />
+                </div>
+                <div className="min-w-0 flex-1">
+                  <OutcomeBadge run={run} />
+                </div>
+                <button
+                  type="button"
+                  disabled={artifactCount === 0}
+                  onClick={() => setExpandedPhase(isExpanded ? null : phase)}
+                  className={cn(
+                    "flex w-24 shrink-0 items-center gap-1 text-xs",
+                    artifactCount > 0
+                      ? "text-blue-600 hover:text-blue-800"
+                      : "cursor-default text-slate-400"
+                  )}
+                  title={artifactCount > 0 ? "Show artifacts" : "No artifacts yet"}
+                >
+                  <FileText className="h-3.5 w-3.5" />
+                  {artifactCount} {artifactCount === 1 ? "artifact" : "artifacts"}
+                </button>
+                {approved ? (
+                  <span className="inline-flex shrink-0 items-center gap-1 text-xs font-medium text-green-700">
+                    <CheckCircle2 className="h-3.5 w-3.5" /> Approved
+                  </span>
                 ) : (
-                  <Play className="h-3.5 w-3.5" />
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    className="shrink-0 gap-1.5 text-slate-600"
+                    disabled={!ready || !isApprover || !run || approvePhase.isPending}
+                    onClick={() => approvePhase.mutate({ phase })}
+                    title={
+                      isApprover
+                        ? `Approve the ${PHASE_LABELS[phase]} spec (durable, identity-bound)`
+                        : "Approver persona required (Lead / BA / Architect / CISO)"
+                    }
+                  >
+                    {isApproving ? (
+                      <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                    ) : (
+                      <ThumbsUp className="h-3.5 w-3.5" />
+                    )}
+                    Approve
+                  </Button>
                 )}
-                {isRunning ? "Running…" : run ? "Re-run" : "Run"}
-              </Button>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  className="shrink-0 gap-1.5 bg-white"
+                  disabled={!ready || !isApprover || runPhase.isPending}
+                  onClick={() => runPhase.mutate(phase)}
+                  title={
+                    isApprover
+                      ? `Run the ${PHASE_LABELS[phase]} agent and persist the run`
+                      : "Approver persona required (Lead / BA / Architect / CISO)"
+                  }
+                >
+                  {isRunning ? (
+                    <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                  ) : (
+                    <Play className="h-3.5 w-3.5" />
+                  )}
+                  {isRunning ? "Running…" : run ? "Re-run" : "Run"}
+                </Button>
+              </div>
+              {isExpanded && artifactCount > 0 && (
+                <div className="mt-2 flex flex-wrap gap-2 pl-32">
+                  {phaseArtifacts.map((a) => (
+                    <button
+                      key={a.id}
+                      type="button"
+                      onClick={() => setSelected({ id: a.id, name: a.name })}
+                      className="rounded-full border border-slate-200 bg-slate-50 px-2.5 py-1 font-mono text-xs text-slate-600 hover:border-blue-300 hover:text-blue-700"
+                    >
+                      {a.name}
+                    </button>
+                  ))}
+                </div>
+              )}
             </div>
           );
         })}
@@ -201,6 +272,13 @@ export function PhaseRunnerPanel({ projectId }: { projectId: string }) {
           </span>
         )}
       </div>
+
+      <ArtifactContentDialog
+        projectId={projectId}
+        artifactId={selected?.id ?? null}
+        artifactName={selected?.name ?? null}
+        onClose={() => setSelected(null)}
+      />
     </div>
   );
 }

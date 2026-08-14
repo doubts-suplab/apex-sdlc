@@ -54,7 +54,13 @@ class DevOpsAgent(PhaseAgent):
         {DecisionAction.ALLOW, DecisionAction.ALERT, DecisionAction.SUGGEST, DecisionAction.DEFER}
     )
 
+    @property
+    def executed_calls(self) -> list[dict[str, Any]]:
+        """The governed tool calls this run executed — surfaced for per-call audit persistence."""
+        return list(getattr(self, "_executed_calls", []))
+
     def decide(self, ctx: AgentContext, tools: ToolInvoker) -> Decision:
+        self._executed_calls: list[dict[str, Any]] = []  # reset per run
         intent = str(ctx.inputs.get("intent", "")).strip()
         context = {k: v for k, v in ctx.inputs.items() if k != "intent"}
         plan = plan_from_intent(intent, context=context)
@@ -106,6 +112,7 @@ class DevOpsAgent(PhaseAgent):
         for call in plan:
             outcome = tools.call(call.tool, call.arguments, confidence=confidence)
             results.append({"tool": call.tool, "arguments": call.arguments, "result": outcome})
+        self._executed_calls = list(results)  # surfaced for per-call audit persistence
         return results
 
     def _emit_plan(
@@ -192,4 +199,6 @@ def run_devops_flow(
         inputs={"intent": intent, **(context or {})},
         run_id="devops-flow",
     )
-    return run_agent(harness, agent, ctx)
+    result = run_agent(harness, agent, ctx)
+    result.tool_calls = agent.executed_calls  # carry executed calls for per-call audit
+    return result

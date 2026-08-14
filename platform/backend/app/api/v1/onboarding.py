@@ -80,6 +80,11 @@ async def onboard(
                 status=reg["status"],
             )
         )
+        # Seed a default "core" team for the org so the project has a member home (Increment 16).
+        from app.services.member_service import MemberService
+
+        team = await MemberService(db).ensure_default_team(organisation_id)
         await db.commit()
         body["project_id"] = str(project.id)
+        body["default_team_id"] = str(team.id)
     return body

@@ -25,6 +25,7 @@ from app.agents.tools.catalog import (
     JIRA_CREATE_ISSUE,
     SLACK_POST_MESSAGE,
 )
+from app.agents.tools.retry import retry_async
 from app.core.config import Settings, get_settings
 from app.core.logging import get_logger
 
@@ -33,19 +34,33 @@ _log = get_logger("apex.tools.live")
 ToolImpl = Callable[[dict[str, Any]], dict[str, Any]]
 
 
+def _resilient(settings: Settings, tool: str, factory: Callable[[], Any]) -> Any:
+    """Run a live client call under retry+backoff, then bridge async→sync for the adapter."""
+    return _run_sync(
+        retry_async(
+            factory,
+            attempts=settings.TOOL_RETRY_ATTEMPTS,
+            base_delay=settings.TOOL_RETRY_BASE_DELAY,
+            tool=tool,
+        )
+    )
+
+
 def _github_adapter(settings: Settings) -> ToolImpl:
     from app.integrations.github.client import GitHubClient
 
     def _impl(args: dict[str, Any]) -> dict[str, Any]:
         client = GitHubClient(settings.GITHUB_TOKEN, base_url=settings.GITHUB_API_BASE)
-        pr = _run_sync(
-            client.create_pull_request(
+        pr = _resilient(
+            settings,
+            "github",
+            lambda: client.create_pull_request(
                 repo=args["repo"],
                 title=args["title"],
                 head=args["head"],
                 base=args["base"],
                 body=args.get("body", ""),
-            )
+            ),
         )
         return {
             "system": "github",
@@ -64,12 +79,14 @@ def _jira_adapter(settings: Settings) -> ToolImpl:
 
     def _impl(args: dict[str, Any]) -> dict[str, Any]:
         client = JiraClient(settings.JIRA_BASE_URL, settings.JIRA_EMAIL, settings.JIRA_API_TOKEN)
-        issue = _run_sync(
-            client.create_story(
+        issue = _resilient(
+            settings,
+            "jira",
+            lambda: client.create_story(
                 project_key=args["project_key"],
                 summary=args["summary"],
                 description=args.get("description", args["summary"]),
-            )
+            ),
         )
         return {
             "system": "jira",
@@ -90,12 +107,14 @@ def _confluence_adapter(settings: Settings) -> ToolImpl:
         client = ConfluenceClient(
             settings.CONFLUENCE_BASE_URL, settings.CONFLUENCE_EMAIL, settings.CONFLUENCE_TOKEN
         )
-        page = _run_sync(
-            client.create_page(
+        page = _resilient(
+            settings,
+            "confluence",
+            lambda: client.create_page(
                 space_key=args["space_key"],
                 title=args["title"],
                 body_html=args.get("body_html", f"<p>{args['title']}</p>"),
-            )
+            ),
         )
         page_id = page.get("id", "")
         return {
@@ -114,7 +133,11 @@ def _slack_adapter(settings: Settings) -> ToolImpl:
 
     def _impl(args: dict[str, Any]) -> dict[str, Any]:
         client = SlackClient(settings.SLACK_BOT_TOKEN, base_url=settings.SLACK_BASE_URL)
-        res = _run_sync(client.post_message(channel=args["channel"], text=args["text"]))
+        res = _resilient(
+            settings,
+            "slack",
+            lambda: client.post_message(channel=args["channel"], text=args["text"]),
+        )
         return {
             "system": "slack",
             "action": "post_message",
@@ -133,7 +156,11 @@ def _jenkins_adapter(settings: Settings) -> ToolImpl:
         client = JenkinsClient(
             settings.JENKINS_BASE_URL, settings.JENKINS_USER, settings.JENKINS_API_TOKEN
         )
-        res = _run_sync(client.trigger_build(job=args["job"], parameters=args.get("parameters", {})))
+        res = _resilient(
+            settings,
+            "jenkins",
+            lambda: client.trigger_build(job=args["job"], parameters=args.get("parameters", {})),
+        )
         return {
             "system": "jenkins",
             "action": "trigger_build",

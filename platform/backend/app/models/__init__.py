@@ -8,6 +8,8 @@ from app.models.organisation import Organisation
 from app.models.phase import Phase, PhaseGate
 from app.models.project import Project
 from app.models.team import Member, Team
+from app.models.tool_call import ToolCallAudit
+from app.models.webhook_event import WebhookEvent
 
 __all__ = [
     "AgentRun",
@@ -24,4 +26,6 @@ __all__ = [
     "Project",
     "ProjectIntegration",
     "Team",
+    "ToolCallAudit",
+    "WebhookEvent",
 ]

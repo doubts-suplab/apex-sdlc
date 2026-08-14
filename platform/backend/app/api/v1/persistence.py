@@ -14,6 +14,7 @@ from pydantic import BaseModel, Field
 
 from app.agents.catalog import PHASE_ORDER
 from app.agents.orchestrator import run_reference_journey, run_single_phase
+from app.api.deps import require_project_member
 from app.core.security import Principal, require_persona
 from app.db.session import DbSession
 from app.integrations.llm.factory import get_llm_provider
@@ -116,6 +117,7 @@ async def approve_phase(
     db: DbSession,
     svc: Svc,
     principal: Annotated[Principal, Depends(require_persona(*_APPROVER_PERSONAS))],
+    _member: Annotated[Principal, Depends(require_project_member)],
     body: ApprovalRequest | None = None,
 ) -> dict[str, Any]:
     """Approve/reject a phase's spec as the authenticated approver; persisted + attributable."""
@@ -210,6 +212,34 @@ async def list_artifacts(project_id: uuid.UUID, db: DbSession, svc: Svc) -> dict
             }
             for a in items
         ],
+    }
+
+
+@router.get("/{project_id}/artifacts/{artifact_id}", summary="A stored artifact with its content")
+async def get_artifact(
+    project_id: uuid.UUID, artifact_id: uuid.UUID, db: DbSession, svc: Svc
+) -> dict[str, Any]:
+    await _require_project(db, project_id)
+    art = await svc.get_artifact(project_id, artifact_id)
+    if art is None:
+        raise HTTPException(
+            status_code=404,
+            detail={
+                "type": "https://apex.example.com/problems/artifact-not-found",
+                "title": "Artifact Not Found",
+                "status": 404,
+                "detail": f"No artifact {artifact_id} in project {project_id}.",
+            },
+        )
+    return {
+        "id": str(art.id),
+        "phase": art.phase,
+        "name": art.name,
+        "title": art.title,
+        "kind": art.kind,
+        "version": art.version,
+        "content_sha256": art.content_sha256,
+        "content": art.content,
     }
 
 
