@@ -24,6 +24,30 @@ real *offline* follow-on, not a gated one: **5** (real-output **quality-eval har
 
 ---
 
+## ✅ Delivery planning — the planning capability apex lacked
+
+APEX modelled per-project SDLC *artifacts* and *phases* but had no notion of **deliveries** — the unit
+you plan an ecosystem's next work in. This increment adds the first slice, offline-deterministic:
+
+- **`Delivery` domain** (`models/delivery.py`, Alembic `0006`) — a planned unit of work belonging to a
+  project: title, description, status (`proposed → planned → in_progress → done/dropped`), priority,
+  `estimate_points`, `target_ref`, `source` (`human | agent`). `DeliveryService` (async CRUD) +
+  `DeliveryCreate/Update/Response` schemas + nested router `/projects/{id}/deliveries` (RFC-7807 404s).
+- **`PlanningAgent` on the harness** (`agents/planning.py`) — **SUGGEST** authority, capabilities
+  `{SUGGEST, DEFER}`. Given a project brief it proposes a prioritized backlog; the harness never
+  auto-enforces a SUGGEST, so `POST /projects/{id}/plan` persists the proposals as
+  `status='proposed', source='agent'` for a human to accept. The proposal is deterministic (offline
+  reproducible); a real LLM only enriches the human-readable plan artifact.
+- **Aether ecosystem registered offline** (`seeds/aether.py`) — idempotent seed of an `aether` org + a
+  project per ecosystem repo (github_repo set), giving the planner real targets without a live call.
+- **13 new tests** (delivery CRUD + status filter + problem-details, planning agent at SUGGEST, `/plan`
+  endpoint, idempotent seed); full suite **223 passed**. No live infra — in-memory SQLite + stub LLM.
+
+> Also completes the ADR-0013 harness rename in `agents/authority.py` (the last straggler still importing
+> the old `agent_harness` module), which had left the app unable to import against harness `main`.
+
+---
+
 ## 📋 Planning note — external maturity review folded into the roadmap
 
 Not a built increment — a **planning pass**. An external maturity review (substance-vs-structure gap,

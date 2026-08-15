@@ -54,3 +54,28 @@ class DeliveryResponse(BaseModel):
     source: str
     created_at: datetime
     updated_at: datetime
+
+
+class PlanRequest(BaseModel):
+    """Payload for asking the planning agent to propose a delivery backlog."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    brief: str = Field(default="", description="Free-text project brief the plan is derived from")
+    actor_id: str = Field(default="system", max_length=255)
+
+
+class PlanDecision(BaseModel):
+    """The governed decision the planning agent produced (a suggestion, never auto-enforced)."""
+
+    action: str
+    confidence: float
+    auto_enforced: bool
+    rationale: str
+
+
+class PlanResponse(BaseModel):
+    """The proposed deliveries plus the governed decision that produced them."""
+
+    decision: PlanDecision
+    deliveries: list[DeliveryResponse]

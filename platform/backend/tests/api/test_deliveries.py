@@ -116,3 +116,33 @@ async def test_get_unknown_delivery_is_404(client: AsyncClient) -> None:
         f"/api/v1/projects/{project_id}/deliveries/00000000-0000-0000-0000-000000000000"
     )
     assert resp.status_code == 404
+
+
+@pytest.mark.asyncio
+async def test_plan_proposes_agent_deliveries(client: AsyncClient) -> None:
+    project_id = await _create_project(client)
+    resp = await client.post(
+        f"/api/v1/projects/{project_id}/plan",
+        json={"brief": "Ship the export API. Add retention purge."},
+    )
+    assert resp.status_code == 201, resp.text
+    body = resp.json()
+    # the plan is a suggestion — never auto-enforced
+    assert body["decision"]["action"] == "SUGGEST"
+    assert body["decision"]["auto_enforced"] is False
+    assert len(body["deliveries"]) == 2
+    assert all(d["source"] == "agent" for d in body["deliveries"])
+    assert all(d["status"] == "proposed" for d in body["deliveries"])
+
+    # the proposed deliveries are persisted and now listable under the project
+    listed = await client.get(f"/api/v1/projects/{project_id}/deliveries/")
+    assert listed.json()["total"] == 2
+
+
+@pytest.mark.asyncio
+async def test_plan_unknown_project_is_404(client: AsyncClient) -> None:
+    resp = await client.post(
+        "/api/v1/projects/00000000-0000-0000-0000-000000000000/plan",
+        json={"brief": "x"},
+    )
+    assert resp.status_code == 404

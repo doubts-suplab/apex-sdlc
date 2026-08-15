@@ -213,6 +213,7 @@ platform/
 | `audit_log` | Append-only record of every AI action: actor, model, phase, artifact before/after state, timestamp |
 | `pii_events` | PII detection event: matched pattern, field name, action taken (redacted/blocked), agent run FK |
 | `policy_violations` | Policy check failure: policy name, project/phase, severity, remediation status |
+| `deliveries` | A planned unit of work for a project (title, status, priority, estimate_points, source); the PlanningAgent proposes them at `source='agent', status='proposed'` for a human to accept |
 
 ---
 

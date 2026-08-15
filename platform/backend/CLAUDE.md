@@ -122,6 +122,8 @@ backend/
 |------------|---------|--------------|
 | `organisations.py` | Organisations | `GET /organisations`, `POST /organisations`, `GET /organisations/{id}`, `PATCH /organisations/{id}` |
 | `projects.py` | Projects | `GET /projects`, `POST /projects`, `GET /projects/{id}`, `PATCH /projects/{id}`, `DELETE /projects/{id}` |
+| `deliveries.py` | Deliveries | `POST/GET /projects/{id}/deliveries`, `GET/PATCH/DELETE /projects/{id}/deliveries/{deliveryId}` |
+| `planning.py` | Planning | `POST /projects/{id}/plan` — PlanningAgent (SUGGEST authority, on the harness) proposes a delivery backlog |
 | `phases.py` | Phases | `GET /projects/{id}/phases`, `GET /projects/{id}/phases/{phase}`, `POST /projects/{id}/phases/{phase}/gate/evaluate` |
 | `artifacts.py` | Artifacts | `GET /projects/{id}/phases/{phase}/artifacts`, `GET /artifacts/{id}`, `GET /artifacts/{id}/versions`, `GET /artifacts/{id}/download` |
 | `agents.py` | Agent runs | `POST /projects/{id}/phases/{phase}/agents/run`, `GET /agents/{runId}`, `GET /agents/{runId}/stream` (SSE) |
