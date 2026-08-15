@@ -4,6 +4,7 @@ from app.models.approval import GateApproval
 from app.models.arb import ArbSubmission
 from app.models.artifact import Artifact, ArtifactVersion
 from app.models.audit import AuditLog, PiiEvent, PolicyViolation
+from app.models.delivery import Delivery
 from app.models.integration import ProjectIntegration
 from app.models.organisation import Organisation
 from app.models.phase import Phase, PhaseGate
