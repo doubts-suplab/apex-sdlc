@@ -8,6 +8,7 @@ from sqlalchemy import text
 from app.api.v1 import (
     agents,
     auth,
+    deliveries,
     devops,
     gates,
     integrations,
@@ -30,6 +31,7 @@ api_router = APIRouter(prefix="/api/v1")
 api_router.include_router(auth.router)
 api_router.include_router(organisations.router)
 api_router.include_router(projects.router)
+api_router.include_router(deliveries.router)
 api_router.include_router(integrations.router)
 api_router.include_router(journey.router)
 api_router.include_router(agents.router)
