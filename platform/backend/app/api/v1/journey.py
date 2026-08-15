@@ -16,6 +16,7 @@ from app.agents.authority import authority_model
 from app.agents.catalog import PERSONAS, phases_for_persona
 from app.agents.metrics import metrics_by_persona
 from app.agents.orchestrator import run_reference_journey
+from app.eval import evaluate_artifacts
 from app.gates.engine import evaluate_journey
 from app.integrations.llm.factory import get_llm_provider
 from app.spine.config import SpineConfig, SpineConfigError, build_spine, default_spine
@@ -123,6 +124,18 @@ async def get_reference_metrics(model: str | None = None) -> dict[str, Any]:
     journey = run_reference_journey(get_llm_provider())
     pricing_model = model or _DEFAULT_PRICING_MODEL
     return {"project": journey.project, **metrics_by_persona(journey.phases, pricing_model=pricing_model)}
+
+
+@router.get("/reference/quality", summary="Rubric quality-eval of the reference journey artifacts")
+async def get_reference_quality() -> dict[str, Any]:
+    """Score every artifact the reference journey produces against the quality rubric.
+
+    Structural checks (non-empty, substantive, heading, no placeholders) plus kind-specific ones
+    (gherkin/ADR/mermaid). Deterministic offline; the same yardstick measures real provider output.
+    """
+    journey = run_reference_journey(get_llm_provider())
+    artifacts = [a for p in journey.phases for a in p.artifacts]
+    return {"project": journey.project, **evaluate_artifacts(artifacts).to_dict()}
 
 
 @router.get("/reference/artifacts/{phase}", summary="Artifacts produced in one phase")

@@ -156,7 +156,8 @@ runs on the credentialed path behind config.
 
 **Definition of done (V1):**
 - A configured LLM provider yields **input-driven** Requirements + Architecture artifacts, with quality
-  evaluation and robust fallbacks for short/failed replies (no silent empty artifacts).
+  evaluation and robust fallbacks for short/failed replies (no silent empty artifacts). ✅ **quality-eval
+  harness + fallbacks built (Increment 32 / 5)**; the input-driven output itself is credential-gated.
 - Onboarding creates a real GitHub repo and a persisted `Project` row (Phase 0 credentialed path).
 - A gate approval is **durable** (stored, identity-bound to a project `Member`), not in-memory. ✅ **built
   (Increment 27):** `GateApproval` model + `POST .../approve` + spine reads stored approvals.
@@ -404,7 +405,7 @@ no dead scripts.
 
 | Item | Phase | Priority | Feasibility |
 |---|---|---|---|
-| Real LLM generation quality: quality-eval harness, streaming into artifacts, robust fallbacks for short/failed replies (no silent empty artifacts) | 3 | P0 | offline (eval harness) + credential-gated (real output) |
+| Real LLM generation quality: quality-eval harness, streaming into artifacts, robust fallbacks for short/failed replies (no silent empty artifacts) | 3 | P0 | offline (eval harness) + credential-gated (real output) — ✅ **quality-eval harness + fallbacks built (Increment 32 / 5)**; scores on real output + streaming still credential-gated |
 | Real input-driven artifacts: requirements→Gherkin, architecture→reasoned C4/target-state | 3 | P0 | credential-gated |
 | Live write-back side-effects: create Jira story · post inline GitHub PR review · publish Confluence · cut releases | 2/3 | P0 (one) / P1 (rest) | credential-gated |
 | Celery auto-invocation of the dispatched run + event de-dup / idempotency | 2 | P1 | offline (idempotency) + infra-gated (broker) — ✅ **event de-dup/idempotency built (Increment 29)**; Celery auto-invoke still infra-gated |
@@ -412,7 +413,7 @@ no dead scripts.
 | Onboarding: richer LLM-driven repository-generator (beyond the deterministic scaffold) | 0/3 | P1 | credential-gated |
 | Reconcile the Pydantic onboarding manifest with eeik's canonical schema | 0 | P1 | offline |
 | S3 artifact storage + durable gate evaluations + approval/identity store | 4/5 | P0 (approvals) / P1 (S3) | offline (approvals via DB) + infra-gated (S3) — ✅ **durable approval/identity store built (Increment 27)**; S3 + durable gate-eval snapshots still pending |
-| Full spine enforcement in production + ARB workflow | 5 | P1 | offline (spine) + credential-gated (ARB write) |
+| Full spine enforcement in production + ARB workflow | 5 | P1 | offline (spine) + credential-gated (ARB write) — ✅ **ARB approval workflow built (Increment 33)**: submit → decide → append-only audit; full production spine enforcement still pending |
 | Auth/RBAC completion: bind token persona → project `Member`, credential store, refresh tokens, prod-hardening | 5 | P0 (member-binding) / P1 (rest) | offline — ✅ **member-binding + members/teams API built (Increment 28)**; credential/OIDC store + refresh tokens pending (credential-gated) |
 
 ### Theme 2 — Documentation & discoverability
