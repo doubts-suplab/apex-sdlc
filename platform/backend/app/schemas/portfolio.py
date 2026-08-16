@@ -21,6 +21,23 @@ class PortfolioProjectRow(BaseModel):
     open_count: int = Field(
         description="Deliveries not yet done or dropped (proposed + planned + in_progress)."
     )
+    # Governed posture from the project's ingested eeik manifest (null when none has been ingested).
+    domain: str | None = Field(default=None, description="Manifest domain (e.g. generic, banking).")
+    governance_profile: str | None = Field(
+        default=None, description="Manifest governance profile (e.g. enterprise)."
+    )
+    compliance_frameworks: list[str] = Field(
+        default_factory=list, description="Compliance frameworks the manifest declares (e.g. gdpr)."
+    )
+    coverage_threshold: int | None = Field(
+        default=None, description="Manifest coverage gate, if set."
+    )
+    resolved_pack_count: int | None = Field(
+        default=None, description="Number of eeik capability packs the manifest resolves."
+    )
+    manifest_engine: str | None = Field(
+        default=None, description="Which engine validated the manifest: sdk | mcp | vendored."
+    )
 
 
 class PortfolioSummary(BaseModel):

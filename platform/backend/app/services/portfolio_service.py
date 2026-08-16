@@ -8,6 +8,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.core.logging import get_logger
 from app.models.delivery import DELIVERY_PRIORITIES, DELIVERY_STATUSES, Delivery
 from app.models.project import Project
+from app.models.project_manifest import ProjectManifestRecord
 from app.schemas.portfolio import PortfolioProjectRow, PortfolioSummary
 
 logger = get_logger(__name__)
@@ -90,15 +91,35 @@ class PortfolioService:
             .group_by(Project.id, Project.name, Project.slug, Project.github_repo)
             .order_by(Project.name)
         )
-        return [
-            PortfolioProjectRow(
-                project_id=row.id,
-                name=row.name,
-                slug=row.slug,
-                github_repo=row.github_repo,
-                delivery_count=int(row.delivery_count),
-                estimate_points=int(row.estimate_points),
-                open_count=int(row.open_count),
+        rows = result.all()
+
+        # Governed posture from each project's ingested eeik manifest (1:1). Fetched separately — not
+        # folded into the grouped delivery query — because grouping on JSON columns is not portable.
+        manifests = await self._db.execute(
+            select(ProjectManifestRecord)
+            .join(Project, ProjectManifestRecord.project_id == Project.id)
+            .where(Project.organisation_id == organisation_id)
+        )
+        by_project = {m.project_id: m for m in manifests.scalars()}
+
+        project_rows: list[PortfolioProjectRow] = []
+        for row in rows:
+            m = by_project.get(row.id)
+            project_rows.append(
+                PortfolioProjectRow(
+                    project_id=row.id,
+                    name=row.name,
+                    slug=row.slug,
+                    github_repo=row.github_repo,
+                    delivery_count=int(row.delivery_count),
+                    estimate_points=int(row.estimate_points),
+                    open_count=int(row.open_count),
+                    domain=m.domain if m else None,
+                    governance_profile=m.governance_profile if m else None,
+                    compliance_frameworks=list(m.compliance_frameworks) if m else [],
+                    coverage_threshold=m.coverage_threshold if m else None,
+                    resolved_pack_count=len(m.resolved_packs) if m else None,
+                    manifest_engine=m.engine if m else None,
+                )
             )
-            for row in result.all()
-        ]
+        return project_rows

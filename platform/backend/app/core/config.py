@@ -120,6 +120,16 @@ class Settings(BaseSettings):
     S3_ARTIFACT_BUCKET: str = Field(default="apex-artifacts-dev", description="S3 bucket for artifacts")
     AWS_REGION: str = Field(default="eu-west-1", description="AWS region")
 
+    # ------------------------------------------------------------------
+    # Ecosystem ingestion (generic org/manifest import)
+    # ------------------------------------------------------------------
+    # Root of a local multi-repo checkout. The LocalWorkspaceResolver maps an "owner/repo" to
+    # <root>/<repo-name>/<manifest_path> so APEX can ingest an org descriptor + each project's
+    # project-manifest.yaml fully offline. Empty = local-workspace ingestion disabled.
+    ECOSYSTEM_WORKSPACE_ROOT: str = Field(
+        default="", description="Local root holding sibling repo checkouts for manifest ingestion"
+    )
+
 
 def get_settings() -> Settings:
     """Return application settings singleton."""

@@ -39,6 +39,7 @@ export const DeliveryPublishResponseSchema = z.object({
 });
 export type DeliveryPublishResponse = z.infer<typeof DeliveryPublishResponseSchema>;
 
+// mirrors backend schemas/portfolio.py (PortfolioProjectRow)
 export const PortfolioProjectRowSchema = z.object({
   project_id: z.string().uuid(),
   name: z.string(),
@@ -47,6 +48,13 @@ export const PortfolioProjectRowSchema = z.object({
   delivery_count: z.number().int(),
   estimate_points: z.number().int(),
   open_count: z.number().int(),
+  // Governed posture from the project's ingested eeik manifest (null when none ingested).
+  domain: z.string().nullable().default(null),
+  governance_profile: z.string().nullable().default(null),
+  compliance_frameworks: z.array(z.string()).default([]),
+  coverage_threshold: z.number().int().nullable().default(null),
+  resolved_pack_count: z.number().int().nullable().default(null),
+  manifest_engine: z.string().nullable().default(null),
 });
 export type PortfolioProjectRow = z.infer<typeof PortfolioProjectRowSchema>;
 

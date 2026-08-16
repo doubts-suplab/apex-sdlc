@@ -87,6 +87,7 @@ function PortfolioBody({ summary }: { summary: PortfolioSummary }) {
             <tr className="border-b border-slate-100 text-left text-xs uppercase tracking-wide text-slate-500">
               <th className="px-4 py-3 font-medium">Project</th>
               <th className="px-4 py-3 font-medium">Repository</th>
+              <th className="px-4 py-3 font-medium">Governance</th>
               <th className="px-4 py-3 text-right font-medium">Deliveries</th>
               <th className="px-4 py-3 text-right font-medium">Open</th>
               <th className="px-4 py-3 text-right font-medium">Points</th>
@@ -109,6 +110,23 @@ function PortfolioBody({ summary }: { summary: PortfolioSummary }) {
                       <GitBranch className="h-3 w-3" />
                       {row.github_repo}
                     </span>
+                  ) : (
+                    <span className="text-xs text-slate-300">—</span>
+                  )}
+                </td>
+                <td className="px-4 py-3">
+                  {row.governance_profile ? (
+                    <div className="flex flex-wrap items-center gap-1.5">
+                      <span className="rounded bg-slate-100 px-1.5 py-0.5 text-xs font-medium text-slate-700">
+                        {row.governance_profile}
+                      </span>
+                      {row.domain && row.domain !== "generic" && (
+                        <span className="text-xs text-slate-500">{row.domain}</span>
+                      )}
+                      {row.resolved_pack_count != null && (
+                        <span className="text-xs text-slate-400">{row.resolved_pack_count} packs</span>
+                      )}
+                    </div>
                   ) : (
                     <span className="text-xs text-slate-300">—</span>
                   )}

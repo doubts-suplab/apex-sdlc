@@ -9,6 +9,7 @@ from app.models.integration import ProjectIntegration
 from app.models.organisation import Organisation
 from app.models.phase import Phase, PhaseGate
 from app.models.project import Project
+from app.models.project_manifest import ProjectManifestRecord
 from app.models.team import Member, Team
 from app.models.tool_call import ToolCallAudit
 from app.models.webhook_event import WebhookEvent
@@ -28,6 +29,7 @@ __all__ = [
     "PolicyViolation",
     "Project",
     "ProjectIntegration",
+    "ProjectManifestRecord",
     "Team",
     "ToolCallAudit",
     "WebhookEvent",

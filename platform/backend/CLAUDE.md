@@ -71,6 +71,7 @@ backend/
     models/
       organisation.py         Organisation ORM model
       project.py              Project + ProjectIntegration ORM models
+      project_manifest.py     ProjectManifestRecord — ingested eeik-manifest posture (1:1 with Project)
       team.py                 Team + Member ORM models
       phase.py                Phase + PhaseGate ORM models
       artifact.py             Artifact + ArtifactVersion ORM models
@@ -124,7 +125,8 @@ backend/
 | `projects.py` | Projects | `GET /projects`, `POST /projects`, `GET /projects/{id}`, `PATCH /projects/{id}`, `DELETE /projects/{id}` |
 | `deliveries.py` | Deliveries | `POST/GET /projects/{id}/deliveries`, `GET/PATCH/DELETE /projects/{id}/deliveries/{deliveryId}`, `POST /projects/{id}/deliveries/{deliveryId}/publish` — publish a delivery to GitHub as a tracking issue (write-back; marks it `planned`) |
 | `planning.py` | Planning | `POST /projects/{id}/plan` — PlanningAgent (SUGGEST authority, on the harness) proposes a delivery backlog |
-| `portfolio.py` | Portfolio | `GET /organisations/{id}/portfolio` — cross-project delivery rollup (counts by status/priority, per-project breakdown) |
+| `portfolio.py` | Portfolio | `GET /organisations/{id}/portfolio` — cross-project delivery rollup (counts by status/priority, per-project breakdown incl. governed posture) |
+| `ingest.py` | Ingestion | `POST /ingest/organisation` — register an org + projects from a tool-agnostic descriptor; `POST`/`GET /projects/{id}/manifest` — ingest/read a project's eeik-manifest posture. Validates via the real eeik engine; persists `project_manifests`. Generic — no organisation named in code |
 | `phases.py` | Phases | `GET /projects/{id}/phases`, `GET /projects/{id}/phases/{phase}`, `POST /projects/{id}/phases/{phase}/gate/evaluate` |
 | `artifacts.py` | Artifacts | `GET /projects/{id}/phases/{phase}/artifacts`, `GET /artifacts/{id}`, `GET /artifacts/{id}/versions`, `GET /artifacts/{id}/download` |
 | `agents.py` | Agent runs | `POST /projects/{id}/phases/{phase}/agents/run`, `GET /agents/{runId}`, `GET /agents/{runId}/stream` (SSE) |
