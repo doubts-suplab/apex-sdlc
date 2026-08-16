@@ -8,13 +8,54 @@ working; when enabled it rejects any project write whose token subject is not a 
 from __future__ import annotations
 
 import uuid
+from typing import Annotated
 
-from fastapi import HTTPException
+from fastapi import Depends, HTTPException
+from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 
 from app.core.config import get_settings
-from app.core.security import CurrentPrincipal, Principal
+from app.core.security import (
+    CurrentPrincipal,
+    InvalidTokenError,
+    Principal,
+    decode_access_token,
+)
 from app.db.session import DbSession
+from app.integrations.github.client import GitHubClient
 from app.services.member_service import MemberService
+
+_optional_bearer = HTTPBearer(auto_error=False)
+
+
+def get_optional_subject(
+    credentials: Annotated[HTTPAuthorizationCredentials | None, Depends(_optional_bearer)],
+) -> str:
+    """Best-effort actor id for audit purposes — never rejects the request.
+
+    Returns the bearer token's subject when a valid token is present, else ``"operator"`` so
+    unauthenticated (offline / auth-disabled) callers still record a meaningful actor on the audit
+    trail. Distinct from :data:`CurrentPrincipal`, which 401s on a missing/invalid token.
+    """
+    if credentials is None or not credentials.credentials:
+        return "operator"
+    try:
+        subject = str(decode_access_token(credentials.credentials).get("sub", ""))
+    except InvalidTokenError:
+        return "operator"
+    return subject or "operator"
+
+
+OptionalSubject = Annotated[str, Depends(get_optional_subject)]
+
+
+def get_github_client() -> GitHubClient:
+    """Build a GitHub client from settings.
+
+    A FastAPI dependency so it can be overridden in tests with a fake client (no network), the same
+    way ``get_db`` is overridden. Production wiring reads the token and API base from settings.
+    """
+    settings = get_settings()
+    return GitHubClient(settings.GITHUB_TOKEN, base_url=settings.GITHUB_API_BASE)
 
 
 async def require_project_member(

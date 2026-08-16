@@ -159,6 +159,29 @@ class GitHubClient:
             json={"title": title, "head": head, "base": base, "body": body},
         )
 
+    async def create_issue(
+        self,
+        repo: str,
+        title: str,
+        body: str = "",
+        labels: list[str] | None = None,
+    ) -> dict:
+        """Open an issue on a repository.
+
+        Args:
+            repo: ``"owner/repo"`` format.
+            title: Issue title.
+            body: Optional issue body (Markdown).
+            labels: Optional list of label names to apply.
+
+        Returns:
+            Created issue object (with ``number``, ``html_url``, ``state``).
+        """
+        payload: dict[str, Any] = {"title": title, "body": body}
+        if labels:
+            payload["labels"] = labels
+        return await self._request("POST", f"/repos/{repo}/issues", json=payload)
+
     async def create_repository(self, name: str, private: bool = True, description: str = "") -> dict:
         """Create a repository for the authenticated user.
 

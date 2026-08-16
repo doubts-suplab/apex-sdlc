@@ -304,9 +304,11 @@ Versioned artifact storage, Confluence publishing, per-phase gallery.
 > deterministic `$0` offline). A **front-end dashboard** now renders it — a persona-aware `CostDashboard` on
 > `/journey`, fed by the offline `GET /journey/reference/metrics` endpoint (Increment 12). The **project
 > detail page now shows a DB-backed cost dashboard** for a persisted journey, with an approver-gated
-> "Run + persist journey" action and a frontend persona-login that mints the JWT (Increment 13). Still
-> pending: an org-level cross-project roll-up and time-series rollups. See
-> [`docs/progress.md`](docs/progress.md).
+> "Run + persist journey" action and a frontend persona-login that mints the JWT (Increment 13). An
+> org-level cross-project roll-up now exists for **deliveries** (`GET /organisations/{id}/portfolio` —
+> counts by status/priority + per-project breakdown), and deliveries publish to GitHub as tracking
+> issues (`POST …/deliveries/{id}/publish`); still pending: cross-project *cost/phase* roll-ups and
+> time-series rollups. See [`docs/progress.md`](docs/progress.md).
 
 **Deliverables:**
 - `artifacts` + `artifact_versions` tables — content hash, S3 key, version lineage

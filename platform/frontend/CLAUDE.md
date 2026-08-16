@@ -75,6 +75,7 @@ frontend/
       api.ts                              Base fetch wrapper: adds auth header, base URL, error handling
       queries/
         projects.ts                       useProjects, useProject, useCreateProject, useUpdateProject
+        deliveries.ts                     useProjectDeliveries, usePortfolio, usePublishDelivery (mutation)
         phases.ts                         usePhases, usePhase, useGateStatus, useEvaluateGate
         artifacts.ts                      useArtifacts, useArtifact, useArtifactVersions, useDownloadUrl
         agents.ts                         useAgentRuns, useAgentRun, useRunAgent (mutation)
@@ -251,6 +252,15 @@ export function useRunAgent(projectId: string, phase: string) {
 - "Run Agent" button → POST to backend → opens AgentProgressDrawer with SSE streaming
 - ArtifactGallery: all artifacts for this phase; each card shows title, type, version, created date, "View" + "Publish to Confluence" + "Download" actions
 - AgentRunList: table of previous runs for this phase with status, model, tokens, cost, duration
+
+### Portfolio (`/portfolio`)
+
+- Cross-project delivery rollup for the organisation (derived from the project registry until an org
+  switcher exists). KPI tiles (projects, deliveries, open, estimate points), by-status / by-priority
+  bars, and a per-project table linking to each project. Backed by `GET /organisations/{id}/portfolio`.
+- A project's `DeliveriesPanel` (on the project detail page) lists its deliveries and offers a
+  **Publish** action on proposed/planned items — `POST …/deliveries/{id}/publish` creates a GitHub
+  tracking issue and links it back on the delivery.
 
 ### Governance (`/governance`)
 

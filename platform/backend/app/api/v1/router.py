@@ -19,6 +19,7 @@ from app.api.v1 import (
     organisations,
     persistence,
     planning,
+    portfolio,
     projects,
     webhooks,
 )
@@ -35,6 +36,7 @@ api_router.include_router(organisations.router)
 api_router.include_router(projects.router)
 api_router.include_router(deliveries.router)
 api_router.include_router(planning.router)
+api_router.include_router(portfolio.router)
 api_router.include_router(integrations.router)
 api_router.include_router(journey.router)
 api_router.include_router(agents.router)

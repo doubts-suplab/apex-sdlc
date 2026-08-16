@@ -79,3 +79,11 @@ class PlanResponse(BaseModel):
 
     decision: PlanDecision
     deliveries: list[DeliveryResponse]
+
+
+class DeliveryPublishResponse(BaseModel):
+    """Result of publishing a delivery to GitHub — the updated delivery plus the created issue."""
+
+    delivery: DeliveryResponse
+    issue_url: str
+    issue_number: int | None = None

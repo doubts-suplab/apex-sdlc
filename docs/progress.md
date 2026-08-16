@@ -24,6 +24,37 @@ remainder is credential/infra-gated). Increments **5** (quality-eval harness, In
 
 ---
 
+## ✅ Portfolio rollup + delivery write-back — the planner grows up
+
+The planner could propose deliveries per project; this increment gives it the two things that make it
+an *ecosystem* planner: a cross-project rollup and a real write-back seam. Still offline-deterministic.
+
+- **Cross-project portfolio rollup** (`services/portfolio_service.py`, `GET /organisations/{id}/portfolio`)
+  — aggregates every delivery across an org's projects into portfolio totals (counts by status and
+  priority, open count, total estimate points) plus a per-project breakdown (including projects with no
+  deliveries yet). Read-only, scoped to the org via a `Delivery → Project` join on `organisation_id` — no
+  org sees another's deliveries. Explicit column lists, grouped queries, zero-filled status/priority maps.
+- **Delivery → GitHub issue publish** (`services/delivery_publish_service.py`,
+  `POST /projects/{id}/deliveries/{deliveryId}/publish`) — the **governed** write-back seam: turns a
+  planned delivery into a real GitHub issue (`GitHubClient.create_issue`, labelled `apex-delivery`, body
+  carrying the apex delivery id for traceability), records the issue URL on `target_ref`, and advances the
+  delivery to `planned`. The live call runs under **retry+backoff** (`retry_async`, same resilience as the
+  live tool adapters), and every successful publish writes an **append-only `audit_log`** row (actor from
+  an optional bearer subject, `agent_name='delivery-publish'`, `action='ALLOW'`) — so a real write-back is
+  resilient and accountable. The GitHub client is a FastAPI dependency (`get_github_client`), so tests
+  exercise the flow with a fake — no network. `409` when the project has no repo or already published.
+- **10 new tests** (portfolio: empty/aggregate/org-scope/sparse/404; publish: issue+planned, audit-row
+  written, no-repo 409, double-publish 409, unknown 404) with a fake GitHub client and DB-override client
+  fixture; full suite **233 passed**. Live GitHub write is the only credential-gated tail — the flow,
+  labels, body, retry wrapping, audit row, and state transition are all verified offline; it fires against
+  a real repo the moment `GITHUB_TOKEN` is set (the First Production Slice write-back).
+- **Frontend wiring** — a `/portfolio` page (KPI tiles + by-status/priority bars + per-project table),
+  a `DeliveriesPanel` on the project detail page with a **Publish to GitHub** action, `types/delivery.ts`
+  (Zod mirrors) and `lib/queries/deliveries.ts` (`useProjectDeliveries`, `usePortfolio`,
+  `usePublishDelivery`). `tsc --noEmit` clean.
+
+---
+
 ## ✅ Delivery planning — the planning capability apex lacked
 
 APEX modelled per-project SDLC *artifacts* and *phases* but had no notion of **deliveries** — the unit
