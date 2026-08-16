@@ -8,9 +8,12 @@ import pytest_asyncio
 from httpx import ASGITransport, AsyncClient
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from sqlalchemy import func, select
+
 from app.api.deps import get_github_client
 from app.db.session import get_db
 from app.main import create_app
+from app.models.audit import AuditLog
 
 
 class FakeGitHubClient:
@@ -100,6 +103,33 @@ async def test_publish_creates_issue_and_marks_planned(
     assert call["title"] == "Ship business-hours SLAs"
     assert call["labels"] == ["apex-delivery"]
     assert delivery_id in call["body"]  # apex delivery id embedded for traceability
+
+
+@pytest.mark.asyncio
+async def test_publish_writes_audit_row(
+    gh_client: AsyncClient, db_session
+) -> None:
+    project_id = await _project_with_repo(gh_client, "doubts-suplab/aether-core")
+    delivery_id = await _add_delivery(gh_client, project_id, title="Audited delivery")
+
+    resp = await gh_client.post(
+        f"/api/v1/projects/{project_id}/deliveries/{delivery_id}/publish"
+    )
+    assert resp.status_code == 200, resp.text
+
+    # An append-only audit entry records the governed write-back.
+    count = await db_session.scalar(
+        select(func.count())
+        .select_from(AuditLog)
+        .where(AuditLog.agent_name == "delivery-publish")
+    )
+    assert count == 1
+    row = await db_session.scalar(
+        select(AuditLog).where(AuditLog.agent_name == "delivery-publish")
+    )
+    assert row.action == "ALLOW"
+    assert row.auto_enforced is False
+    assert "doubts-suplab/aether-core" in row.summary
 
 
 @pytest.mark.asyncio

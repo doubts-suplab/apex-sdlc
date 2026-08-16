@@ -7,7 +7,7 @@ from fastapi import APIRouter, Depends, HTTPException, Query, status
 
 from fastapi.responses import JSONResponse
 
-from app.api.deps import get_github_client
+from app.api.deps import OptionalSubject, get_github_client
 from app.core.logging import get_logger
 from app.db.session import DbSession
 from app.integrations.github.client import GitHubClient
@@ -161,6 +161,7 @@ async def publish_delivery(
     projects: ProjService,
     db: DbSession,
     github: GitHubDep,
+    actor: OptionalSubject,
 ) -> DeliveryPublishResponse:
     """Create a GitHub issue for the delivery and mark it ``planned`` (the write-back seam).
 
@@ -176,7 +177,7 @@ async def publish_delivery(
 
     publisher = DeliveryPublishService(db, github)
     try:
-        published, issue = await publisher.publish(project, delivery)
+        published, issue = await publisher.publish(project, delivery, actor=actor)
     except DeliveryPublishError as exc:
         # Return the RFC-7807 body at top level (no generic HTTPException flattener for 409).
         return JSONResponse(
