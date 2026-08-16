@@ -25,3 +25,4 @@ next-env.d.ts
 platform/backend/.env
 platform/frontend/.env.local
 coverage.xml
+.vscode/settings.json

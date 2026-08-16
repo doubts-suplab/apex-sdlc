@@ -306,8 +306,13 @@ Versioned artifact storage, Confluence publishing, per-phase gallery.
 > "Run + persist journey" action and a frontend persona-login that mints the JWT (Increment 13). An
 > org-level cross-project roll-up now exists for **deliveries** (`GET /organisations/{id}/portfolio` —
 > counts by status/priority + per-project breakdown), and deliveries publish to GitHub as tracking
-> issues (`POST …/deliveries/{id}/publish`); still pending: cross-project *cost/phase* roll-ups and
-> time-series rollups. See [`docs/progress.md`](docs/progress.md).
+> issues (`POST …/deliveries/{id}/publish`). APEX now also **ingests governed posture**: a generic
+> manifest/org ingestion (`POST /ingest/organisation`, `POST`/`GET /projects/{id}/manifest`) reads a
+> tool-agnostic org descriptor + each repo's `project-manifest.yaml`, validates through the real eeik
+> engine, and persists `project_manifests` (governance profile, compliance, resolved packs) — surfaced in
+> the portfolio. Generic: no organisation is named in APEX code (the Aether ecosystem is the worked
+> example, expressed entirely as data). Still pending: cross-project *cost/phase* roll-ups and time-series
+> rollups. See [`docs/progress.md`](docs/progress.md).
 
 **Deliverables:**
 - `artifacts` + `artifact_versions` tables — content hash, S3 key, version lineage

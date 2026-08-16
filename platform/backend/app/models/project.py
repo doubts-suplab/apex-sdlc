@@ -69,6 +69,14 @@ class Project(Base, TimestampMixin):
         cascade="all, delete-orphan",
         lazy="noload",
     )
+    # The ingested eeik project-manifest posture (1:1) — how APEX manages this project's governed reality.
+    manifest: Mapped["ProjectManifestRecord | None"] = relationship(  # type: ignore[name-defined]  # noqa: F821
+        "ProjectManifestRecord",
+        back_populates="project",
+        uselist=False,
+        cascade="all, delete-orphan",
+        lazy="noload",
+    )
 
     def __repr__(self) -> str:
         return f"<Project id={self.id} slug={self.slug!r}>"

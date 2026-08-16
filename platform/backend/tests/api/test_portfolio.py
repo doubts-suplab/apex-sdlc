@@ -105,6 +105,45 @@ async def test_portfolio_includes_projects_without_deliveries(client: AsyncClien
     assert body["projects"][0]["delivery_count"] == 0
 
 
+_MANIFEST = {
+    "schema_version": "1.0",
+    "project": {"name": "geo", "description": "x", "owner": "o", "domain": "generic", "project_type": "greenfield"},
+    "technology": {"backend": {"language": "java", "framework": "spring-boot"}},
+    "architecture": {"style": "modular-monolith", "patterns": ["ddd"], "api_style": "rest"},
+    "cloud": {"provider": "aws", "infra_as_code": "cdk", "multi_account": True},
+    "governance": {
+        "profile": "enterprise",
+        "reviews_required": ["architecture-review"],
+        "compliance_frameworks": ["gdpr"],
+        "adr_required": True,
+        "coverage_threshold": 80,
+    },
+    "delivery": {"model": "single-team", "methodology": "incremental", "sprint_length_weeks": 2, "cicd_platform": "github-actions"},
+}
+
+
+@pytest.mark.asyncio
+async def test_portfolio_surfaces_ingested_manifest_posture(client: AsyncClient) -> None:
+    org_id = await _create_org(client, "posture-org")
+    pid = await _create_project(client, org_id, "with-manifest")
+    await _create_project(client, org_id, "no-manifest")
+
+    ingest = await client.post(f"/api/v1/projects/{pid}/manifest", json={"manifest": _MANIFEST})
+    assert ingest.status_code == 200, ingest.text
+
+    resp = await client.get(f"/api/v1/organisations/{org_id}/portfolio")
+    assert resp.status_code == 200, resp.text
+    rows = {row["slug"]: row for row in resp.json()["projects"]}
+
+    # The project with a manifest carries its governed posture; the other stays null (still listed).
+    assert rows["with-manifest"]["governance_profile"] == "enterprise"
+    assert rows["with-manifest"]["coverage_threshold"] == 80
+    assert rows["with-manifest"]["compliance_frameworks"] == ["gdpr"]
+    assert rows["with-manifest"]["resolved_pack_count"] is not None
+    assert rows["no-manifest"]["governance_profile"] is None
+    assert rows["no-manifest"]["compliance_frameworks"] == []
+
+
 @pytest.mark.asyncio
 async def test_portfolio_unknown_org_is_problem_detail(client: AsyncClient) -> None:
     resp = await client.get(

@@ -214,6 +214,7 @@ platform/
 | `pii_events` | PII detection event: matched pattern, field name, action taken (redacted/blocked), agent run FK |
 | `policy_violations` | Policy check failure: policy name, project/phase, severity, remediation status |
 | `deliveries` | A planned unit of work for a project (title, status, priority, estimate_points, source); the PlanningAgent proposes them at `source='agent', status='proposed'` for a human to accept. Aggregated across an org's projects by the portfolio rollup (`GET /organisations/{id}/portfolio`), and publishable to GitHub as a tracking issue (`POST …/deliveries/{id}/publish`, marks it `planned` with the issue URL in `target_ref`) |
+| `project_manifests` | The ingested eeik-manifest **posture** for a project (1:1): `domain`, `governance_profile`, `coverage_threshold`, `compliance_frameworks`, `resolved_packs`, provenance (`engine`, `source_ref`), and the full `raw` manifest. Populated by the generic ingestion service (`onboarding/ingest.py`) from a tool-agnostic org descriptor + each repo's `project-manifest.yaml`, validated through the real eeik engine. This is how APEX **manages** a governed portfolio — surfaced in the portfolio rollup. Generic by design; no organisation is named in code |
 
 ---
 

@@ -24,6 +24,40 @@ real *offline* follow-on, not a gated one: **5** (real-output **quality-eval har
 
 ---
 
+## ✅ Manifest ingestion — APEX manages a governed portfolio
+
+The planner could roll up *deliveries*; this increment lets APEX manage the *governed reality* of a whole
+organisation — generically, driven by data. An org and its projects are described by a tool-agnostic
+descriptor + each repo's eeik `project-manifest.yaml`; APEX ingests them, validates through the **real eeik
+engine**, and persists the posture. No organisation is named anywhere in APEX — the coupling runs one way,
+`org → (data) → APEX`.
+
+- **`ProjectManifestRecord`** (`models/project_manifest.py`, table `project_manifests`, migration `0007`) —
+  a 1:1 record per project holding first-class posture (`domain`, `governance_profile`,
+  `coverage_threshold`, `compliance_frameworks`, `resolved_packs`) + provenance (`engine`, `source_ref`) +
+  the full `raw` manifest (no fidelity loss — the canonical schema carries fields APEX's internal Pydantic
+  model drops, e.g. `coverage_threshold`).
+- **Generic ingestion** (`onboarding/ingest.py`, `onboarding/resolver.py`) — `ManifestIngestService`
+  validates each manifest through the real eeik engine (SDK/MCP; `engine="vendored"` offline fallback) — the
+  same authority path as onboarding — and upserts `Project` + `ProjectManifestRecord`. Idempotent. The
+  `LocalWorkspaceResolver` reads each repo's manifest from a local multi-repo checkout
+  (`ECOSYSTEM_WORKSPACE_ROOT`) so a whole ecosystem ingests fully offline; a network resolver is a follow-on.
+- **Endpoints** (`api/v1/ingest.py`) — `POST /ingest/organisation` (descriptor → org + projects + posture),
+  `POST` / `GET /projects/{id}/manifest` (single-project ingest/read). RFC 7807 errors; invalid manifests
+  return 422 with eeik's errors.
+- **Portfolio surfaces posture** — `GET /organisations/{id}/portfolio` per-project rows now carry
+  `governance_profile`, `domain`, `compliance_frameworks`, `coverage_threshold`, `resolved_pack_count`, and
+  `manifest_engine` (null when no manifest ingested). Frontend `PortfolioView` shows a governance badge.
+- **Aether-as-data** — `app/seeds/aether.py` (hardcoded) was **retired**; the generic
+  `app/seeds/from_descriptor.py` ingests any descriptor. The Aether ecosystem now describes its own
+  composition in its hub repo (`aether/ecosystem/ecosystem.yaml` + a `project-manifest.yaml` per repo) and
+  is ingested as the worked example.
+
+Verified end-to-end offline: ingesting the real 7-repo Aether descriptor through the real eeik SDK creates 7
+projects with resolved packs (4–8 per repo) and enterprise/GDPR posture in the portfolio.
+
+---
+
 ## ✅ Portfolio rollup + delivery write-back — the planner grows up
 
 The planner could propose deliveries per project; this increment gives it the two things that make it

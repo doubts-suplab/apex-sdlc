@@ -11,6 +11,7 @@ from app.api.v1 import (
     deliveries,
     devops,
     gates,
+    ingest,
     integrations,
     journey,
     members,
@@ -40,6 +41,7 @@ api_router.include_router(integrations.router)
 api_router.include_router(journey.router)
 api_router.include_router(agents.router)
 api_router.include_router(onboarding.router)
+api_router.include_router(ingest.router)
 api_router.include_router(gates.router)
 api_router.include_router(persistence.router)
 api_router.include_router(devops.router)

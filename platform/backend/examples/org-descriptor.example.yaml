@@ -1,0 +1,26 @@
+# Example organisation descriptor (illustrative — a fictitious org).
+#
+# This is the tool-agnostic format APEX ingests to register an organisation's projects and, per project,
+# read its eeik `project-manifest.yaml`. APEX ships this generic example only; real organisations (e.g.
+# the Aether ecosystem) declare their own descriptor in their own repository — never inside APEX.
+#
+# Ingest offline with:
+#   python -m app.seeds.from_descriptor examples/org-descriptor.example.yaml --workspace-root <checkout-root>
+# where <checkout-root> contains sibling checkouts named by repo (e.g. <root>/acme-billing/project-manifest.yaml).
+
+schema_version: "1.0"
+
+organisation:
+  name: Acme
+  slug: acme
+  description: A fictitious example organisation used to illustrate the descriptor format.
+
+projects:
+  - name: Acme Billing
+    slug: acme-billing
+    github_repo: acme/acme-billing
+    manifest_path: project-manifest.yaml
+  - name: Acme Portal
+    slug: acme-portal
+    github_repo: acme/acme-portal
+    manifest_path: project-manifest.yaml
