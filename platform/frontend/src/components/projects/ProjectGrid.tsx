@@ -6,7 +6,7 @@ import { ProjectCard } from "@/components/projects/ProjectCard";
 import { EmptyState } from "@/components/projects/EmptyState";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
-import { Plus, AlertCircle } from "lucide-react";
+import { Plus, AlertCircle, LayoutGrid } from "lucide-react";
 
 function ProjectCardSkeleton() {
   return (
@@ -38,12 +38,20 @@ export function ProjectGrid() {
             AI-powered SDLC for your organisation
           </p>
         </div>
-        <Link href="/onboard">
-          <Button variant="default" className="gap-2">
-            <Plus className="h-4 w-4" />
-            Onboard Project
-          </Button>
-        </Link>
+        <div className="flex items-center gap-2">
+          <Link href="/portfolio">
+            <Button variant="outline" className="gap-2">
+              <LayoutGrid className="h-4 w-4" />
+              Portfolio
+            </Button>
+          </Link>
+          <Link href="/onboard">
+            <Button variant="default" className="gap-2">
+              <Plus className="h-4 w-4" />
+              Onboard Project
+            </Button>
+          </Link>
+        </div>
       </div>
 
       {isError && (

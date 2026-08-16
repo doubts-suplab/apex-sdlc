@@ -44,6 +44,10 @@ an *ecosystem* planner: a cross-project rollup and a real write-back seam. Still
   double-publish 409, unknown 404) with a fake GitHub client and DB-override client fixture; full suite
   **232 passed**. Live GitHub write is the only credential-gated tail — the flow, labels, body, and state
   transition are all verified offline.
+- **Frontend wiring** — a `/portfolio` page (KPI tiles + by-status/priority bars + per-project table),
+  a `DeliveriesPanel` on the project detail page with a **Publish to GitHub** action, `types/delivery.ts`
+  (Zod mirrors) and `lib/queries/deliveries.ts` (`useProjectDeliveries`, `usePortfolio`,
+  `usePublishDelivery`). `tsc --noEmit` clean.
 
 ---
 

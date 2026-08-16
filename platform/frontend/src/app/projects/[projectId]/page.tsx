@@ -8,6 +8,7 @@ import { SDLCTimeline } from "@/components/projects/SDLCTimeline";
 import { LiveMetricsBar } from "@/components/projects/LiveMetricsBar";
 import { ProjectCostDashboard } from "@/components/projects/ProjectCostDashboard";
 import { PhaseRunnerPanel } from "@/components/projects/PhaseRunnerPanel";
+import { DeliveriesPanel } from "@/components/projects/DeliveriesPanel";
 import { GovernancePanel } from "@/components/projects/GovernancePanel";
 import { WebhookActivityFeed } from "@/components/projects/WebhookActivityFeed";
 import { Badge } from "@/components/ui/badge";
@@ -207,6 +208,9 @@ export default function ProjectDetailPage() {
           </div>
         </div>
       </div>
+
+      {/* Delivery backlog: proposed/planned deliveries with a Publish-to-GitHub write-back action */}
+      <DeliveriesPanel projectId={projectId} />
 
       {/* Phase agents: per-phase run trigger + stored governed state (runs, gates, artifacts) */}
       <PhaseRunnerPanel projectId={projectId} />
