@@ -14,7 +14,18 @@ from fastapi import HTTPException
 from app.core.config import get_settings
 from app.core.security import CurrentPrincipal, Principal
 from app.db.session import DbSession
+from app.integrations.github.client import GitHubClient
 from app.services.member_service import MemberService
+
+
+def get_github_client() -> GitHubClient:
+    """Build a GitHub client from settings.
+
+    A FastAPI dependency so it can be overridden in tests with a fake client (no network), the same
+    way ``get_db`` is overridden. Production wiring reads the token and API base from settings.
+    """
+    settings = get_settings()
+    return GitHubClient(settings.GITHUB_TOKEN, base_url=settings.GITHUB_API_BASE)
 
 
 async def require_project_member(

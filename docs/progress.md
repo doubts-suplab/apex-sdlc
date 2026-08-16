@@ -24,6 +24,29 @@ real *offline* follow-on, not a gated one: **5** (real-output **quality-eval har
 
 ---
 
+## ✅ Portfolio rollup + delivery write-back — the planner grows up
+
+The planner could propose deliveries per project; this increment gives it the two things that make it
+an *ecosystem* planner: a cross-project rollup and a real write-back seam. Still offline-deterministic.
+
+- **Cross-project portfolio rollup** (`services/portfolio_service.py`, `GET /organisations/{id}/portfolio`)
+  — aggregates every delivery across an org's projects into portfolio totals (counts by status and
+  priority, open count, total estimate points) plus a per-project breakdown (including projects with no
+  deliveries yet). Read-only, scoped to the org via a `Delivery → Project` join on `organisation_id` — no
+  org sees another's deliveries. Explicit column lists, grouped queries, zero-filled status/priority maps.
+- **Delivery → GitHub issue publish** (`services/delivery_publish_service.py`,
+  `POST /projects/{id}/deliveries/{deliveryId}/publish`) — the write-back seam: turns a planned delivery
+  into a real GitHub issue (`GitHubClient.create_issue`, labelled `apex-delivery`, body carrying the apex
+  delivery id for traceability), records the issue URL on `target_ref`, and advances the delivery to
+  `planned`. The GitHub client is a FastAPI dependency (`get_github_client`), so tests exercise the flow
+  with a fake — no network. `409` when the project has no repo or the delivery is already published.
+- **9 new tests** (portfolio: empty/aggregate/org-scope/sparse/404; publish: issue+planned, no-repo 409,
+  double-publish 409, unknown 404) with a fake GitHub client and DB-override client fixture; full suite
+  **232 passed**. Live GitHub write is the only credential-gated tail — the flow, labels, body, and state
+  transition are all verified offline.
+
+---
+
 ## ✅ Delivery planning — the planning capability apex lacked
 
 APEX modelled per-project SDLC *artifacts* and *phases* but had no notion of **deliveries** — the unit

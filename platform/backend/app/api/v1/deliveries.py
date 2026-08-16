@@ -5,10 +5,23 @@ from typing import Annotated
 
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 
+from fastapi.responses import JSONResponse
+
+from app.api.deps import get_github_client
 from app.core.logging import get_logger
 from app.db.session import DbSession
+from app.integrations.github.client import GitHubClient
 from app.schemas.common import PaginatedResponse, ProblemDetail
-from app.schemas.delivery import DeliveryCreate, DeliveryResponse, DeliveryUpdate
+from app.schemas.delivery import (
+    DeliveryCreate,
+    DeliveryPublishResponse,
+    DeliveryResponse,
+    DeliveryUpdate,
+)
+from app.services.delivery_publish_service import (
+    DeliveryPublishError,
+    DeliveryPublishService,
+)
 from app.services.delivery_service import DeliveryService
 from app.services.project_service import ProjectService
 
@@ -26,6 +39,7 @@ def _get_project_service(db: DbSession) -> ProjectService:
 
 DelService = Annotated[DeliveryService, Depends(_get_delivery_service)]
 ProjService = Annotated[ProjectService, Depends(_get_project_service)]
+GitHubDep = Annotated[GitHubClient, Depends(get_github_client)]
 
 _PROJECT_NOT_FOUND = ProblemDetail(
     type="https://apex.example.com/problems/not-found",
@@ -132,6 +146,54 @@ async def update_delivery(
         raise HTTPException(status_code=404, detail=_DELIVERY_NOT_FOUND.model_dump())
     updated = await service.update(delivery, payload)
     return DeliveryResponse.model_validate(updated)
+
+
+@router.post(
+    "/{delivery_id}/publish",
+    response_model=DeliveryPublishResponse,
+    responses={404: {"model": ProblemDetail}, 409: {"model": ProblemDetail}},
+    summary="Publish a delivery to GitHub as a tracking issue",
+)
+async def publish_delivery(
+    project_id: uuid.UUID,
+    delivery_id: uuid.UUID,
+    service: DelService,
+    projects: ProjService,
+    db: DbSession,
+    github: GitHubDep,
+) -> DeliveryPublishResponse:
+    """Create a GitHub issue for the delivery and mark it ``planned`` (the write-back seam).
+
+    Records the created issue's URL on the delivery's ``target_ref``. Fails with ``409`` when the
+    project has no repository configured or the delivery is already published.
+    """
+    project = await projects.get_by_id(project_id)
+    if project is None:
+        raise HTTPException(status_code=404, detail=_PROJECT_NOT_FOUND.model_dump())
+    delivery = await service.get_for_project(project_id, delivery_id)
+    if delivery is None:
+        raise HTTPException(status_code=404, detail=_DELIVERY_NOT_FOUND.model_dump())
+
+    publisher = DeliveryPublishService(db, github)
+    try:
+        published, issue = await publisher.publish(project, delivery)
+    except DeliveryPublishError as exc:
+        # Return the RFC-7807 body at top level (no generic HTTPException flattener for 409).
+        return JSONResponse(
+            status_code=409,
+            content=ProblemDetail(
+                type="https://apex.example.com/problems/conflict",
+                title="Delivery Cannot Be Published",
+                status=409,
+                detail=str(exc),
+            ).model_dump(),
+        )
+
+    return DeliveryPublishResponse(
+        delivery=DeliveryResponse.model_validate(published),
+        issue_url=issue.get("html_url", ""),
+        issue_number=issue.get("number"),
+    )
 
 
 @router.delete(
