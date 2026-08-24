@@ -758,8 +758,15 @@ The spec-driven spine is now **enforceable**: a phase can't advance until its ga
   approved.
 - ✅ **Gate evaluations persist** as `PhaseGate` during `persist_journey` (Increment 6); the **durable
   approval/identity store** is built (Increment 27); the **ARB workflow** is built (Increment 33); the
-  **CISO view** is built (Increments 14/23). ❌ **Offline follow-on remaining:** the mainframe-gate policy
-  check (block a deployment artifact when a mainframe change lacks a signed-off gate doc). **Gated:** CDK.
+  **CISO view** is built (Increments 14/23).
+- ✅ **Durable gate-evaluation history**: a `gate_evaluations` table (append-only — `GateEvaluation`
+  model + migration `0008`, which also **merges the two open Alembic heads**) records each evaluation's
+  outcome, reason, per-check detail, and evaluator. `POST /api/v1/projects/{id}/phases/{phase}/gate/evaluations`
+  (approver-gated) evaluates via the pure engine and persists; `GET /api/v1/projects/{id}/gate/evaluations`
+  reads the history. `PersistenceService.save_gate_evaluation` / `list_gate_evaluations`; 4 API tests
+  (267 total green).
+- ❌ **Offline follow-on remaining:** the mainframe-gate policy check (block a deployment artifact when a
+  mainframe change lacks a signed-off gate doc). **Gated:** CDK.
 
 ## Increment 3 — Onboarding front door (eeik bridge, Phase 0) 🚧
 

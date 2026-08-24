@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import hashlib
 import uuid
+from dataclasses import asdict
 from datetime import UTC, datetime
 from typing import Any
 
@@ -23,6 +24,7 @@ from app.models.agent_run import AgentRun
 from app.models.approval import GateApproval
 from app.models.artifact import Artifact, ArtifactVersion
 from app.models.audit import AuditLog, PiiEvent, PolicyViolation
+from app.models.gate_evaluation import GateEvaluation
 from app.models.phase import Phase, PhaseGate
 from app.models.team import Member
 
@@ -364,6 +366,50 @@ class PersistenceService:
             .where(Phase.project_id == project_id)
         )
         return [{"phase": phase_type, "status": status} for phase_type, status in result.all()]
+
+    # -- gate evaluations (durable, append-only history) -----------------------------------------
+    async def save_gate_evaluation(
+        self,
+        project_id: uuid.UUID,
+        result: Any,
+        *,
+        evaluated_by: str,
+        bypass_total: int = 0,
+    ) -> GateEvaluation:
+        """Persist one phase-gate evaluation (a :class:`~app.gates.engine.GateResult`).
+
+        Append-only: each evaluation is a new row, so a phase's gate history is the ordered sequence
+        of its evaluations. The pure engine stays framework-free — only this persists its output.
+        """
+        evaluation = GateEvaluation(
+            project_id=project_id,
+            phase=result.phase,
+            status=result.status,
+            reason=result.reason,
+            bypass_total=bypass_total,
+            evaluated_by=evaluated_by,
+            checks=[asdict(c) for c in result.checks],
+        )
+        self._db.add(evaluation)
+        await self._db.flush()
+        await self._db.refresh(evaluation)
+        logger.info(
+            "gate.evaluation.recorded",
+            project_id=str(project_id),
+            phase=result.phase,
+            status=result.status,
+            evaluated_by=evaluated_by,
+        )
+        return evaluation
+
+    async def list_gate_evaluations(
+        self, project_id: uuid.UUID, phase: str | None = None
+    ) -> list[GateEvaluation]:
+        stmt = select(GateEvaluation).where(GateEvaluation.project_id == project_id)
+        if phase is not None:
+            stmt = stmt.where(GateEvaluation.phase == phase)
+        result = await self._db.execute(stmt.order_by(GateEvaluation.created_at))
+        return list(result.scalars().all())
 
     # -- gate approvals (durable, identity-bound) ------------------------------------------------
     async def record_approval(
