@@ -14,6 +14,7 @@ from pydantic import BaseModel, Field
 
 from app.agents.catalog import PHASE_ORDER
 from app.agents.orchestrator import run_reference_journey, run_single_phase
+from app.gates.engine import evaluate_gate
 from app.api.deps import require_project_member
 from app.core.security import Principal, require_persona
 from app.db.session import DbSession
@@ -290,6 +291,95 @@ async def list_agent_runs(project_id: uuid.UUID, db: DbSession, svc: Svc) -> dic
 async def gate_status(project_id: uuid.UUID, db: DbSession, svc: Svc) -> dict[str, Any]:
     await _require_project(db, project_id)
     return {"gates": await svc.gate_matrix(project_id)}
+
+
+class GateEvaluationInput(BaseModel):
+    """Inputs to evaluate (and persist) a phase's gate."""
+
+    produced_artifacts: list[str] = Field(default_factory=list)
+    auto_enforced: bool = False
+    approved: bool = False
+    bypass_total: int = 0
+
+
+@router.post(
+    "/{project_id}/phases/{phase}/gate/evaluations",
+    status_code=201,
+    summary="Evaluate a phase gate and persist the result (append-only)",
+)
+async def persist_gate_evaluation(
+    project_id: uuid.UUID,
+    phase: str,
+    body: GateEvaluationInput,
+    db: DbSession,
+    svc: Svc,
+    principal: Annotated[Principal, Depends(require_persona(*_APPROVER_PERSONAS))],
+) -> dict[str, Any]:
+    """Evaluate a phase gate through the pure engine and store the evaluation as a durable,
+    append-only record (who evaluated it, the outcome, and which checks passed)."""
+    await _require_project(db, project_id)
+    if phase not in PHASE_ORDER:
+        raise HTTPException(
+            status_code=404,
+            detail={
+                "type": "https://apex.example.com/problems/unknown-phase",
+                "title": "Unknown phase",
+                "status": 404,
+                "detail": f"Phase {phase!r} is not one of {list(PHASE_ORDER)}.",
+            },
+        )
+    result = evaluate_gate(
+        phase,
+        produced_artifacts=body.produced_artifacts,
+        auto_enforced=body.auto_enforced,
+        approved=body.approved,
+        bypass_total=body.bypass_total,
+    )
+    saved = await svc.save_gate_evaluation(
+        project_id, result, evaluated_by=principal.subject, bypass_total=body.bypass_total
+    )
+    return {
+        "id": str(saved.id),
+        "project_id": str(project_id),
+        "phase": saved.phase,
+        "status": saved.status,
+        "reason": saved.reason,
+        "bypass_total": saved.bypass_total,
+        "evaluated_by": saved.evaluated_by,
+        "checks": saved.checks,
+        "evaluated_at": saved.created_at.isoformat() if saved.created_at else None,
+    }
+
+
+@router.get(
+    "/{project_id}/gate/evaluations",
+    summary="Persisted phase-gate evaluation history for a project",
+)
+async def list_gate_evaluations(
+    project_id: uuid.UUID,
+    db: DbSession,
+    svc: Svc,
+    phase: Annotated[str | None, Query()] = None,
+) -> dict[str, Any]:
+    await _require_project(db, project_id)
+    evaluations = await svc.list_gate_evaluations(project_id, phase)
+    return {
+        "project_id": str(project_id),
+        "total": len(evaluations),
+        "items": [
+            {
+                "id": str(e.id),
+                "phase": e.phase,
+                "status": e.status,
+                "reason": e.reason,
+                "bypass_total": e.bypass_total,
+                "evaluated_by": e.evaluated_by,
+                "checks": e.checks,
+                "evaluated_at": e.created_at.isoformat() if e.created_at else None,
+            }
+            for e in evaluations
+        ],
+    }
 
 
 @router.get(

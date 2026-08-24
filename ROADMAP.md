@@ -349,8 +349,14 @@ transition rule — a phase cannot advance until its spec is approved and its ga
 > of gate evaluations, a real approval/credential store, append-only DB enforcement, and the rest of this
 > phase (ARB workflow, mainframe gate, CDK). **Schema is now Alembic-versioned** (Increment 15), the
 > **full data model exists** (Team/Member added — Increment 16), and a **global auth middleware** enforces
-> JWT on all non-allowlisted routes when `AUTH_REQUIRED` is set (opt-in, Increment 17). See
-> [`docs/progress.md`](docs/progress.md).
+> JWT on all non-allowlisted routes when `AUTH_REQUIRED` is set (opt-in, Increment 17). **DB persistence
+> of gate evaluations is now built**: a `gate_evaluations` table (append-only) records
+> each phase-gate evaluation — outcome, reason, per-check detail, and who evaluated it — via
+> `POST /projects/{id}/phases/{phase}/gate/evaluations` (approver-gated) with a
+> `GET /projects/{id}/gate/evaluations` history read; the migration also **merges the two open Alembic
+> heads** (arb_submissions + project_manifests) so `alembic upgrade head` is unambiguous again. Still
+> pending: a real approval/credential store, append-only DB enforcement, and the rest of this phase
+> (ARB workflow, mainframe gate, CDK). See [`docs/progress.md`](docs/progress.md).
 
 **Deliverables:**
 - Phase gate engine: configurable criteria per gate (required artifacts, min test coverage, approved reviewers, policy checks), enforcing the spec-driven spine's phase-to-phase transitions
