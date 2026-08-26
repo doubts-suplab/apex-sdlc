@@ -15,7 +15,7 @@ from sqlalchemy import JSON, Boolean, Float, ForeignKey, Integer, String, Text
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
-from app.db.base import Base, TimestampMixin
+from app.db.base import AppendOnly, Base, TimestampMixin
 
 # JSONB on PostgreSQL (production); generic JSON elsewhere (SQLite in tests) so the schema compiles.
 _JSON = JSON().with_variant(JSONB, "postgresql")
@@ -25,7 +25,7 @@ VIOLATION_SEVERITIES = ("low", "medium", "high", "critical")
 REMEDIATION_STATUSES = ("open", "acknowledged", "resolved", "waived")
 
 
-class AuditLog(Base, TimestampMixin):
+class AuditLog(Base, TimestampMixin, AppendOnly):
     """Append-only record of one AI action. Never mutated (governance invariant)."""
 
     __tablename__ = "audit_log"
@@ -53,8 +53,8 @@ class AuditLog(Base, TimestampMixin):
         return f"<AuditLog id={self.id} phase={self.phase!r} action={self.action!r}>"
 
 
-class PiiEvent(Base, TimestampMixin):
-    """A PII-guard detection on agent I/O."""
+class PiiEvent(Base, TimestampMixin, AppendOnly):
+    """A PII-guard detection on agent I/O. Append-only (a detection is a fact, never rewritten)."""
 
     __tablename__ = "pii_events"
 

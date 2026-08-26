@@ -15,7 +15,7 @@ from sqlalchemy import JSON, ForeignKey, Integer, String, Text
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
-from app.db.base import Base, TimestampMixin
+from app.db.base import AppendOnly, Base, TimestampMixin
 
 # JSONB on PostgreSQL (production); generic JSON elsewhere (SQLite in tests) so the schema compiles.
 _JSON = JSON().with_variant(JSONB, "postgresql")
@@ -23,7 +23,7 @@ _JSON = JSON().with_variant(JSONB, "postgresql")
 GATE_STATUSES = ("passed", "pending", "failed")
 
 
-class GateEvaluation(Base, TimestampMixin):
+class GateEvaluation(Base, TimestampMixin, AppendOnly):
     """One persisted evaluation of a phase gate. Append-only (governance invariant)."""
 
     __tablename__ = "gate_evaluations"
