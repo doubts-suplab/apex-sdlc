@@ -354,9 +354,13 @@ transition rule — a phase cannot advance until its spec is approved and its ga
 > each phase-gate evaluation — outcome, reason, per-check detail, and who evaluated it — via
 > `POST /projects/{id}/phases/{phase}/gate/evaluations` (approver-gated) with a
 > `GET /projects/{id}/gate/evaluations` history read; the migration also **merges the two open Alembic
-> heads** (arb_submissions + project_manifests) so `alembic upgrade head` is unambiguous again. Still
-> pending: a real approval/credential store, append-only DB enforcement, and the rest of this phase
-> (ARB workflow, mainframe gate, CDK). See [`docs/progress.md`](docs/progress.md).
+> heads** (arb_submissions + project_manifests) so `alembic upgrade head` is unambiguous again.
+> **Append-only enforcement is now built** (Increment 34): an `AppendOnly` mixin + a `before_flush`
+> session guard veto any UPDATE or DELETE of an `audit_log`, `pii_events`, or `gate_evaluations` row
+> before it reaches the database — inserts and reads pass through, mutable models (e.g.
+> `policy_violations` with its remediation-status workflow) are untouched, and the invariant holds
+> identically on PostgreSQL and SQLite. Still pending: a real approval/credential store and the rest
+> of this phase (mainframe gate, CDK). See [`docs/progress.md`](docs/progress.md).
 
 **Deliverables:**
 - Phase gate engine: configurable criteria per gate (required artifacts, min test coverage, approved reviewers, policy checks), enforcing the spec-driven spine's phase-to-phase transitions
@@ -425,7 +429,7 @@ no dead scripts.
 | Onboarding: real GitHub repo creation + full DB persistence of onboarded projects | 0 | P0 | credential-gated |
 | Onboarding: richer LLM-driven repository-generator (beyond the deterministic scaffold) | 0/3 | P1 | credential-gated |
 | Reconcile the Pydantic onboarding manifest with eeik's canonical schema | 0 | P1 | offline |
-| S3 artifact storage + durable gate evaluations + approval/identity store | 4/5 | P0 (approvals) / P1 (S3) | offline (approvals via DB) + infra-gated (S3) — ✅ **durable approval/identity store built (Increment 27)**; S3 + durable gate-eval snapshots still pending |
+| S3 artifact storage + durable gate evaluations + approval/identity store | 4/5 | P0 (approvals) / P1 (S3) | offline (approvals via DB) + infra-gated (S3) — ✅ **durable approval/identity store built (Increment 27)**; ✅ **durable gate-eval snapshots built** (`gate_evaluations`) + ✅ **append-only enforcement (Increment 34)**; S3 still infra-gated |
 | Full spine enforcement in production + ARB workflow | 5 | P1 | offline (spine) + credential-gated (ARB write) — ✅ **ARB approval workflow built (Increment 33)**: submit → decide → append-only audit; full production spine enforcement still pending |
 | Auth/RBAC completion: bind token persona → project `Member`, credential store, refresh tokens, prod-hardening | 5 | P0 (member-binding) / P1 (rest) | offline — ✅ **member-binding + members/teams API built (Increment 28)**; credential/OIDC store + refresh tokens pending (credential-gated) |
 

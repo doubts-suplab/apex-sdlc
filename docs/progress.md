@@ -24,6 +24,29 @@ remainder is credential/infra-gated). Increments **5** (quality-eval harness, In
 
 ---
 
+## ✅ Append-only enforcement for the governance tables (Increment 34)
+
+The audit trail was *declared* append-only (golden rule #10) but nothing stopped an UPDATE or DELETE
+in code. This increment enforces the invariant:
+
+- ✅ **`AppendOnly` mixin** (`app/db/base.py`) marks a model's rows as insert-and-read-only, and a
+  single `before_flush` session guard vetoes any mutation of a marked instance —
+  `AppendOnlyViolationError` is raised before the flush reaches the DB. The listener is registered on
+  the base `Session` class, so it covers every session, yet only ever raises for `AppendOnly`
+  instances; inserts (`session.new`) and every mutable model pass through.
+- ✅ Applied to **`audit_log`**, **`pii_events`**, and **`gate_evaluations`** — the three pure
+  event/decision logs. **`policy_violations`** is deliberately left mutable (it carries a
+  remediation-status workflow: open → acknowledged → resolved → waived).
+- ✅ DB-portable: enforced in application code, so it holds identically on PostgreSQL (production) and
+  SQLite (tests) with no dialect-specific triggers and no migration.
+- ✅ 4 tests (`tests/db/test_append_only.py`): insert allowed; update rejected; delete rejected; a
+  mutable model (`PolicyViolation.status`) still updates. Full suite green (271 passed).
+
+**Gated remainder:** none — this is fully offline. (A belt-and-braces DB-level trigger could be added
+later for defence in depth, but the application-level invariant is the enforcement point.)
+
+---
+
 ## ✅ Manifest ingestion — APEX manages a governed portfolio
 
 The planner could roll up *deliveries*; this increment lets APEX manage the *governed reality* of a whole
